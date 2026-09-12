@@ -38,7 +38,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "export:web": "expo export -p web",
-    "build:web": "expo export -p web"
+    "build:web": "expo export -p web",
+    "build": "expo export -p web"
   },
   "private": true,
   "description": "Guerrilla Cards \u2014 party card game MVP (Expo)"
