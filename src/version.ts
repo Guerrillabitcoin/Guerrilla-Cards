@@ -1,11 +1,18 @@
 /**
- * App release label shown in the UI (Partida header).
+ * App release label shown in the UI (home + Partida header).
  * Bump this when shipping a visible change to Vercel / stores.
  */
-export const APP_VERSION = '0.2';
+export const APP_VERSION = '0.3';
 
-/** Short note for humans / changelog (not shown in header). */
+/** Short note for humans / changelog. */
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.3',
+    date: '2026-09-12',
+    notes: [
+      'Versión visible también en la pantalla de inicio',
+    ],
+  },
   {
     version: '0.2',
     date: '2026-09-12',
@@ -14,6 +21,7 @@ export const APP_VERSION_NOTES = [
       'Favoritos: pregunta blanca / respuesta naranja',
       'Gate +18 y aviso de guardado local',
       'Pantalla compartir + Solo por defecto',
+      'Versión en header de Partida',
     ],
   },
   {

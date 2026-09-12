@@ -28,6 +28,7 @@ import {
 import { useGameStore } from '@/src/store/GameContext';
 import { randomNickname } from '@/src/engine/nicknames';
 import { colors } from '@/src/theme/colors';
+import { APP_VERSION } from '@/src/version';
 
 
 function shortPackTitle(id: string, title: string): string {
@@ -302,14 +303,17 @@ export default function HomeScreen() {
 
   return (
     <Screen style={denseMenu ? styles.screenDense : undefined} contentDense={denseMenu}>
-      <Text
-        style={[styles.brandTitle, denseMenu && styles.brandTitleDense]}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-        minimumFontScale={0.7}
-      >
-        GUERRILLA CARDS
-      </Text>
+      <View style={styles.brandRow}>
+        <Text
+          style={[styles.brandTitle, denseMenu && styles.brandTitleDense]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+        >
+          GUERRILLA CARDS
+        </Text>
+        <Text style={styles.brandVersion}>{APP_VERSION}</Text>
+      </View>
       <Subtitle style={denseMenu ? styles.subDense : undefined}>
         Juego de humor negro en español. Rellena los huecos de las preguntas con
         disparatadas e ingeniosas respuestas.
@@ -470,12 +474,24 @@ const styles = StyleSheet.create({
   screenDense: {
     // consumed by Screen via style prop on outer view
   },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   brandTitle: {
     color: colors.accent,
     fontWeight: '900',
     letterSpacing: 2,
     fontSize: 28,
     textTransform: 'uppercase',
+    flexShrink: 1,
+  },
+  brandVersion: {
+    color: colors.textDim,
+    fontSize: 12,
+    fontWeight: '700',
   },
   brandTitleDense: {
     fontSize: 24,
