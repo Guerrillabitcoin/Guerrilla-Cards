@@ -201,12 +201,15 @@ export function PackTile({
   /** Smaller tiles for dense PC menus / many columns. */
   compact?: boolean;
 }) {
+  const { width: winW } = useWindowDimensions();
+  const pcPack = winW >= 700;
   return (
     <Pressable
       onPress={onPress}
       style={[
         styles.packTile,
         compact && styles.packTileCompact,
+        pcPack && styles.packTilePc,
         selected && styles.packTileSelected,
       ]}
     >
@@ -226,7 +229,11 @@ export function PackTile({
       ) : null}
       <View style={styles.packTitleWrap}>
         <Text
-          style={[styles.packTitle, compact && styles.packTitleCompact]}
+          style={[
+            styles.packTitle,
+            compact && styles.packTitleCompact,
+            pcPack && styles.packTitlePc,
+          ]}
           numberOfLines={2}
           adjustsFontSizeToFit
           minimumFontScale={0.7}
@@ -237,7 +244,11 @@ export function PackTile({
       <View style={styles.packFooter}>
         {subtitle ? (
           <Text
-            style={[styles.packSub, compact && styles.packSubCompact]}
+            style={[
+              styles.packSub,
+              compact && styles.packSubCompact,
+              pcPack && styles.packSubPc,
+            ]}
             numberOfLines={1}
           >
             {subtitle}
@@ -247,7 +258,11 @@ export function PackTile({
         )}
         {group ? (
           <Text
-            style={[styles.packGroup, compact && styles.packGroupCompact]}
+            style={[
+              styles.packGroup,
+              compact && styles.packGroupCompact,
+              pcPack && styles.packGroupPc,
+            ]}
             numberOfLines={1}
           >
             {group}
@@ -274,11 +289,11 @@ export function hasLongWord(text: string, cardWidth: number): boolean {
   return lw >= 9 && lw * (cardWidth * 0.11) * 0.58 > cardWidth * 0.72;
 }
 
-/** PC fonts — bump on ~1080p / large desktops; shrink only heavy text. */
-export const PC_CARD_FONT = 16;
-export const PC_PROMPT_FONT = 20;
-export const PC_CARD_FONT_HD = 21;
-export const PC_PROMPT_FONT_HD = 26;
+/** PC fonts — fill card height; shrink only heavy text. */
+export const PC_CARD_FONT = 19;
+export const PC_PROMPT_FONT = 24;
+export const PC_CARD_FONT_HD = 24;
+export const PC_PROMPT_FONT_HD = 30;
 
 export function cardFontSize(
   text: string,
@@ -410,10 +425,11 @@ function CardFaceInner({
   const approxTile = Math.max(48, approxTileRaw - gutter);
   const isPc = winW >= 700;
   const hdPc = isPc && (winW >= 1600 || winH >= 1000);
-  // aspectRatio 1.35 → height = width / 1.35; subtract vertical padding
-  const padY = square || dense ? 12 : compact ? 16 : 20;
+  // aspectRatio 1.35 → height = width / 1.35; match real cardSquare pad (5+5)
+  // so fit uses almost all vertical room inside the margins
+  const padY = square || dense ? (isPc ? 5 : 6) : compact ? 16 : 20;
   const contentHeight = square
-    ? Math.max(36, approxTileRaw / 1.35 - padY)
+    ? Math.max(40, approxTileRaw / 1.35 - padY * 2 - (isPc ? 2 : 4))
     : undefined;
   const fitted = useMemo(
     () =>
@@ -887,6 +903,24 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     paddingHorizontal: 2,
   },
+  /** PC: larger pack name, uses tile height better */
+  packTilePc: {
+    paddingTop: 6,
+    paddingBottom: 6,
+  },
+  packTitlePc: {
+    fontSize: 16,
+    lineHeight: 19,
+    fontWeight: '900',
+  },
+  packSubPc: {
+    fontSize: 11,
+    lineHeight: 13,
+  },
+  packGroupPc: {
+    fontSize: 10,
+    lineHeight: 12,
+  },
   packGroupCompact: {
     fontSize: 8,
     lineHeight: 9,
@@ -901,7 +935,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 2,
-    paddingTop: 10,
+    paddingTop: 4,
+    paddingBottom: 2,
     minHeight: 0,
   },
   packFooter: {
@@ -951,8 +986,8 @@ const styles = StyleSheet.create({
   packTitle: {
     color: colors.text,
     fontWeight: '900',
-    fontSize: 14,
-    lineHeight: 16,
+    fontSize: 15,
+    lineHeight: 17,
     textAlign: 'center',
     alignSelf: 'center',
     maxWidth: '100%',
