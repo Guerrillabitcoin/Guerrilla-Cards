@@ -60,6 +60,11 @@ async function pushRecentIds(key: string, ids: string[]) {
   await AsyncStorage.setItem(key, JSON.stringify(next));
 }
 
+function mergeRecentLocal(prev: string[], ids: string[]): string[] {
+  if (!ids.length) return prev;
+  return [...ids, ...prev.filter((id) => !ids.includes(id))].slice(0, RECENT_MAX);
+}
+
 
 type GamesMap = Record<string, GameState>;
 
@@ -194,7 +199,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       loadRecentIds(RECENT_ANSWERS_KEY),
     ]).then(([g, rp, ra]) => {
       gamesRef.current = g;
-      recentPromptsRef.current = rp;
+      // Merge live usedPromptIds into recents (covers first-prompt / old-build gaps)
+      const fromGames: string[] = [];
+      const seen = new Set(rp);
+      for (const game of Object.values(g)) {
+        for (const id of game.usedPromptIds ?? []) {
+          if (seen.has(id)) continue;
+          seen.add(id);
+          fromGames.push(id);
+        }
+      }
+      recentPromptsRef.current = mergeRecentLocal(rp, fromGames);
+      if (fromGames.length) void pushRecentIds(RECENT_PROMPTS_KEY, fromGames);
       recentAnswersRef.current = ra;
       const forUi: GamesMap = {};
       for (const [k, game] of Object.entries(g)) {
@@ -259,6 +275,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         avoidAnswerIds: recentAnswersRef.current,
       });
       state = Engine.startGame(state);
+      // startGame already drew round-1 prompt — commit() alone never mirrored
+      // it into recents (updateGame only diffs later ids). Remember now.
+      const startedUsed = state.usedPromptIds ?? [];
+      if (startedUsed.length) {
+        recentPromptsRef.current = mergeRecentLocal(
+          recentPromptsRef.current,
+          startedUsed
+        );
+        void pushRecentIds(RECENT_PROMPTS_KEY, startedUsed);
+      }
       commit({ ...gamesRef.current, [state.code]: state });
       return state;
     },

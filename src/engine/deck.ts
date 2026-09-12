@@ -225,10 +225,11 @@ export function promptShape(text: string): string {
 
 /**
  * Prompt order for a new/restarted match:
- * - Keep a large "fresh" prefix (never starve the pool — all-packs ≈ 339 Qs)
- * - Push recently seen ids to the back
+ * - ONLY count avoid ids that exist in THIS pack selection (else Core-only
+ *   wasted the budget on plus18/etc ids and felt endlessly repetitive)
+ * - Never-seen prompts first; recently seen last (oldest-among-seen before newest)
  * - Interleave packs + space similar shapes
- * - Random cut ONLY inside the fresh prefix (old bug: cut pulled recents to front)
+ * - Random cut ONLY inside the never-seen prefix
  */
 export function buildVariedPromptDeck(
   prompts: Card[],
@@ -236,16 +237,21 @@ export function buildVariedPromptDeck(
 ): Card[] {
   if (!prompts.length) return [];
 
-  // Always leave ≥40% (min 50) as fresh so 2–3 matches don't loop the same Qs
-  const minFresh = Math.max(50, Math.floor(prompts.length * 0.4));
-  const maxAvoid = Math.max(0, prompts.length - minFresh);
-  const trimmed = avoidIds.slice(0, maxAvoid);
-  const avoid = new Set(trimmed);
+  const inPool = new Set(prompts.map((c) => c.id));
+  // Newest-first rank among ids that actually appear in this deck
+  const rank = new Map<string, number>();
+  for (const id of avoidIds) {
+    if (!inPool.has(id) || rank.has(id)) continue;
+    rank.set(id, rank.size);
+  }
 
-  const fresh = prompts.filter((c) => !avoid.has(c.id));
-  const recent = prompts.filter((c) => avoid.has(c.id));
+  const neverSeen = prompts.filter((c) => !rank.has(c.id));
+  const seen = prompts
+    .filter((c) => rank.has(c.id))
+    // Higher rank = seen longer ago → draw sooner among the "seen" tail
+    .sort((a, b) => (rank.get(b.id) ?? 0) - (rank.get(a.id) ?? 0));
 
-  let orderedFresh = spaceOutShapes(interleaveByPack(shuffle(fresh)), 4);
+  let orderedFresh = spaceOutShapes(interleaveByPack(shuffle(neverSeen)), 4);
   if (orderedFresh.length > 6) {
     const span = Math.max(
       2,
@@ -255,7 +261,8 @@ export function buildVariedPromptDeck(
     orderedFresh = orderedFresh.slice(cut).concat(orderedFresh.slice(0, cut));
   }
 
-  const orderedRecent = spaceOutShapes(interleaveByPack(shuffle(recent)), 3);
+  // Keep relative age order; light pack interleave without reshuffling ages away
+  const orderedRecent = spaceOutShapes(interleaveByPack(seen), 3);
   return [...orderedFresh, ...orderedRecent];
 }
 

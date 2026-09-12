@@ -242,6 +242,10 @@ export default function HomeScreen() {
 
   const startSoloNow = () => {
     try {
+      if (!ready) {
+        Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+        return;
+      }
       if (!nickname.trim()) {
         Alert.alert('Apodo', 'Escribe un apodo para el anfitrión.');
         return;
