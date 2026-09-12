@@ -188,7 +188,7 @@ export function shuffleAvoidingIds<T extends { id: string }>(
   return [...fresh, ...recent];
 }
 
-/** Round-robin by sourcePack so one pack does not streak. */
+/** @deprecated Not used for prompt decks (pack-round-robin removed). Kept for rare tooling. */
 export function interleaveByPack(cards: Card[]): Card[] {
   if (cards.length <= 1) return cards;
   const buckets = new Map<string, Card[]>();
@@ -224,13 +224,13 @@ export function promptShape(text: string): string {
 }
 
 /**
- * Prompt order for a new/restarted match — maximize entropy over the pool:
- * - Avoid-ids only if they exist in THIS pack selection
- * - Never-seen first, recently seen last (no mid-match reshuffle of used)
- * - Within each block: Fisher–Yates uniform shuffle (each card equally likely
- *   in each slot). Pack interleave / aggressive shape spacing were removing
- *   entropy and over-representing tiny packs early.
- * - Only break exact adjacent shape twins (window 1) — tiny local fix, not a bias
+ * After packs are merged into ONE prompt pile for the match:
+ * 1) Fisher–Yates shuffle the WHOLE pile (not pack-by-pack / round-robin)
+ * 2) Each create/restart gets a fresh independent shuffle (different order)
+ * 3) Recently-seen ids (this browser) sink to the back — still shuffled among
+ *    themselves — so we don't replay the same Qs next match until the cycle ends
+ *
+ * Do NOT interleave by sourcePack here: that felt like "one from each pack".
  */
 export function buildVariedPromptDeck(
   prompts: Card[],
@@ -245,13 +245,19 @@ export function buildVariedPromptDeck(
     seenSet.add(id);
   }
 
-  const neverSeen = prompts.filter((c) => !seenSet.has(c.id));
-  const seen = prompts.filter((c) => seenSet.has(c.id));
+  // One mixed order over the entire combined deck, then partition
+  const mixed = shuffle(prompts);
+  // Extra pass so consecutive creates diverge even more
+  const remixed = shuffle(mixed);
 
-  // Max-entropy draw order among eligible cards
-  const orderedFresh = spaceOutShapes(shuffle(neverSeen), 1);
-  const orderedRecent = spaceOutShapes(shuffle(seen), 1);
-  return [...orderedFresh, ...orderedRecent];
+  const fresh: Card[] = [];
+  const recent: Card[] = [];
+  for (const c of remixed) {
+    if (seenSet.has(c.id)) recent.push(c);
+    else fresh.push(c);
+  }
+  // Fresh already in random relative order; reshuffle recent block too
+  return [...fresh, ...shuffle(recent)];
 }
 
 /**
