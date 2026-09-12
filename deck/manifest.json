@@ -1,0 +1,194 @@
+{
+  "name": "Guerrilla Cards",
+  "version": "1.1.0",
+  "language": "es",
+  "rules": "rules.json",
+  "packs": [
+    {
+      "id": "core",
+      "title": "Guerrilla Core",
+      "description": "Mazo principal residual: humor absurdo y cotidiano sin tema fuerte.",
+      "nsfw": false,
+      "file": "packs/core.json",
+      "counts": {
+        "total": 3228,
+        "prompts": 219,
+        "answers": 3009
+      },
+      "playable": true
+    },
+    {
+      "id": "politica",
+      "title": "Política",
+      "description": "Política española e internacional, partidos, políticos y monclovitas varios.",
+      "nsfw": false,
+      "file": "packs/politica.json",
+      "counts": {
+        "total": 113,
+        "prompts": 21,
+        "answers": 92
+      },
+      "playable": true
+    },
+    {
+      "id": "celebridades",
+      "title": "Famosos",
+      "description": "Famosos, influencers, marcas, deporte y cultura pop como punchline.",
+      "nsfw": false,
+      "file": "packs/celebridades.json",
+      "counts": {
+        "total": 61,
+        "prompts": 2,
+        "answers": 59
+      },
+      "playable": true
+    },
+    {
+      "id": "economia",
+      "title": "Economía",
+      "description": "Dinero, bancos, impuestos, crypto, pobreza, riqueza y curro.",
+      "nsfw": false,
+      "file": "packs/economia.json",
+      "counts": {
+        "total": 104,
+        "prompts": 15,
+        "answers": 89
+      },
+      "playable": true
+    },
+    {
+      "id": "animales",
+      "title": "Animales",
+      "description": "Mascotas, fauna y bestias varias (sin falsos amigos tipo AVE/cola).",
+      "nsfw": false,
+      "file": "packs/animales.json",
+      "counts": {
+        "total": 65,
+        "prompts": 1,
+        "answers": 64
+      },
+      "playable": true
+    },
+    {
+      "id": "sexo",
+      "title": "Sexo",
+      "description": "Contenido sexual explícito. Solo adultos (18+).",
+      "nsfw": true,
+      "file": "packs/sexo.json",
+      "counts": {
+        "total": 333,
+        "prompts": 16,
+        "answers": 317
+      },
+      "playable": true
+    },
+    {
+      "id": "drogas",
+      "title": "Drogas",
+      "description": "Drogas, alcohol y colocones. Solo adultos (18+).",
+      "nsfw": true,
+      "file": "packs/drogas.json",
+      "counts": {
+        "total": 85,
+        "prompts": 3,
+        "answers": 82
+      },
+      "playable": true
+    },
+    {
+      "id": "familia",
+      "title": "Familia",
+      "description": "Familia, suegros, críos, bodas y dramas domésticos.",
+      "nsfw": false,
+      "file": "packs/familia.json",
+      "counts": {
+        "total": 240,
+        "prompts": 40,
+        "answers": 200
+      },
+      "playable": true
+    },
+    {
+      "id": "religion",
+      "title": "Religión",
+      "description": "Religión, iglesias, sectas y fe con humor negro.",
+      "nsfw": false,
+      "file": "packs/religion.json",
+      "counts": {
+        "total": 74,
+        "prompts": 4,
+        "answers": 70
+      },
+      "playable": true
+    },
+    {
+      "id": "tech",
+      "title": "Tech",
+      "description": "IA, móviles, redes sociales y cacharrería digital.",
+      "nsfw": false,
+      "file": "packs/tech.json",
+      "counts": {
+        "total": 86,
+        "prompts": 7,
+        "answers": 79
+      },
+      "playable": true
+    },
+    {
+      "id": "salud",
+      "title": "Salud",
+      "description": "Médicos, hospitales, salud mental y achaques.",
+      "nsfw": false,
+      "file": "packs/salud.json",
+      "counts": {
+        "total": 68,
+        "prompts": 9,
+        "answers": 59
+      },
+      "playable": true
+    },
+    {
+      "id": "espana",
+      "title": "España",
+      "description": "Cultura local, fútbol, ciudades y tópicos patrios.",
+      "nsfw": false,
+      "file": "packs/espana.json",
+      "counts": {
+        "total": 53,
+        "prompts": 10,
+        "answers": 43
+      },
+      "playable": true
+    },
+    {
+      "id": "plus18",
+      "title": "Plus 18",
+      "description": "Paraguas NSFW: sexo, drogas y humor adulto/edgy. Solo adultos (18+). Sin contenido sobre menores.",
+      "nsfw": true,
+      "file": "packs/plus18.json",
+      "counts": {
+        "total": 505,
+        "prompts": 22,
+        "answers": 483
+      },
+      "playable": true
+    },
+    {
+      "id": "_banned",
+      "title": "Banearadas",
+      "description": "Cartas excluidas del juego jugable: sexualización, explotación o humor sobre abuso sexual de menores / pedofilia / CSAM-adjacent.",
+      "nsfw": true,
+      "file": "packs/_banned.json",
+      "counts": {
+        "total": 21
+      },
+      "playable": false
+    }
+  ],
+  "totals": {
+    "playable_cards": 4447,
+    "playable_prompts": 339,
+    "playable_answers": 4108,
+    "banned": 21
+  }
+}

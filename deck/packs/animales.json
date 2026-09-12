@@ -1,0 +1,404 @@
+{
+  "id": "animales",
+  "title": "Animales",
+  "description": "Mascotas, fauna y bestias varias (sin falsos amigos tipo AVE/cola).",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0005",
+      "type": "answer",
+      "text": "carne de canguro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0104",
+      "type": "answer",
+      "text": "delfín en lata",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0151",
+      "type": "answer",
+      "text": "lanzar una cabra desde un campanario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0177",
+      "type": "answer",
+      "text": "un mono que fuma Marlboro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0212",
+      "type": "answer",
+      "text": "tirar una lámpara de araña del techo a tus enemigos y escapar cuando la cuerda sube",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0318",
+      "type": "answer",
+      "text": "someter a un oso y hacerlo tu esposa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0486",
+      "type": "answer",
+      "text": "un pájaro que caga zurullos de tamaño humano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0544",
+      "type": "answer",
+      "text": "mi primera mascota",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0663",
+      "type": "answer",
+      "text": "caballo homosexual de las montañas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0667",
+      "type": "answer",
+      "text": "todos los animales del Arca de Noé",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0709",
+      "type": "answer",
+      "text": "una mano de mono disecada que concede deseos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0831",
+      "type": "answer",
+      "text": "disfrutar jugando con tu mascota",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0858",
+      "type": "answer",
+      "text": "un pájaro que no puede volar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1016",
+      "type": "answer",
+      "text": "los gritos de mi mujer cuando cago en el cajón del gato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1097",
+      "type": "answer",
+      "text": "mi gato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1118",
+      "type": "answer",
+      "text": "sesitos de cordero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1138",
+      "type": "answer",
+      "text": "un perro policía luchando contra el crimen a cambio de unas salchichas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1175",
+      "type": "answer",
+      "text": "el olor de la gente que tiene mascotas en casa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1180",
+      "type": "answer",
+      "text": "Laika, la perra espacial",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1248",
+      "type": "answer",
+      "text": "el tigre que se comió a mi hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1252",
+      "type": "answer",
+      "text": "partir un perro a la mitad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1323",
+      "type": "answer",
+      "text": "arrojar tus heces como un chimpancé",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1328",
+      "type": "answer",
+      "text": "piedra-papel- tijera-lagarto- spock",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1397",
+      "type": "answer",
+      "text": "comer el hamster de mi hermana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1409",
+      "type": "answer",
+      "text": "cola de zorro vibradora atascada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1551",
+      "type": "answer",
+      "text": "un conejo carnívoro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1717",
+      "type": "answer",
+      "text": "un canario en la mina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1737",
+      "type": "answer",
+      "text": "el perro que te mira mientras comes un bocadillo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1738",
+      "type": "answer",
+      "text": "un loro que repite tus discusiones de pareja",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1782",
+      "type": "answer",
+      "text": "perro ladrador, poco mordedor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1784",
+      "type": "answer",
+      "text": "la curiosidad mató al gato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1785",
+      "type": "answer",
+      "text": "un gato hidráulico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1904",
+      "type": "answer",
+      "text": "muchísimos peces muertos flotando en el rio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2038",
+      "type": "answer",
+      "text": "piso compartido en Malasaña con 6 latinos, 3 perros, 2 gatos y una serpiente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2081",
+      "type": "answer",
+      "text": "águila coja",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2157",
+      "type": "answer",
+      "text": "hacer que tu mascota se comporte de una forma extraña",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2370",
+      "type": "answer",
+      "text": "meter espadazos a un toro, pero con estilo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2478",
+      "type": "answer",
+      "text": "rata de tres patas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2492",
+      "type": "answer",
+      "text": "el milagro de los panes y los peces",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2580",
+      "type": "answer",
+      "text": "todo por culpa de un conejo peludo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2609",
+      "type": "answer",
+      "text": "un cerdo que merece morir",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2611",
+      "type": "answer",
+      "text": "tu mascota lamiéndose las pelotas y luego tu cara",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2624",
+      "type": "answer",
+      "text": "la Vaca que Ríe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2768",
+      "type": "answer",
+      "text": "un pájaro de dos cabezas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2819",
+      "type": "answer",
+      "text": "se lo comió mi perro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2843",
+      "type": "answer",
+      "text": "graznar con un pato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2855",
+      "type": "answer",
+      "text": "un gato policía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2878",
+      "type": "answer",
+      "text": "una princesa aplastada por un cerdo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2879",
+      "type": "answer",
+      "text": "durum de cerdo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2906",
+      "type": "answer",
+      "text": "echarme una novia de 21 años en años de perro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2935",
+      "type": "answer",
+      "text": "Lobo Estepario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2981",
+      "type": "answer",
+      "text": "ser embestido por un toro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3066",
+      "type": "answer",
+      "text": "animales en peligro de extinción",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3145",
+      "type": "answer",
+      "text": "apalear a un animal en peligro de exitinción",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3353",
+      "type": "answer",
+      "text": "invasión de mosquitos tigre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3382",
+      "type": "answer",
+      "text": "mi pequeño pony",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0247",
+      "type": "prompt",
+      "text": "Tuvimos que sacrificar al gato por culpa de ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0002",
+      "type": "answer",
+      "text": "el perro de Rastreator",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0022",
+      "type": "answer",
+      "text": "una pistola de agua rellena de orín de mono",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0263",
+      "type": "answer",
+      "text": "pedir al veterinario de mi caballo que le recete ketamina",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0313",
+      "type": "answer",
+      "text": "un petabyte de porno con animales",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0324",
+      "type": "answer",
+      "text": "masturbar a un delfín en nombre de la ciencia",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0428",
+      "type": "answer",
+      "text": "ser asaltado sexualmente por un mono",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0439",
+      "type": "answer",
+      "text": "drogar a los animales",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0490",
+      "type": "answer",
+      "text": "tener relaciones sexuales con la mascota familiar",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 65,
+    "prompts": 1,
+    "answers": 64
+  },
+  "playable": true
+}

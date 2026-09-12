@@ -1,0 +1,692 @@
+{
+  "id": "politica",
+  "title": "Política",
+  "description": "Política española e internacional, partidos, políticos y monclovitas varios.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0129",
+      "type": "answer",
+      "text": "tener menos movilidad que Echenique",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0001",
+      "type": "answer",
+      "text": "Isabel Díaz Ayuso",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0002",
+      "type": "answer",
+      "text": "su alteza real Felipe VI",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0003",
+      "type": "answer",
+      "text": "el ejército Nazi",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0004",
+      "type": "answer",
+      "text": "Pablo Iglesias",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0005",
+      "type": "answer",
+      "text": "Donald Trump",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0006",
+      "type": "answer",
+      "text": "Silvio Berlusconi",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0007",
+      "type": "answer",
+      "text": "destrozar ese culo como si de una aldea palestina se tratase",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0008",
+      "type": "answer",
+      "text": "Dirty Sánchez",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0010",
+      "type": "answer",
+      "text": "Francisco Franco",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0011",
+      "type": "answer",
+      "text": "Barack Obama",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0012",
+      "type": "answer",
+      "text": "el primer presidente del gobierno no humano",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0013",
+      "type": "answer",
+      "text": "el comunismo no funcionó de nuevo",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0014",
+      "type": "answer",
+      "text": "Javier Milei y Tung Tung Tung Tung Sahur luchando contra el Kirchnerismo",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0015",
+      "type": "answer",
+      "text": "Bombardiro Crocodilo nombrado nuevo jefe de la OTAN",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0016",
+      "type": "answer",
+      "text": "envenenar a Vladimir Putin",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0017",
+      "type": "answer",
+      "text": "Íñigo Errejón pillado pajeándose en los baños del Carrefour",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0018",
+      "type": "answer",
+      "text": "unas cajas en la sede del PSOE",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0019",
+      "type": "answer",
+      "text": "en las calles de Palestina",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0020",
+      "type": "answer",
+      "text": "Mariano Rajoy",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0021",
+      "type": "answer",
+      "text": "Jose Luis Rodríguez Zapatero",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0022",
+      "type": "answer",
+      "text": "el Congreso de los Diputados",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0023",
+      "type": "answer",
+      "text": "Nicolás Maduro Moro",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0024",
+      "type": "answer",
+      "text": "en una fiesta con políticos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0025",
+      "type": "answer",
+      "text": "un facha acusado de ser maricón",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0026",
+      "type": "answer",
+      "text": "Santiago Abascal pajeándose sobre banderas de España al escuchar el himno español",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0027",
+      "type": "answer",
+      "text": "Pedro Sánchez vendiendo Cataluña a los catalanes por 10.000 Bitcoins",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0028",
+      "type": "answer",
+      "text": "Milei con una motosierra en el orto",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0031",
+      "type": "answer",
+      "text": "la Ministra de Economía",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0032",
+      "type": "answer",
+      "text": "la guerra de Ucrania",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0033",
+      "type": "answer",
+      "text": "inmolarse en el Ayuntamiento",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0034",
+      "type": "answer",
+      "text": "contacto directo con el presidente del gobierno",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0036",
+      "type": "answer",
+      "text": "el Capitalismo de Libre Mercado",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0038",
+      "type": "answer",
+      "text": "una supuesta democracia",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0039",
+      "type": "answer",
+      "text": "el gobierno más corrupto hasta la fecha",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0040",
+      "type": "answer",
+      "text": "Comunismo Nazi",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0041",
+      "type": "answer",
+      "text": "escrache a un político",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0042",
+      "type": "answer",
+      "text": "una bomba durante la cumbre de la OTAN",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0043",
+      "type": "answer",
+      "text": "el nuevo Hitler",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0044",
+      "type": "answer",
+      "text": "votar a Vox",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0045",
+      "type": "answer",
+      "text": "un nuevo globo sonda del Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0048",
+      "type": "answer",
+      "text": "los mejores años de la dictadura",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0049",
+      "type": "answer",
+      "text": "estar hablando de política todo el jodido tiempo",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0051",
+      "type": "answer",
+      "text": "comerse el bigote de Jose María Aznar para obtener sus poderes",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0053",
+      "type": "answer",
+      "text": "Yolanda Díaz explicando el Comunismo mientras se come un chuletón de Ávila",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0054",
+      "type": "answer",
+      "text": "Milei diciendo “viva la libertad carajo” mientras te hace una paja",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0055",
+      "type": "answer",
+      "text": "un deepfake de Pedro Sánchez en un video porno gay",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0056",
+      "type": "answer",
+      "text": "podemos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0058",
+      "type": "answer",
+      "text": "Capitalismo, ahorro y trabajo duru",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0059",
+      "type": "answer",
+      "text": "mi ex-mujer aplicando una política monetaria restrictiva",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0060",
+      "type": "answer",
+      "text": "Democracia en modo prueba",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0061",
+      "type": "answer",
+      "text": "poner a prueba los limites de la paciencia de tu familia política",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0063",
+      "type": "answer",
+      "text": "una sobremesa sin hablar de política",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0067",
+      "type": "answer",
+      "text": "defender a politicos corruptos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0068",
+      "type": "answer",
+      "text": "el Rey emérito",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0069",
+      "type": "answer",
+      "text": "ser político",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0070",
+      "type": "answer",
+      "text": "el transplante de cara de Santiago Abascal y un pimiento de Padrón",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0072",
+      "type": "answer",
+      "text": "política-ficción",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0076",
+      "type": "answer",
+      "text": "tirarse a un facha",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0077",
+      "type": "answer",
+      "text": "el conflicto Israel-Palestina",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0078",
+      "type": "answer",
+      "text": "médicos sin Fronteras",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0079",
+      "type": "answer",
+      "text": "payasos sin Fronteras",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0081",
+      "type": "answer",
+      "text": "creer en la Democracia",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0082",
+      "type": "answer",
+      "text": "Donald Trump asaltando tu puto pueblo para asegurar el suministro de jamón ibérico",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0083",
+      "type": "answer",
+      "text": "el Partido Comunista Chino",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0084",
+      "type": "answer",
+      "text": "eliminar toda la deuda global de los ciudadanos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0085",
+      "type": "answer",
+      "text": "las élites políticas",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0086",
+      "type": "answer",
+      "text": "Mussolini, Hitler y Elon Musk",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0087",
+      "type": "answer",
+      "text": "ir de cañas con Ayuso",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0089",
+      "type": "answer",
+      "text": "luchar porque se resucite a Franco con Fondos Europeos para la Cohesión",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0091",
+      "type": "answer",
+      "text": "el vídeo porno de M.Rajoy",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0092",
+      "type": "answer",
+      "text": "partirle una ceja a Zapatero",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0093",
+      "type": "answer",
+      "text": "confirmar que Pedro Sánchez tiene SIDA",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0094",
+      "type": "answer",
+      "text": "un fin de semana con Milei en la Casa Rosada",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0095",
+      "type": "answer",
+      "text": "un deepfake de Isabel Díaz Ayuso cantando la internacional socialista",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0096",
+      "type": "answer",
+      "text": "el Congreso aprobando que los diputados cobren en bitcoin y en mamadas oficiales",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0097",
+      "type": "answer",
+      "text": "el deep state usando tu historial de Pornhub para chantajearte y obligarte a votar al PSOE",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0098",
+      "type": "answer",
+      "text": "un doble de Vladimir Putin",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0099",
+      "type": "answer",
+      "text": "monjas robando bebés en el franquismo",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0103",
+      "type": "answer",
+      "text": "buscar en tiktok si el nazismo fue verdad",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0104",
+      "type": "answer",
+      "text": "invasión en Ceuta y Melilla",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0105",
+      "type": "answer",
+      "text": "netanyahu",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0106",
+      "type": "answer",
+      "text": "medio millón de moros y negros saltando con pértiga la valla de Melilla",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0107",
+      "type": "answer",
+      "text": "Zapatero entregando las Gemas del Infinito a Thanos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0110",
+      "type": "answer",
+      "text": "el ático de Ayuso",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0111",
+      "type": "answer",
+      "text": "hacer una “tierlist” de ciudadanos en función de su color de piel y religión",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0113",
+      "type": "answer",
+      "text": "¡otra crisis solucionada por Pedro Sánchez!",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0114",
+      "type": "answer",
+      "text": "la momia de Biden",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0116",
+      "type": "answer",
+      "text": "el final de Pedro Sánchez",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0117",
+      "type": "answer",
+      "text": "altos cargos del Gobierno que buscan salir del Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0118",
+      "type": "answer",
+      "text": "look fascista",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0119",
+      "type": "answer",
+      "text": "Joseph Stalin",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0001",
+      "type": "prompt",
+      "text": "Podemos está promoviendo una ley que busca ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0003",
+      "type": "prompt",
+      "text": "La mejor decisión de gobierno que tomó Pedro Sanchez fue: ______ para todos.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0005",
+      "type": "prompt",
+      "text": "Dimite un asesor presidencial por ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0006",
+      "type": "prompt",
+      "text": "______+______. Un resumen de las memorias póstumas del Rey Juan Carlos.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0007",
+      "type": "prompt",
+      "text": "Mi carrera política acabó por: ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0008",
+      "type": "prompt",
+      "text": "Pillaron al Ministro de Igualdad huyendo despues de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0009",
+      "type": "prompt",
+      "text": "Pablo Iglesias vuelve con un partido con solo 2 puntos en su programa electoral: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0010",
+      "type": "prompt",
+      "text": "BIO: “Hola, soy ______ si te gusta ______ nos llevaremos bien. Abstenerse fachas y VOX”",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0011",
+      "type": "prompt",
+      "text": "El Ministro de Sanidad tuvo que dimitir por el escándalo de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0012",
+      "type": "prompt",
+      "text": "El PSOE me prometió un sueldo mensual a cambio de ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0013",
+      "type": "prompt",
+      "text": "La última carta que recibió Pedro Sanchez se titulaba: ______ contra ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0015",
+      "type": "prompt",
+      "text": "La nueva coalición de gobierno está formada por ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0016",
+      "type": "prompt",
+      "text": "La última frase que dijo el Rey Juan Carlos antes de morir fue: “______ y ______”.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0019",
+      "type": "prompt",
+      "text": "La Unión Europea: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0020",
+      "type": "prompt",
+      "text": "Ayuso ha decidido comprar ______ con dinero público.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0021",
+      "type": "prompt",
+      "text": "La nueva taberna feminista de Pablo Iglesias se llamará: ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0023",
+      "type": "prompt",
+      "text": "No me gusta la inmigración, pero al menos conseguimos ______ a bajo precio.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0024",
+      "type": "prompt",
+      "text": "Para ingresar en el PSOE me pidieron ______ y garantizar todo mi apoyo incondicional a ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0025",
+      "type": "prompt",
+      "text": "El Gobierno ha gastado 100 millones de euros en ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0026",
+      "type": "prompt",
+      "text": "Comunismo: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0027",
+      "type": "prompt",
+      "text": "VOX: ______ y ______.",
+      "pick": 2
+    }
+  ],
+  "counts": {
+    "total": 113,
+    "prompts": 21,
+    "answers": 92
+  },
+  "playable": true
+}

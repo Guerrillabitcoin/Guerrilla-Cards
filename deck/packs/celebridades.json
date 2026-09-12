@@ -1,0 +1,380 @@
+{
+  "id": "celebridades",
+  "title": "Famosos",
+  "description": "Famosos, influencers, marcas, deporte y cultura pop como punchline.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-1242",
+      "type": "answer",
+      "text": "Florentino Pérez",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3259",
+      "type": "answer",
+      "text": "el Barça de Guardiola",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0086",
+      "type": "answer",
+      "text": "Mussolini, Hitler y Elon Musk",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0001",
+      "type": "answer",
+      "text": "ir desnudo al Telepizza",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0002",
+      "type": "answer",
+      "text": "el perro de Rastreator",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0003",
+      "type": "answer",
+      "text": "una pastilla de Viagra",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0004",
+      "type": "answer",
+      "text": "un Nokia 3310 introducido en el recto",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0005",
+      "type": "answer",
+      "text": "Iker Jiménez",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0007",
+      "type": "answer",
+      "text": "Will Smith en el Hormiguero con Pablo Motos",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0008",
+      "type": "answer",
+      "text": "Nutella",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0009",
+      "type": "answer",
+      "text": "el delicioso ano de Jorge Javier Vázquez",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0010",
+      "type": "answer",
+      "text": "Justin Bieber",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0011",
+      "type": "answer",
+      "text": "Lady Gaga",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0013",
+      "type": "answer",
+      "text": "un trio con Messi y Cristiano Ronaldo",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0014",
+      "type": "answer",
+      "text": "el último cohete de Elon Musk",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0015",
+      "type": "answer",
+      "text": "un nuevo servicio de Amazon Prime",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0016",
+      "type": "answer",
+      "text": "Bad Bunny pidiéndote matrimonio a través de OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0019",
+      "type": "answer",
+      "text": "Vinicius Junior",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0020",
+      "type": "answer",
+      "text": "una tía que se parece un montón a Taylor Swift",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0021",
+      "type": "answer",
+      "text": "una sesión con Bizarrap",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0022",
+      "type": "answer",
+      "text": "montar un mueble del Ikea",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0023",
+      "type": "answer",
+      "text": "ibai hasta el culo de Ozempic",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0025",
+      "type": "answer",
+      "text": "la última película de Disney",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0026",
+      "type": "answer",
+      "text": "ser encargado de un Burger King",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0027",
+      "type": "answer",
+      "text": "onlyfans",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0028",
+      "type": "answer",
+      "text": "un influencer gastronómico",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0029",
+      "type": "answer",
+      "text": "encontrarme a Tom Cruise haciendo cruising",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0030",
+      "type": "answer",
+      "text": "la peli porno que hizo Shakira",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0032",
+      "type": "answer",
+      "text": "desodorante AXE",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0033",
+      "type": "answer",
+      "text": "la nueva peli de Star Wars",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0035",
+      "type": "answer",
+      "text": "el gol de Iniesta",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0037",
+      "type": "answer",
+      "text": "adicción a comprar mierdas chinas en Temu",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0040",
+      "type": "answer",
+      "text": "cena romántica con platos preparados del Mercadona en el propio Mercadona",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0042",
+      "type": "answer",
+      "text": "los microchips que Bill Gates pone en los productos de Hacendado",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0043",
+      "type": "answer",
+      "text": "los reptilianos infiltrados en el Consejo de Administración del Mercadona",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0044",
+      "type": "answer",
+      "text": "el logopeda de Bad Bunny",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0045",
+      "type": "answer",
+      "text": "ser influencer con 200 seguidores",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0050",
+      "type": "answer",
+      "text": "romper con tu pareja y seguir compartiendo la cuenta de Netflix",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0051",
+      "type": "answer",
+      "text": "Britney Spears recién salida del manicomio",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0052",
+      "type": "answer",
+      "text": "mbappé lesionado",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0053",
+      "type": "answer",
+      "text": "eurovisión",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0055",
+      "type": "answer",
+      "text": "el OnlyFans de un fontanero de la Murcia",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0056",
+      "type": "answer",
+      "text": "tu sobrino que ahora es youtuber y gana más que tú estudiando dos putas carreras",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0057",
+      "type": "answer",
+      "text": "gran hermano fiscal",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0059",
+      "type": "answer",
+      "text": "la tarjeta del Hormiguero",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0061",
+      "type": "answer",
+      "text": "Harry Potter y la Piedra Homosexual",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0062",
+      "type": "answer",
+      "text": "ser campeón Pokemon",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0063",
+      "type": "answer",
+      "text": "el OnlyFans de la Princesa Leonor",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0064",
+      "type": "answer",
+      "text": "la tarjeta de El Hormiguero",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0065",
+      "type": "answer",
+      "text": "un toque de Axe Chocolate",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0067",
+      "type": "answer",
+      "text": "genera facturas falsas de Viagra para justificar tus gastos a Hacienda",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0069",
+      "type": "answer",
+      "text": "el nuevo álbum de Rosalía",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0071",
+      "type": "answer",
+      "text": "el negro del Club Disney",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0073",
+      "type": "answer",
+      "text": "el Gol de Ronaldo contra el Compostela",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0074",
+      "type": "answer",
+      "text": "onlyfans inverso: enviar fotopollas a todos tus conocidos y exigir un pago para dejar de recibirlas",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0076",
+      "type": "answer",
+      "text": "Pablo Motos",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0078",
+      "type": "answer",
+      "text": "el Mercadona de mi barrio",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0079",
+      "type": "answer",
+      "text": "celebrar las bodas de plata en un McDonald’s",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0005",
+      "type": "prompt",
+      "text": "El nuevo disco de Shakira tiene contiene samples de ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-p-0006",
+      "type": "prompt",
+      "text": "Nuestro negocio se fue a pique cuando llegó ______.",
+      "pick": 1
+    },
+    {
+      "id": "user-a-47802de4bf",
+      "type": "answer",
+      "text": "confesarme en mis Stories",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 61,
+    "prompts": 2,
+    "answers": 59
+  },
+  "playable": true
+}

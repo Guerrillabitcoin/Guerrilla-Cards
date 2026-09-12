@@ -1,0 +1,530 @@
+{
+  "id": "tech",
+  "title": "Tech",
+  "description": "IA, móviles, redes sociales y cacharrería digital.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0131",
+      "type": "answer",
+      "text": "el modelo más avanzado de Inteligencia Artificial",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0167",
+      "type": "answer",
+      "text": "enseñarle a un robot a amar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0412",
+      "type": "answer",
+      "text": "Internet",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0445",
+      "type": "answer",
+      "text": "hackeo de marcapasos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0446",
+      "type": "answer",
+      "text": "deepfake de mi madre suplicando la muerte",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0459",
+      "type": "answer",
+      "text": "descubrir que el bluetooth da cancer",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0506",
+      "type": "answer",
+      "text": "facturas falsas generadas con IA sin mi permiso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0913",
+      "type": "answer",
+      "text": "un algoritmo recursivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1060",
+      "type": "answer",
+      "text": "fingir ser una mujer japonesa en internet",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1089",
+      "type": "answer",
+      "text": "preguntar a la IA si tienes tienes el pito pequeño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1111",
+      "type": "answer",
+      "text": "un grupo hacker coreano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1223",
+      "type": "answer",
+      "text": "hacerte un selfie fingiendo estar dormido para las redes sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1382",
+      "type": "answer",
+      "text": "Final Boss: Hacienda con IA",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1384",
+      "type": "answer",
+      "text": "AVE supersónico descarrilando en el metaverso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1508",
+      "type": "answer",
+      "text": "mi algoritmo de Twitter",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1531",
+      "type": "answer",
+      "text": "no es ignorancia, es programación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1555",
+      "type": "answer",
+      "text": "un software antiguo ejecutándose en un hardware de última generación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1569",
+      "type": "answer",
+      "text": "un algoritmo decidiendo tu salario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1595",
+      "type": "answer",
+      "text": "que se te conecte el wifi automáticamente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1618",
+      "type": "answer",
+      "text": "el grupo privado de Telegram de la Élite Mundial",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1637",
+      "type": "answer",
+      "text": "un NFT del Apocalipsis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1677",
+      "type": "answer",
+      "text": "el ex que te bloquea en todas las redes sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1775",
+      "type": "answer",
+      "text": "la vibración fantasma del muslo pensando que es el movil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1776",
+      "type": "answer",
+      "text": "llamar celular al móvil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1861",
+      "type": "answer",
+      "text": "contenido basura de las redes sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1877",
+      "type": "answer",
+      "text": "un nuevo servicio de IA",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1928",
+      "type": "answer",
+      "text": "hollywood usando IA para agrandar los pechos de todas las actrices",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2002",
+      "type": "answer",
+      "text": "friendo tu movil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2007",
+      "type": "answer",
+      "text": "un robot que baila salsa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2014",
+      "type": "answer",
+      "text": "un dron",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2095",
+      "type": "answer",
+      "text": "hackeo cuántico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2153",
+      "type": "answer",
+      "text": "sitios extraños de Internet",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2160",
+      "type": "answer",
+      "text": "uno de los sitios más polémicos de Internet",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2238",
+      "type": "answer",
+      "text": "ruptura por actualización de software",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2283",
+      "type": "answer",
+      "text": "Internet 2.0",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2296",
+      "type": "answer",
+      "text": "realidad virtual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2381",
+      "type": "answer",
+      "text": "Inteligencia Artificial versus Subnormalidad Natural",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2407",
+      "type": "answer",
+      "text": "la teoría del Internet Muerto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2773",
+      "type": "answer",
+      "text": "programación predictiva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2794",
+      "type": "answer",
+      "text": "hackear un Tesla y cometer un atropello múltiple por Las Ramblas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2894",
+      "type": "answer",
+      "text": "Inteligencia Artificial con sesgo heteropatriarcal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2999",
+      "type": "answer",
+      "text": "un algoritmo que predice cuándo te vas a quedar calvo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3078",
+      "type": "answer",
+      "text": "un hacker ruso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3127",
+      "type": "answer",
+      "text": "basura hecha con IA",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3135",
+      "type": "answer",
+      "text": "una resolución judicial que me impide navegar por internet",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3244",
+      "type": "answer",
+      "text": "un hacker ruso con todas mis contraseñas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3254",
+      "type": "answer",
+      "text": "abandonar el servidor prematuramente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3334",
+      "type": "answer",
+      "text": "tener un móvil que cuesta más que lo que cobras al mes",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0014",
+      "type": "prompt",
+      "text": "Le pedí a la IA sugerencias para ______ y me respondió con ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0071",
+      "type": "prompt",
+      "text": "No sé como acabé en mi movil con un mensaje de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0055",
+      "type": "answer",
+      "text": "un deepfake de Pedro Sánchez en un video porno gay",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0095",
+      "type": "answer",
+      "text": "un deepfake de Isabel Díaz Ayuso cantando la internacional socialista",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0103",
+      "type": "answer",
+      "text": "buscar en tiktok si el nazismo fue verdad",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0017",
+      "type": "prompt",
+      "text": "El tutorial de TikTok que más visitas tiene en España enseña cómo ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0012",
+      "type": "answer",
+      "text": "el nuevo proyecto de Google",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0017",
+      "type": "answer",
+      "text": "reunión en Google Meet con demonios del inframundo",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0024",
+      "type": "answer",
+      "text": "un filtro de Instagram",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0031",
+      "type": "answer",
+      "text": "un reto viral de TikTok",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0036",
+      "type": "answer",
+      "text": "mis mensajes privados de Instagram",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0039",
+      "type": "answer",
+      "text": "desnudar las fotos en bañador de tus amigas de Instagram con IA",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0046",
+      "type": "answer",
+      "text": "un audio de WhatsApp de 18 minutos",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0047",
+      "type": "answer",
+      "text": "el algoritmo de TikTok sabiendo más de ti que tu madre",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0048",
+      "type": "answer",
+      "text": "el dolor de cabeza que resulta ser un tumor mortal gracias al Dr. Google",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0049",
+      "type": "answer",
+      "text": "la amiga que te manda 80 audios de WhatsApp mientras duermes",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0054",
+      "type": "answer",
+      "text": "las memorias no autorizadas del hijo de la Pantoja escritas por ChatGPT",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0060",
+      "type": "answer",
+      "text": "la nueva versión de Whatsapp",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0068",
+      "type": "answer",
+      "text": "8 horas en TikTok al día",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0070",
+      "type": "answer",
+      "text": "aceptar las cookies de Google.es",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0072",
+      "type": "answer",
+      "text": "no me lo estoy inventando: lo pone en Google",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0077",
+      "type": "answer",
+      "text": "Reels de Instagram muy polémicos",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0001",
+      "type": "prompt",
+      "text": "El video de tiktok con más reproducciones este mes es ______ hecho con ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-p-0002",
+      "type": "prompt",
+      "text": "La verdadera razón por la que me echaron del Whatsapp de la familia es ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0003",
+      "type": "prompt",
+      "text": "Para que el algoritmo de Instagram te impulse necesitas ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-p-0004",
+      "type": "prompt",
+      "text": "Me descartaron del proceso de selección en Google por ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "plus18-a-0011",
+      "type": "answer",
+      "text": "una nueva droga descubierta por la Inteligencia Artificial",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0122",
+      "type": "answer",
+      "text": "porno personalizado generado con IA",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0157",
+      "type": "answer",
+      "text": "optimizar mis orgasmos usando un agente de IA",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0158",
+      "type": "answer",
+      "text": "que la IA se folle a tu nevera inteligente",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0218",
+      "type": "answer",
+      "text": "comprar droga por Internet",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0246",
+      "type": "answer",
+      "text": "un robot sexual",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0499",
+      "type": "answer",
+      "text": "aparentar ser rico en redes sociales y no tener un puto duro en la vida real",
+      "pick": 1
+    },
+    {
+      "id": "user-a-c10362f04c",
+      "type": "answer",
+      "text": "la resaca con PowerPoint",
+      "pick": 1
+    },
+    {
+      "id": "user-a-e0b3737530",
+      "type": "answer",
+      "text": "el tío que solo habla de criptomonedas",
+      "pick": 1
+    },
+    {
+      "id": "user-a-77fb9e2cec",
+      "type": "answer",
+      "text": "la actualización que rompe lo que sí funcionaba",
+      "pick": 1
+    },
+    {
+      "id": "user-a-47802de4bf",
+      "type": "answer",
+      "text": "confesarme en mis Stories",
+      "pick": 1
+    },
+    {
+      "id": "user-a-77b4db0d2b",
+      "type": "answer",
+      "text": "la versión de los hechos compatible con LinkedIn",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 86,
+    "prompts": 7,
+    "answers": 79
+  },
+  "playable": true
+}

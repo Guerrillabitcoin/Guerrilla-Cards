@@ -1,0 +1,638 @@
+{
+  "id": "economia",
+  "title": "Economía",
+  "description": "Dinero, bancos, impuestos, crypto, pobreza, riqueza y curro.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0044",
+      "type": "answer",
+      "text": "atracar por la espalda a una anciana sacando la pensión del cajero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0073",
+      "type": "answer",
+      "text": "meter fruta en la bolsa después de pesarla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0102",
+      "type": "answer",
+      "text": "ser rico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0124",
+      "type": "answer",
+      "text": "gente muy pobre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0187",
+      "type": "answer",
+      "text": "una bolsa de habichuelas mágicas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0195",
+      "type": "answer",
+      "text": "esconder varios millones de euros debajo del colchón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0205",
+      "type": "answer",
+      "text": "deuda agobiante",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0242",
+      "type": "answer",
+      "text": "un billete de un trillón de dólares",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0296",
+      "type": "answer",
+      "text": "una bolsa de torreznos humanos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0307",
+      "type": "answer",
+      "text": "pagar con Bitcoin",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0427",
+      "type": "answer",
+      "text": "el Banco Central Europeo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0444",
+      "type": "answer",
+      "text": "paro cardiaco global sincronizado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0472",
+      "type": "answer",
+      "text": "ganar dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0537",
+      "type": "answer",
+      "text": "fumar pasta base en una chabola",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0563",
+      "type": "answer",
+      "text": "una estafa piramidal a la que entraste pronto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0565",
+      "type": "answer",
+      "text": "no parar de robar todo el dinero posible",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0583",
+      "type": "answer",
+      "text": "empanadas rellenas de billetes",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0617",
+      "type": "answer",
+      "text": "imprimir dinero infinito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0631",
+      "type": "answer",
+      "text": "la estafa del cambio climático",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0693",
+      "type": "answer",
+      "text": "con cargo al presupuesto público",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0768",
+      "type": "answer",
+      "text": "un sistema para blanquear dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0781",
+      "type": "answer",
+      "text": "malversar dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0782",
+      "type": "answer",
+      "text": "un montón de dinero en efectivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0797",
+      "type": "answer",
+      "text": "ahorrar un poco de dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0965",
+      "type": "answer",
+      "text": "la minería de Bitcoin",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0989",
+      "type": "answer",
+      "text": "mi primer millón de dólares",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1000",
+      "type": "answer",
+      "text": "la hija única de un rico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1082",
+      "type": "answer",
+      "text": "no poder sacar el dinero del banco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1107",
+      "type": "answer",
+      "text": "es el último invento de Black Rock para robarnos todo el dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1110",
+      "type": "answer",
+      "text": "obligar a los ricos a vestir con un sombrero de copa y monóculo en público",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1146",
+      "type": "answer",
+      "text": "tener una máquina de imprimir billetes en casa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1295",
+      "type": "answer",
+      "text": "acabar con la pobreza del mundo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1377",
+      "type": "answer",
+      "text": "sólo para las personas que no tienen criptomonedas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1380",
+      "type": "answer",
+      "text": "un juez intentando incautar tu bitcoin",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1382",
+      "type": "answer",
+      "text": "Final Boss: Hacienda con IA",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1387",
+      "type": "answer",
+      "text": "7’52 Euros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1429",
+      "type": "answer",
+      "text": "deuda eterna",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1561",
+      "type": "answer",
+      "text": "el precio de cualquier cosa es el que estés dispuesto a pagar por ella",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1566",
+      "type": "answer",
+      "text": "pobres competencias sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1569",
+      "type": "answer",
+      "text": "un algoritmo decidiendo tu salario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1571",
+      "type": "answer",
+      "text": "cobrar por productos extranjeros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1587",
+      "type": "answer",
+      "text": "cambiar el dinero del bolsillo derecho al bolsillo izquierdo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1637",
+      "type": "answer",
+      "text": "un NFT del Apocalipsis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1697",
+      "type": "answer",
+      "text": "pobreza extrema",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1723",
+      "type": "answer",
+      "text": "un problema con el presupuesto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1761",
+      "type": "answer",
+      "text": "desempleo creativo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1819",
+      "type": "answer",
+      "text": "el legítimo interés de los socios comerciales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1822",
+      "type": "answer",
+      "text": "el Euro Digital",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1892",
+      "type": "answer",
+      "text": "buscar una manera de pagar todas mis deudas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1925",
+      "type": "answer",
+      "text": "inflación del 200% interanual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2030",
+      "type": "answer",
+      "text": "baja por depresión de un mileurista que ha descubierto que trabajar es una estafa piramidal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2048",
+      "type": "answer",
+      "text": "declaración de amor a tu banco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2120",
+      "type": "answer",
+      "text": "una bolsa que goteaba sangre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2142",
+      "type": "answer",
+      "text": "gastar el dinero en cosas que no necesitas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2211",
+      "type": "answer",
+      "text": "ahorrar mucho dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2266",
+      "type": "answer",
+      "text": "la estafa del reciclaje",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2290",
+      "type": "answer",
+      "text": "pagar efebos con dinero público",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2342",
+      "type": "answer",
+      "text": "una tarjeta con la que pagar todas tus deudas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2382",
+      "type": "answer",
+      "text": "las comisiones de mi banco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2520",
+      "type": "answer",
+      "text": "un pequeño precio a pagar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2549",
+      "type": "answer",
+      "text": "¡dame tu dinero!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2578",
+      "type": "answer",
+      "text": "deficit de atención",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2825",
+      "type": "answer",
+      "text": "recaudar mucho dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2826",
+      "type": "answer",
+      "text": "conseguir que los pobres te den su dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2830",
+      "type": "answer",
+      "text": "todo lo hice por dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2989",
+      "type": "answer",
+      "text": "por unas monedas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3015",
+      "type": "answer",
+      "text": "una bolsa de Cheetos Pandilla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3018",
+      "type": "answer",
+      "text": "es bien rico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3063",
+      "type": "answer",
+      "text": "una estafa multinivel que sigue operando con total impunidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3098",
+      "type": "answer",
+      "text": "una fucking panza de mileurista",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3121",
+      "type": "answer",
+      "text": "ganar dinero con el odio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3157",
+      "type": "answer",
+      "text": "hacer un mataleón a una anciana que acaba de sacar dinero del cajero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3159",
+      "type": "answer",
+      "text": "un nivel de pobreza que no te puedes imaginar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3215",
+      "type": "answer",
+      "text": "ser muy popular entre gente con muy poco dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3218",
+      "type": "answer",
+      "text": "reclamar tu dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3369",
+      "type": "answer",
+      "text": "fabricar masivamente dinero falso",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0026",
+      "type": "prompt",
+      "text": "Este turno, en lugar de jugar una carta, todos mirarán al César y harán un sonido como de comer algo muy rico",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0075",
+      "type": "prompt",
+      "text": "Conseguí ahorrar dinero en la Declaración de la Renta gracias a ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0104",
+      "type": "prompt",
+      "text": "Después de millones de euros, los científicos encontraron ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0116",
+      "type": "prompt",
+      "text": "El cajero automático se tragó mi tarjeta y la pantalla mostró: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0156",
+      "type": "prompt",
+      "text": "Me tocó ______ con ______ en el premio de una bolsa de papas fritas.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0173",
+      "type": "prompt",
+      "text": "A mi padre no le gustó nada la idea de prestarme dinero para ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0192",
+      "type": "prompt",
+      "text": "La crisis económica se acabó cuando prohibieron ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0208",
+      "type": "prompt",
+      "text": "Hacienda me abrió una investigación por unas facturas referentes a ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0219",
+      "type": "prompt",
+      "text": "En las fiestas de mi pueblo gastaron todo el presupuesto en ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0220",
+      "type": "prompt",
+      "text": "La mejor manera de hacerse rico es ______ con ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0238",
+      "type": "prompt",
+      "text": "¿Cómo conseguimos reducir la pobreza con nuestra ONG?",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0030",
+      "type": "answer",
+      "text": "resucitar para pagar impuestos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0046",
+      "type": "answer",
+      "text": "poner más impuestos a los megarricos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0065",
+      "type": "answer",
+      "text": "impuestos a produtos no comprados",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0066",
+      "type": "answer",
+      "text": "10 años del presupuesto para jubilaciones de España",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0073",
+      "type": "answer",
+      "text": "librarte de pagar impuestos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0084",
+      "type": "answer",
+      "text": "eliminar toda la deuda global de los ciudadanos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0096",
+      "type": "answer",
+      "text": "el Congreso aprobando que los diputados cobren en bitcoin y en mamadas oficiales",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0012",
+      "type": "prompt",
+      "text": "El PSOE me prometió un sueldo mensual a cambio de ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0014",
+      "type": "prompt",
+      "text": "En la España de hoy en día, ser rico significa poder permitirse ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0020",
+      "type": "prompt",
+      "text": "Ayuso ha decidido comprar ______ con dinero público.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0025",
+      "type": "prompt",
+      "text": "El Gobierno ha gastado 100 millones de euros en ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0067",
+      "type": "answer",
+      "text": "genera facturas falsas de Viagra para justificar tus gastos a Hacienda",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0459",
+      "type": "answer",
+      "text": "el Gran Reseteo pero que solo afecta a la clase media y los ricos siguen follando en yates",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0499",
+      "type": "answer",
+      "text": "aparentar ser rico en redes sociales y no tener un puto duro en la vida real",
+      "pick": 1
+    },
+    {
+      "id": "user-a-e0b3737530",
+      "type": "answer",
+      "text": "el tío que solo habla de criptomonedas",
+      "pick": 1
+    },
+    {
+      "id": "user-a-667ac13196",
+      "type": "answer",
+      "text": "heredar deudas y opiniones",
+      "pick": 1
+    },
+    {
+      "id": "user-a-77b4db0d2b",
+      "type": "answer",
+      "text": "la versión de los hechos compatible con LinkedIn",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 104,
+    "prompts": 15,
+    "answers": 89
+  },
+  "playable": true
+}

@@ -1,0 +1,332 @@
+{
+  "id": "espana",
+  "title": "España",
+  "description": "Cultura local, fútbol, ciudades y tópicos patrios.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0071",
+      "type": "answer",
+      "text": "la liga escolar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0100",
+      "type": "answer",
+      "text": "otra estúpida película de cine español",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0133",
+      "type": "answer",
+      "text": "en Andalucía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0454",
+      "type": "answer",
+      "text": "la Transición Española",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0491",
+      "type": "answer",
+      "text": "auténtica tradición española",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0620",
+      "type": "answer",
+      "text": "la bomba atómica española",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1254",
+      "type": "answer",
+      "text": "de Madrid al cielo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1384",
+      "type": "answer",
+      "text": "AVE supersónico descarrilando en el metaverso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1445",
+      "type": "answer",
+      "text": "el Ave Fénix procrastinador que nunca vuelve de sus cenizas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1577",
+      "type": "answer",
+      "text": "una pata de jamón ibérico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1605",
+      "type": "answer",
+      "text": "un gol del Betis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1657",
+      "type": "answer",
+      "text": "el verdadero motivo por el que el AVE siempre llega tarde",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1690",
+      "type": "answer",
+      "text": "una siesta que te deja peor de lo que estabas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1730",
+      "type": "answer",
+      "text": "la izquierda española",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1820",
+      "type": "answer",
+      "text": "Real Madrid",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1826",
+      "type": "answer",
+      "text": "los espejos que los nativos americanos robaron a los españoles",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2027",
+      "type": "answer",
+      "text": "apostar toda la pensión de tu abuelo a que el Betis saca el primer corner del partido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2317",
+      "type": "answer",
+      "text": "Paella Valenciana con Rata de la Albufera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2587",
+      "type": "answer",
+      "text": "estadounidenses que parecen mexicanos y que tratan a los españoles como sudacas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3032",
+      "type": "answer",
+      "text": "la Universidad Complutense de Madrid",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3047",
+      "type": "answer",
+      "text": "ser el organizador de una rave clandestina en Villanueva del Trabuco (Málaga)",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3064",
+      "type": "answer",
+      "text": "el Metro de Madrid",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3088",
+      "type": "answer",
+      "text": "Carrero Blanco, el primer astronauta español",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3242",
+      "type": "answer",
+      "text": "la Tomatina de Buñol",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3259",
+      "type": "answer",
+      "text": "el Barça de Guardiola",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3268",
+      "type": "answer",
+      "text": "debilitar a los españoles y fracturar Europa",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0018",
+      "type": "prompt",
+      "text": "El resultado de la educación española es: ______+______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0041",
+      "type": "prompt",
+      "text": "Mi abuelo siempre me despertaba de la siesta con ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0138",
+      "type": "prompt",
+      "text": "La verdadera razón por la que el AVE no llega a Extremadura es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0140",
+      "type": "prompt",
+      "text": "El próximo gran invento español será: ______ con sabor a jamón.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0251",
+      "type": "prompt",
+      "text": "Un día en Murcia: ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0026",
+      "type": "answer",
+      "text": "Santiago Abascal pajeándose sobre banderas de España al escuchar el himno español",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0027",
+      "type": "answer",
+      "text": "Pedro Sánchez vendiendo Cataluña a los catalanes por 10.000 Bitcoins",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0052",
+      "type": "answer",
+      "text": "Sinterklaas: el Papá Noel holandés que viene de España",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0062",
+      "type": "answer",
+      "text": "la bandera de España colgada en el balcon los 365 días al año",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0066",
+      "type": "answer",
+      "text": "10 años del presupuesto para jubilaciones de España",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0071",
+      "type": "answer",
+      "text": "España va bien",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0075",
+      "type": "answer",
+      "text": "ha sido prohibido en España",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0080",
+      "type": "answer",
+      "text": "los colores de España",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0082",
+      "type": "answer",
+      "text": "Donald Trump asaltando tu puto pueblo para asegurar el suministro de jamón ibérico",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0100",
+      "type": "answer",
+      "text": "el próximo mundial de fútbol que ganará España",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0102",
+      "type": "answer",
+      "text": "¡Arriba España!",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0108",
+      "type": "answer",
+      "text": "la España vaciada",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0002",
+      "type": "prompt",
+      "text": "¿Qué redujo la natalidad en España?",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0014",
+      "type": "prompt",
+      "text": "En la España de hoy en día, ser rico significa poder permitirse ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0017",
+      "type": "prompt",
+      "text": "El tutorial de TikTok que más visitas tiene en España enseña cómo ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0018",
+      "type": "prompt",
+      "text": "Los secretos de España para ganar el Mundial de Fútbol fueron: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-a-0040",
+      "type": "answer",
+      "text": "cena romántica con platos preparados del Mercadona en el propio Mercadona",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0043",
+      "type": "answer",
+      "text": "los reptilianos infiltrados en el Consejo de Administración del Mercadona",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0055",
+      "type": "answer",
+      "text": "el OnlyFans de un fontanero de la Murcia",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0078",
+      "type": "answer",
+      "text": "el Mercadona de mi barrio",
+      "pick": 1
+    },
+    {
+      "id": "plus18-p-0007",
+      "type": "prompt",
+      "text": "La forma más española de suicidarte socialmente en 2026 es ______.",
+      "pick": 1
+    },
+    {
+      "id": "user-a-7829f04e30",
+      "type": "answer",
+      "text": "un pueblo donde todo el mundo sabe tu historial médico",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 53,
+    "prompts": 10,
+    "answers": 43
+  },
+  "playable": true
+}

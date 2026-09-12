@@ -1,0 +1,422 @@
+{
+  "id": "salud",
+  "title": "Salud",
+  "description": "Médicos, hospitales, salud mental y achaques.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0078",
+      "type": "answer",
+      "text": "obesidad mórbida",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0112",
+      "type": "answer",
+      "text": "seguro dental",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0267",
+      "type": "answer",
+      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cancer...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0308",
+      "type": "answer",
+      "text": "en las urgencias del hospital",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0436",
+      "type": "answer",
+      "text": "las pastillas del corazón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0459",
+      "type": "answer",
+      "text": "descubrir que el bluetooth da cancer",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0490",
+      "type": "answer",
+      "text": "tirar un petardo en un quirófano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0505",
+      "type": "answer",
+      "text": "vacuna obligatoria contra la hepatitis Z",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0776",
+      "type": "answer",
+      "text": "paracetamol cada seis horas, y listo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0791",
+      "type": "answer",
+      "text": "antes de la pandemia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0822",
+      "type": "answer",
+      "text": "lo que me prescribió mi médico de cabecera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0906",
+      "type": "answer",
+      "text": "es una enfermedad mental",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1038",
+      "type": "answer",
+      "text": "hasta que vino la ambulancia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1054",
+      "type": "answer",
+      "text": "alzheimer prematuro camuflado en la vacuna del Covid",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1077",
+      "type": "answer",
+      "text": "no querer ir nunca al médico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1125",
+      "type": "answer",
+      "text": "una cita para el año que viene para jugar a los médicos y amenazar a tu esposa con irte a la privada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1172",
+      "type": "answer",
+      "text": "sospechoso incremento en lo casos de cáncer de próstata entre las mujeres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1311",
+      "type": "answer",
+      "text": "un yonki en la farmacia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1319",
+      "type": "answer",
+      "text": "una cadena de negligencias médicas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1412",
+      "type": "answer",
+      "text": "adicción a lamer sellos usados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1443",
+      "type": "answer",
+      "text": "ansiedad y depresión",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1523",
+      "type": "answer",
+      "text": "adicción a la validación social",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1548",
+      "type": "answer",
+      "text": "una pastilla que me regalo un tío en los baños de la discoteca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1662",
+      "type": "answer",
+      "text": "la tranquilidad de saber que el tumor era benigno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1910",
+      "type": "answer",
+      "text": "el quirófano clandestino que me monté en el sótano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1927",
+      "type": "answer",
+      "text": "adicción a videos donde revientan todo tipo de granos y espinillas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2030",
+      "type": "answer",
+      "text": "baja por depresión de un mileurista que ha descubierto que trabajar es una estafa piramidal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2052",
+      "type": "answer",
+      "text": "prótesis de rodilla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2337",
+      "type": "answer",
+      "text": "depresión post-parto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2369",
+      "type": "answer",
+      "text": "el Covid-26",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2476",
+      "type": "answer",
+      "text": "la Farmacia del Diablo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2629",
+      "type": "answer",
+      "text": "quimioterapia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2765",
+      "type": "answer",
+      "text": "prótesis mamarias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2781",
+      "type": "answer",
+      "text": "la Gripe de Osaka",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2869",
+      "type": "answer",
+      "text": "¿qué quieres la pastilla roja o la azul?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2950",
+      "type": "answer",
+      "text": "mi médico dijo que lo sacara todo fuera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3030",
+      "type": "answer",
+      "text": "vencer al cáncer infantil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3115",
+      "type": "answer",
+      "text": "Cáncer de Alma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3152",
+      "type": "answer",
+      "text": "la receta secreta de Daniel Sancho",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3205",
+      "type": "answer",
+      "text": "10 años después del COVID",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3385",
+      "type": "answer",
+      "text": "ir a pillar a la farmacia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3387",
+      "type": "answer",
+      "text": "depresión permanente",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0008",
+      "type": "prompt",
+      "text": "Mi madre dice que ______ es una enfermedad. ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0047",
+      "type": "prompt",
+      "text": "El médico me recetó ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0068",
+      "type": "prompt",
+      "text": "Al final de la terapia mi psicólogo me recomendó ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0108",
+      "type": "prompt",
+      "text": "Fui al médico por un dolor de rodilla… y terminé con ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0109",
+      "type": "prompt",
+      "text": "Después de tres horas de terapia, mi psicólogo solo escribió en su cuaderno: “______”.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0118",
+      "type": "prompt",
+      "text": "Según el prospecto del ibuprofeno, el efecto secundario más raro es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0134",
+      "type": "prompt",
+      "text": "La única forma de arreglar la sanidad pública es implantar ______ en urgencias.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0239",
+      "type": "prompt",
+      "text": "En la sala de espera del hospital hay pantallas de TV en bucle con ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0273",
+      "type": "prompt",
+      "text": "El médico adelanto por sorpresa mi consulta después de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0078",
+      "type": "answer",
+      "text": "médicos sin Fronteras",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0093",
+      "type": "answer",
+      "text": "confirmar que Pedro Sánchez tiene SIDA",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0003",
+      "type": "answer",
+      "text": "una pastilla de Viagra",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0037",
+      "type": "answer",
+      "text": "adicción a comprar mierdas chinas en Temu",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0048",
+      "type": "answer",
+      "text": "el dolor de cabeza que resulta ser un tumor mortal gracias al Dr. Google",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0003",
+      "type": "answer",
+      "text": "SIDA",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0060",
+      "type": "answer",
+      "text": "herpes genital",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0097",
+      "type": "answer",
+      "text": "adicción al sexo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0120",
+      "type": "answer",
+      "text": "una nueva ETS",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0170",
+      "type": "answer",
+      "text": "una vacuna para dejar de ser tan puta",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0250",
+      "type": "answer",
+      "text": "como me despiste pillo el SIDA",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0261",
+      "type": "answer",
+      "text": "gonorrea como forma de vida",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0343",
+      "type": "answer",
+      "text": "SIDA felino",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0403",
+      "type": "answer",
+      "text": "cáncer de vulva o pene",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0465",
+      "type": "answer",
+      "text": "adicción al porno",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0475",
+      "type": "answer",
+      "text": "el Dr.Bukkake, mi nuevo médico de cabecera",
+      "pick": 1
+    },
+    {
+      "id": "user-a-7829f04e30",
+      "type": "answer",
+      "text": "un pueblo donde todo el mundo sabe tu historial médico",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 68,
+    "prompts": 9,
+    "answers": 59
+  },
+  "playable": true
+}

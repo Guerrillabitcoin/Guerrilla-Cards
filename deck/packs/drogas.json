@@ -1,0 +1,524 @@
+{
+  "id": "drogas",
+  "title": "Drogas",
+  "description": "Drogas, alcohol y colocones. Solo adultos (18+).",
+  "nsfw": true,
+  "cards": [
+    {
+      "id": "core-a-0048",
+      "type": "answer",
+      "text": "beber un chupito de tequila de un ombligo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0055",
+      "type": "answer",
+      "text": "un control de alcoholemia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0407",
+      "type": "answer",
+      "text": "tu camello de confianza",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0607",
+      "type": "answer",
+      "text": "vino y mujeres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0680",
+      "type": "answer",
+      "text": "otro chupito de adenocromo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1038",
+      "type": "answer",
+      "text": "hasta que vino la ambulancia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1081",
+      "type": "answer",
+      "text": "una manera de echar educadamente a la gente que vino a tu casa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1205",
+      "type": "answer",
+      "text": "hachís bueno bueno bueno bueno, del parabueno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1411",
+      "type": "answer",
+      "text": "biberón de ginebra a media noche",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1675",
+      "type": "answer",
+      "text": "tu tío que siempre trae vino a granel en una garrafa de lejía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2113",
+      "type": "answer",
+      "text": "whisky escocés",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2138",
+      "type": "answer",
+      "text": "cerveza de marca blanca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2392",
+      "type": "answer",
+      "text": "hachís dry",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2766",
+      "type": "answer",
+      "text": "una copita de vino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2793",
+      "type": "answer",
+      "text": "un microondas que enfría la cerveza",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2817",
+      "type": "answer",
+      "text": "barbitúricos, vino y gatos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3005",
+      "type": "answer",
+      "text": "Síndrome Alcohólico Fetal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3225",
+      "type": "answer",
+      "text": "ser camello",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3270",
+      "type": "answer",
+      "text": "dar una rueda de prensa rodeado de prostitutas y con un cubata en la mano",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0011",
+      "type": "answer",
+      "text": "una nueva droga descubierta por la Inteligencia Artificial",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0013",
+      "type": "answer",
+      "text": "muchísimas plantas de marihuana",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0014",
+      "type": "answer",
+      "text": "200gr de heroína afgana de alta calidad",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0050",
+      "type": "answer",
+      "text": "adelgazar tanto que pareces adicto a la heroína",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0055",
+      "type": "answer",
+      "text": "alcoholismo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0071",
+      "type": "answer",
+      "text": "nuestro jefe consumía mucha cocaína",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0075",
+      "type": "answer",
+      "text": "regalar droga a los adolescentes",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0084",
+      "type": "answer",
+      "text": "un pastel de marihuana muy potente",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0095",
+      "type": "answer",
+      "text": "confundir cocaína con matarratas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0110",
+      "type": "answer",
+      "text": "el último porro que nos quedaba",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0115",
+      "type": "answer",
+      "text": "tu amigo el que siempre lleva droga encima",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0123",
+      "type": "answer",
+      "text": "heroína postcuántica",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0133",
+      "type": "answer",
+      "text": "ketamina en el hipódromo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0136",
+      "type": "answer",
+      "text": "clan gitano narco",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0138",
+      "type": "answer",
+      "text": "cocaína, magia y necrofília",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0139",
+      "type": "answer",
+      "text": "cerveza 0’0 y drogas psicodélicas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0149",
+      "type": "answer",
+      "text": "visiones chamánicas con LSD",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0154",
+      "type": "answer",
+      "text": "marihuana transgénica",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0155",
+      "type": "answer",
+      "text": "la misma droga que tomaba Maradona",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0179",
+      "type": "answer",
+      "text": "la cantidad de droga al día recomendada por la OMS",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0188",
+      "type": "answer",
+      "text": "drogas y corrupción",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0196",
+      "type": "answer",
+      "text": "un poquito de droga aquí y un poquito de droga allá",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0212",
+      "type": "answer",
+      "text": "unos cartoncitos con LSD",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0213",
+      "type": "answer",
+      "text": "un dispensador de cocaína",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0218",
+      "type": "answer",
+      "text": "comprar droga por Internet",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0223",
+      "type": "answer",
+      "text": "dar positivo en varias drogas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0241",
+      "type": "answer",
+      "text": "una maleta llena de marihuana",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0248",
+      "type": "answer",
+      "text": "después de que mis padres descubrieran dónde escondía la droga",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0256",
+      "type": "answer",
+      "text": "1 kilogramo de la mejor cocaína colombiana",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0257",
+      "type": "answer",
+      "text": "las drogas son buenas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0263",
+      "type": "answer",
+      "text": "pedir al veterinario de mi caballo que le recete ketamina",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0277",
+      "type": "answer",
+      "text": "que te metan droga en la maleta",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0282",
+      "type": "answer",
+      "text": "hachis con trazas de fentanilo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0296",
+      "type": "answer",
+      "text": "demasiada cocaína",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0310",
+      "type": "answer",
+      "text": "pinchándose heroína en un brazo y sedante para caballos en el otro",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0326",
+      "type": "answer",
+      "text": "mezclar alcohol, antipsicóticos, cocaína y opio y que se te vaya la puta cabeza",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0329",
+      "type": "answer",
+      "text": "repartir caramelos con droga en la puerta del colegio",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0352",
+      "type": "answer",
+      "text": "mi caja de drogas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0353",
+      "type": "answer",
+      "text": "cocaína homeopática",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0362",
+      "type": "answer",
+      "text": "poder: esa droga que todos quieren probar",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0368",
+      "type": "answer",
+      "text": "droga caníbal",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0369",
+      "type": "answer",
+      "text": "echar droga en las bebidas de tus compañeros de trabajo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0372",
+      "type": "answer",
+      "text": "un viejo estrafalario que nos regaló droga",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0373",
+      "type": "answer",
+      "text": "toda la droga que se le cae a la gente en la discoteca",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0389",
+      "type": "answer",
+      "text": "drogas de diseño para elefantes",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0390",
+      "type": "answer",
+      "text": "resaca que te hace prometer que nunca volverás a beber... hasta el viernes que viene",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0395",
+      "type": "answer",
+      "text": "un positivo en cannabis",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0396",
+      "type": "answer",
+      "text": "un conductor borracho",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0402",
+      "type": "answer",
+      "text": "la importancia de las drogas en la evolución del ser humano",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0408",
+      "type": "answer",
+      "text": "lo mejor no es la fama, es el sexo y la droga gratis que puedes conseguir con la fama",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0441",
+      "type": "answer",
+      "text": "no beber, no fumar, no tomar droga. Sólo sexo y Rock&Roll",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0453",
+      "type": "answer",
+      "text": "promocionar la droga",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0471",
+      "type": "answer",
+      "text": "usar el helicóptero oficial para ir a pillar droga",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0472",
+      "type": "answer",
+      "text": "borracho perdido",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0474",
+      "type": "answer",
+      "text": "drogas y mentiras el viernes y el sábado, y el domingo a misa",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0478",
+      "type": "answer",
+      "text": "cocaína gourmet",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0481",
+      "type": "answer",
+      "text": "echar fentanilo al kebab",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0500",
+      "type": "answer",
+      "text": "gente atiborrándose a drogas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0501",
+      "type": "answer",
+      "text": "sustituir las drogas por sexo, y viceversa",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0513",
+      "type": "answer",
+      "text": "heroína para veganos",
+      "pick": 1
+    },
+    {
+      "id": "plus18-p-0001",
+      "type": "prompt",
+      "text": "Tomé drogas después de ______. Me juré a mi mismo no volver a ______.",
+      "pick": 2
+    },
+    {
+      "id": "plus18-p-0008",
+      "type": "prompt",
+      "text": "Alguien me pidió droga y le dije que no tenía, pero sí me aceptó ______",
+      "pick": 1
+    },
+    {
+      "id": "plus18-p-0018",
+      "type": "prompt",
+      "text": "Solo conseguí salir de las drogas con ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "user-a-c10362f04c",
+      "type": "answer",
+      "text": "la resaca con PowerPoint",
+      "pick": 1
+    },
+    {
+      "id": "user-a-558128bafc",
+      "type": "answer",
+      "text": "microdosing de responsabilidad",
+      "pick": 1
+    },
+    {
+      "id": "user-a-c57fe5ef8f",
+      "type": "answer",
+      "text": "el último porro “de verdad el último”",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 85,
+    "prompts": 3,
+    "answers": 82
+  },
+  "playable": true
+}

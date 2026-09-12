@@ -1,0 +1,1470 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Button,
+  CardFace,
+  FilledPromptText,
+  Label,
+  Loading,
+  Muted,
+  Screen,
+  Subtitle,
+  Title,
+} from '@/src/components/ui';
+import { TelegramPlane } from '@/src/components/TelegramPlane';
+import * as Engine from '@/src/engine/game';
+import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS } from '@/src/engine/types';
+import { useGameStore } from '@/src/store/GameContext';
+import { useHistoryStore } from '@/src/store/HistoryContext';
+import { colors } from '@/src/theme/colors';
+
+function rivalLabel(playerId: string): string {
+  const m = /^rival-(\d+)$/.exec(playerId);
+  if (m) return `Rival ${m[1]}`;
+  return 'Bot';
+}
+
+export default function PlayScreen() {
+  const { code } = useLocalSearchParams<{ code: string }>();
+  const router = useRouter();
+  const { getGame, updateGame, ready } = useGameStore();
+  const {
+    appendWinner,
+    toggleFavorite,
+    winningHistory,
+    recordDiscards,
+    addFavoriteAnswer,
+    deleteFavoriteAnswer,
+    favoriteAnswers,
+    recordDrawn,
+    recordPlayed,
+    recordDiscarded,
+    recordUnmarkedForcedDiscard,
+    recordLeftInHand,
+    recordFavoriteMark,
+  } = useHistoryStore();
+  const [picked, setPicked] = useState<string[]>([]);
+  const [forcedDiscardIds, setForcedDiscardIds] = useState<string[]>([]);
+  const [soloSkipMode, setSoloSkipMode] = useState(false);
+  const { width: winW } = useWindowDimensions();
+  const [privacy, setPrivacy] = useState(true);
+  const [lastHistoryId, setLastHistoryId] = useState<string | null>(null);
+  /** Show ★ filled briefly before advancing after favoriting */
+  const [favJustSaved, setFavJustSaved] = useState(false);
+  /** Optimistic phase so UI reacts this frame; engine runs after paint */
+  const [paintPhase, setPaintPhase] = useState<string | null>(null);
+  const [advancingRound, setAdvancingRound] = useState(false);
+  const [replacedSlots, setReplacedSlots] = useState<number[]>([]);
+  const replaceFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [flashGreenIds, setFlashGreenIds] = useState<string[]>([]);
+  const greenFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const favAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const advancingLockRef = useRef(false);
+  const engineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const recordedRoundRef = useRef<string | null>(null);
+  const discardRecordedRef = useRef<string | null>(null);
+  const discardSeedKeyRef = useRef<string | null>(null);
+  const prevPhaseRef = useRef<string | null>(null);
+  const knownHandIdsRef = useRef<Set<string>>(new Set());
+  const handTrackGameRef = useRef<string>('');
+  const staleRecordedRef = useRef<string | null>(null);
+
+  const gameCode = code ? String(code).toUpperCase() : '';
+  const game = ready && gameCode ? getGame(gameCode) : undefined;
+  const isSolo = game?.mode === 'solo';
+  const phase = paintPhase ?? game?.phase;
+  const isDiscarding = phase === 'discarding';
+
+  useEffect(() => {
+    if (!game) return;
+    if (game.phase === 'results') {
+      router.replace({ pathname: '/results', params: { code: game.code } });
+    } else if (game.phase === 'lobby') {
+      router.replace({ pathname: '/lobby', params: { code: game.code } });
+    }
+  }, [game, router]);
+
+  useEffect(() => {
+    if (game?.phase !== 'reveal') {
+      setFavJustSaved(false);
+      advancingLockRef.current = false;
+      if (favAdvanceTimerRef.current) {
+        clearTimeout(favAdvanceTimerRef.current);
+        favAdvanceTimerRef.current = null;
+      }
+    }
+    if (paintPhase && game?.phase === paintPhase) {
+      setPaintPhase(null);
+      setAdvancingRound(false);
+    }
+    // Drop local pick once the engine owns the fill (reveal) or a new round starts
+    if (game?.phase === 'reveal' || game?.phase === 'submitting') {
+      // Only clear on submitting when this round's submission is gone (new round)
+      if (game.phase === 'submitting' && !game.submissions.length) {
+        setPicked([]);
+      }
+    }
+  }, [game?.phase, game?.round, game?.submissions?.length, paintPhase]);
+
+  useEffect(() => {
+    return () => {
+      if (favAdvanceTimerRef.current) clearTimeout(favAdvanceTimerRef.current);
+      if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
+      if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
+      if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+    };
+  }, []);
+
+  // Track cards entering human (non-bot) hands → drawn + hold start
+  useEffect(() => {
+    if (!game) return;
+    if (handTrackGameRef.current !== game.code) {
+      knownHandIdsRef.current = new Set();
+      handTrackGameRef.current = game.code;
+      staleRecordedRef.current = null;
+    }
+    const newly: { id: string; text: string; kind: 'answer' }[] = [];
+    for (const p of game.players) {
+      if (p.isBot) continue;
+      for (const c of p.hand) {
+        if (knownHandIdsRef.current.has(c.id)) continue;
+        knownHandIdsRef.current.add(c.id);
+        newly.push({ id: c.id, text: c.text, kind: 'answer' });
+      }
+    }
+    if (newly.length) recordDrawn(newly);
+  }, [game, recordDrawn]);
+
+  // Left in hand at match end (once per game)
+  useEffect(() => {
+    if (!game) return;
+    if (phase !== 'results') return;
+    const key = `${game.code}:stale`;
+    if (staleRecordedRef.current === key) return;
+    staleRecordedRef.current = key;
+    const left: { id: string; text: string; kind: 'answer' }[] = [];
+    for (const p of game.players) {
+      if (p.isBot) continue;
+      for (const c of p.hand) {
+        left.push({ id: c.id, text: c.text, kind: 'answer' });
+      }
+    }
+    if (left.length) recordLeftInHand(left);
+  }, [game, recordLeftInHand]);
+
+  // Record discard stats when leaving discarding → submitting
+  useEffect(() => {
+    if (!game) return;
+    const prev = prevPhaseRef.current;
+    prevPhaseRef.current = game.phase;
+    if (
+      prev === 'discarding' &&
+      game.phase === 'submitting' &&
+      game.discardRoundCompleted
+    ) {
+      const key = `${game.code}:discard`;
+      if (discardRecordedRef.current === key) return;
+      discardRecordedRef.current = key;
+      const cards = Engine.flushDiscardedCards(game).map((c) => ({
+        id: c.id,
+        text: c.text,
+        kind: 'answer' as const,
+      }));
+      if (cards.length) {
+        recordDiscards(cards);
+        recordDiscarded(cards);
+      }
+    }
+  }, [
+    game?.phase,
+    game?.discardRoundCompleted,
+    game?.code,
+    game?.lastDiscarded,
+    game,
+    recordDiscards,
+    recordDiscarded,
+  ]);
+
+  // Auto-append winning combo to favoritas/recientes on reveal/results
+  useEffect(() => {
+    if (!game) return;
+    if (phase !== 'reveal' && phase !== 'results') return;
+    if (!game.roundWinnerId) return;
+    const key = `${game.code}:${game.round}:${game.roundWinnerId}`;
+    if (recordedRoundRef.current === key) return;
+    recordedRoundRef.current = key;
+
+    const snap = Engine.buildWinningHistorySnapshot(game);
+    if (!snap) return;
+
+    void appendWinner(snap).then((entry) => {
+      setLastHistoryId(entry.id);
+    });
+  }, [
+    phase,
+    game?.roundWinnerId,
+    game?.round,
+    game?.code,
+    appendWinner,
+    game,
+  ]);
+
+  // Solo: skip privacy gate for human
+  useEffect(() => {
+    if (isSolo) setPrivacy(false);
+  }, [isSolo, game?.activeSeatId, phase, game?.round]);
+
+  // Round-5 discard: auto-preselect DISCARD_MIN random forced cards per seat
+  useEffect(() => {
+    if (!game || phase !== 'discarding') {
+      if (discardSeedKeyRef.current != null) {
+        discardSeedKeyRef.current = null;
+        setForcedDiscardIds([]);
+      }
+      return;
+    }
+    const seatId =
+      game.mode === 'solo'
+        ? (game.players.find((p) => !p.isBot) ?? game.players[0])?.id
+        : game.activeSeatId;
+    if (!seatId) return;
+    if (game.discardDonePlayerIds.includes(seatId)) return;
+    const player = game.players.find((p) => p.id === seatId);
+    if (!player || player.isBot) return;
+    const key = `${game.code}:discard:${seatId}`;
+    if (discardSeedKeyRef.current === key) return;
+    discardSeedKeyRef.current = key;
+    const ids = player.hand.map((c) => c.id);
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = ids[i];
+      ids[i] = ids[j];
+      ids[j] = tmp;
+    }
+    const n = Math.min(DISCARD_MIN, ids.length);
+    const forced = ids.slice(0, n);
+    setForcedDiscardIds(forced);
+    setPicked(forced);
+  }, [
+    phase,
+    game?.code,
+    game?.activeSeatId,
+    game?.mode,
+    game?.discardDonePlayerIds,
+    game?.players,
+    game,
+  ]);
+
+  if (!ready) return <Loading />;
+
+  if (!game) {
+    return (
+      <Screen>
+        <Title>Partida no encontrada</Title>
+        <Button title="Inicio" onPress={() => router.replace('/')} />
+      </Screen>
+    );
+  }
+
+  if (game.phase === 'results' || game.phase === 'lobby') {
+    return <Loading />;
+  }
+
+  const human = game.players.find((p) => !p.isBot) ?? game.players[0];
+  // Solo: always human as active seat (no bot seats / pass-the-phone)
+  const active = isSolo
+    ? human
+    : Engine.playerById(game, game.activeSeatId);
+  const zar = game.players[game.zarIndex];
+  const handLenForPick = active?.hand.length ?? 0;
+  const discardMin = Math.min(DISCARD_MIN, handLenForPick);
+  const discardMax = Math.min(DISCARD_MAX, handLenForPick);
+  const pickNeed =
+    isDiscarding
+      ? discardMax
+      : isSolo && soloSkipMode
+        ? Math.min(DISCARD_COUNT, handLenForPick)
+        : Math.max(1, game.currentPrompt?.pick ?? 1);
+  const hand = active?.hand ?? [];
+  const handCount = Math.max(1, hand.length);
+  const handGap = 6;
+  const handPad = 32; // scrollInner horizontal padding
+  const handColumns = (() => {
+    // Base hand is 10 → mobile 2×5, desktop 5×2.
+    // Multirespuesta extras (hand > 10): same grid, extra row; many extras → +1 col.
+    if (winW < 700) {
+      if (handCount > 12) return 3;
+      return 2;
+    }
+    if (handCount > 12) return 6;
+    return 5;
+  })();
+  // Pixel width — % widths often collapse to 1 column in RN flexWrap.
+  const handItemWidth = Math.max(
+    72,
+    Math.floor((winW - handPad - handGap * (handColumns - 1)) / handColumns)
+  );
+
+  const alreadyAnswered =
+    !!active &&
+    (isDiscarding
+      ? game.discardDonePlayerIds.includes(active.id)
+      : game.submissions.some((s) => s.playerId === active.id && !s.rival));
+
+  const pickedCards = picked
+    .map((id) => hand.find((c) => c.id === id))
+    .filter(Boolean) as { id: string; text: string }[];
+
+  const liveAnswerTexts = [
+    ...pickedCards.map((c) => c.text),
+    ...Array(Math.max(0, pickNeed - pickedCards.length)).fill('______'),
+  ];
+
+  const mySubmitted = active
+    ? game.submissions.find((s) => s.playerId === active.id && !s.rival)
+    : undefined;
+
+  const submittedAnswerTexts = mySubmitted
+    ? Engine.getSubmissionAnswerTexts(game, mySubmitted)
+    : [];
+
+  const stickyAnswers =
+    alreadyAnswered && submittedAnswerTexts.length
+      ? submittedAnswerTexts
+      : liveAnswerTexts;
+
+  const runEngineAfterPaint = (fn: () => void) => {
+    if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
+    // Two rAFs ≈ after the browser/RN has committed the optimistic UI
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        engineTimerRef.current = setTimeout(() => {
+          engineTimerRef.current = null;
+          fn();
+        }, 0);
+      });
+    });
+  };
+
+  const flashAnswerGreen = (ids: string[]) => {
+    if (!ids.length) return;
+    setFlashGreenIds(ids);
+    if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+    greenFlashRef.current = setTimeout(() => {
+      greenFlashRef.current = null;
+      setFlashGreenIds([]);
+    }, 420);
+  };
+
+  const autoSend = (ids: string[]) => {
+    if (!active) return;
+    const pickedCards = ids
+      .map((id) => hand.find((c) => c.id === id))
+      .filter(Boolean) as { id: string; text: string }[];
+    const cardRefs = pickedCards.map((c) => ({
+      id: c.id,
+      text: c.text,
+      kind: 'answer' as const,
+    }));
+    const discarding = isDiscarding;
+    const skipMode = isSolo && soloSkipMode;
+    const code = game.code;
+    const pid = active.id;
+    const solo = isSolo;
+    if (discarding) setForcedDiscardIds([]);
+    if (!solo) setPrivacy(true);
+    if (skipMode) setSoloSkipMode(false);
+
+    if (discarding) {
+      // Capture slots so the new cards flash “NUEVA” after the swap
+      const slots = ids
+        .map((id) => hand.findIndex((c) => c.id === id))
+        .filter((i) => i >= 0);
+      // 5th red + DESCARTE paints first, then next round + new prompt
+      runEngineAfterPaint(() => {
+        if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
+        engineTimerRef.current = setTimeout(() => {
+          engineTimerRef.current = null;
+          setPicked([]);
+          try {
+            updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
+            setReplacedSlots(slots);
+            if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
+      if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+            replaceFlashRef.current = setTimeout(() => {
+              replaceFlashRef.current = null;
+              setReplacedSlots([]);
+            }, 700);
+          } catch (e) {
+            Alert.alert('Descarte', e instanceof Error ? e.message : 'Error');
+          }
+        }, 160);
+      });
+      return;
+    }
+
+    // Answer path: keep `picked` so the sticky fills on this press, show it,
+    // then commit. Reveal keeps the same filled text.
+    runEngineAfterPaint(() => {
+      if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
+      engineTimerRef.current = setTimeout(() => {
+        engineTimerRef.current = null;
+        try {
+          if (skipMode) {
+            updateGame(code, (g) => Engine.soloSkipRoundDiscard(g, pid, ids));
+            if (cardRefs.length) {
+              recordDiscards(cardRefs);
+              recordDiscarded(cardRefs);
+            }
+            setPicked([]);
+          } else {
+            updateGame(code, (g) => Engine.submitCards(g, pid, ids));
+            if (cardRefs.length) {
+              recordPlayed(cardRefs, { won: solo });
+            }
+          }
+        } catch (e) {
+          Alert.alert(
+            skipMode ? 'Descarte' : 'Enviar',
+            e instanceof Error ? e.message : 'Error'
+          );
+        }
+      }, 140);
+    });
+  };
+
+  const toggleDiscardMark = (id: string) => {
+    if (!active || alreadyAnswered || active.isBot) return;
+    if (picked.includes(id)) {
+      if (forcedDiscardIds.includes(id)) {
+        const card = hand.find((c) => c.id === id);
+        if (card) {
+          recordUnmarkedForcedDiscard([
+            { id: card.id, text: card.text, kind: 'answer' },
+          ]);
+        }
+      }
+      setPicked(picked.filter((x) => x !== id));
+      return;
+    }
+    if (picked.length >= discardMax) return;
+    const next = [...picked, id];
+    setPicked(next);
+    // At max (5): auto-confirm and continue the round
+    if (next.length >= discardMax) {
+      autoSend(next);
+    }
+  };
+
+  const pickCard = (id: string) => {
+    if (!active || alreadyAnswered || active.isBot) return;
+    if (isDiscarding) {
+      toggleDiscardMark(id);
+      return;
+    }
+    let next: string[];
+    if (picked.includes(id)) {
+      next = picked.filter((x) => x !== id);
+      setPicked(next);
+      return;
+    }
+    if (pickNeed <= 1) {
+      next = [id];
+      setPicked(next);
+      if (!soloSkipMode) flashAnswerGreen(next);
+      autoSend(next);
+      return;
+    }
+    // Multipick / solo-skip: keep earlier marks
+    next =
+      picked.length >= pickNeed
+        ? [...picked.slice(1), id]
+        : [...picked, id];
+    setPicked(next);
+    if (!soloSkipMode) flashAnswerGreen(next);
+    if (next.length >= pickNeed) {
+      autoSend(next.slice(0, pickNeed));
+    }
+  };
+
+  const recordIfNeeded = (next: ReturnType<typeof Engine.judgePick>) => {
+    if (next.roundWinnerId && (next.phase === 'reveal' || next.phase === 'results')) {
+      const snap = Engine.buildWinningHistorySnapshot(next);
+      if (snap) {
+        const key = `${next.code}:${next.round}:${next.roundWinnerId}`;
+        if (recordedRoundRef.current !== key) {
+          recordedRoundRef.current = key;
+          void appendWinner(snap).then((entry) => setLastHistoryId(entry.id));
+        }
+      }
+    }
+  };
+
+  const judge = (winnerId: string) => {
+    try {
+      const winningSub = game.submissions.find((s) => s.playerId === winnerId);
+      updateGame(game.code, (g) => {
+        const next = Engine.judgePick(g, winnerId);
+        recordIfNeeded(next);
+        if (next.phase === 'results') {
+          setTimeout(() => {
+            router.replace({ pathname: '/results', params: { code: g.code } });
+          }, 0);
+        }
+        return next;
+      });
+      // Late win bump (timesPlayed already recorded at submit)
+      if (winningSub && !winningSub.rival) {
+        recordPlayed(
+          winningSub.cards.map((c) => ({
+            id: c.id,
+            text: c.text,
+            kind: 'answer' as const,
+          })),
+          { won: true }
+        );
+      }
+    } catch (e) {
+      Alert.alert('Zar', e instanceof Error ? e.message : 'Error');
+    }
+  };
+
+  const continueRound = () => {
+    // Instant path (green) — cancel any ★ delay
+    if (favAdvanceTimerRef.current) {
+      clearTimeout(favAdvanceTimerRef.current);
+      favAdvanceTimerRef.current = null;
+    }
+    if (advancingLockRef.current) return;
+    advancingLockRef.current = true;
+    setFavJustSaved(false);
+    setPicked([]);
+    setSoloSkipMode(false);
+    setLastHistoryId(null);
+    if (!isSolo) setPrivacy(true);
+    setPaintPhase(null);
+    setAdvancingRound(false);
+    // Sync next round so the NEW question is on screen in the same update
+    try {
+      updateGame(game.code, (g) => {
+        if (g.phase !== 'reveal') return g;
+        return Engine.nextRound(g);
+      });
+    } catch (e) {
+      advancingLockRef.current = false;
+      const msg = e instanceof Error ? e.message : 'Error';
+      if (/revelado/i.test(msg)) return;
+      Alert.alert('Siguiente', msg);
+    }
+  };
+
+  const historyEntry = lastHistoryId
+    ? winningHistory.find((h) => h.id === lastHistoryId)
+    : undefined;
+
+  const isFavFilled = (filled: string) =>
+    favoriteAnswers.some((a) => a.text === filled.trim());
+
+  const toggleFavFilled = (
+    filled: string,
+    cards?: { id: string; text: string }[]
+  ) => {
+    const t = filled.trim();
+    if (!t) return;
+    const existing = favoriteAnswers.find((a) => a.text === t);
+    if (existing) {
+      deleteFavoriteAnswer(existing.id);
+    } else {
+      addFavoriteAnswer(t);
+      if (cards) {
+        for (const c of cards) {
+          recordFavoriteMark(c.id, c.text);
+        }
+      }
+    }
+  };
+
+  const winnerSub = game.roundWinnerId
+    ? game.submissions.find((s) => s.playerId === game.roundWinnerId)
+    : undefined;
+  const winnerIsRival = !!winnerSub?.rival || !!game.roundWinnerId?.startsWith('rival-');
+  const winnerName = winnerIsRival
+    ? rivalLabel(game.roundWinnerId ?? '')
+    : game.players.find((p) => p.id === game.roundWinnerId)?.nickname ?? '—';
+
+  const selectionIndexFor = (cardId: string): number | undefined => {
+    const idx = picked.indexOf(cardId);
+    return idx >= 0 ? idx + 1 : undefined;
+  };
+
+  const myRevealSub =
+    human && phase === 'reveal'
+      ? game.submissions.find((s) => s.playerId === human.id && !s.rival) ??
+        game.submissions.find((s) => s.playerId === human.id)
+      : undefined;
+  const myRevealFilled = myRevealSub
+    ? Engine.getFilledSubmission(game, myRevealSub)
+    : '';
+  const myAnswerFav =
+    (!!myRevealFilled && isFavFilled(myRevealFilled)) ||
+    !!historyEntry?.favorite;
+  const starFilled = myAnswerFav || favJustSaved;
+
+  const persistMyAnswerFavorite = (turningOn: boolean) => {
+    if (lastHistoryId && !!historyEntry?.favorite !== turningOn) {
+      toggleFavorite(lastHistoryId);
+    }
+    if (myRevealSub && myRevealFilled) {
+      if (isFavFilled(myRevealFilled) !== turningOn) {
+        toggleFavFilled(myRevealFilled, myRevealSub.cards);
+      }
+    } else if (turningOn && winnerSub) {
+      const wFilled = Engine.getFilledSubmission(game, winnerSub);
+      if (wFilled && !isFavFilled(wFilled)) {
+        toggleFavFilled(wFilled, winnerSub.cards);
+      }
+    }
+  };
+
+  const scheduleAdvanceAfterFav = () => {
+    if (favAdvanceTimerRef.current) clearTimeout(favAdvanceTimerRef.current);
+    favAdvanceTimerRef.current = setTimeout(() => {
+      favAdvanceTimerRef.current = null;
+      continueRound();
+    }, 90);
+  };
+
+  const toggleMyAnswerFav = () => {
+    if (favJustSaved || advancingLockRef.current) return;
+    const turningOn = !starFilled;
+    if (!turningOn) {
+      setFavJustSaved(false);
+      persistMyAnswerFavorite(false);
+      return;
+    }
+    // Paint ★, persist, then advance (same as Añadir favorito)
+    setFavJustSaved(true);
+    requestAnimationFrame(() => {
+      persistMyAnswerFavorite(true);
+      if (phase === 'reveal') scheduleAdvanceAfterFav();
+    });
+  };
+
+  /** Big “Añadir favorito” — save + pasar a siguiente ronda. */
+  const saveAnswerKeep = () => {
+    if (starFilled || favJustSaved || advancingLockRef.current) return;
+    setFavJustSaved(true);
+    requestAnimationFrame(() => {
+      persistMyAnswerFavorite(true);
+      if (phase === 'reveal') scheduleAdvanceAfterFav();
+    });
+  };
+
+  const openShareAnswer = () => {
+    if (!myRevealSub || !myRevealFilled) return;
+    router.push({
+      pathname: '/compartir',
+      params: {
+        promptText: game.currentPrompt?.text ?? '',
+        answers: JSON.stringify(myRevealSub.cards.map((c) => c.text)),
+        filledText: myRevealFilled,
+      },
+    });
+  };
+
+  const revealShareSaveRow =
+    myRevealSub && myRevealFilled ? (
+      <View style={styles.revealActionRow}>
+        <Pressable
+          onPress={openShareAnswer}
+          style={styles.shareSquare}
+          accessibilityLabel="Enviar"
+        >
+          <TelegramPlane size={30} />
+          <Text style={styles.shareEnviar}>enviar</Text>
+        </Pressable>
+        <View style={styles.guardarFlex}>
+          <Button
+            title={starFilled ? 'En favoritos' : 'Añadir favorito'}
+            variant={starFilled ? 'ghost' : 'primary'}
+            onPress={saveAnswerKeep}
+            disabled={starFilled}
+            style={{ width: '100%', minHeight: 52, justifyContent: 'center' }}
+          />
+        </View>
+      </View>
+    ) : null;
+
+  const stickyPromptVisible =
+    !isDiscarding &&
+    !!game.currentPrompt &&
+    (phase === 'submitting' ||
+      phase === 'judging' ||
+      phase === 'reveal');
+
+  const stickyPromptAnswers =
+    phase === 'reveal' && submittedAnswerTexts.length
+      ? submittedAnswerTexts
+      : phase === 'judging'
+        ? stickyAnswers.length
+          ? stickyAnswers
+          : Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
+        : stickyAnswers;
+
+  const discardCountLabel =
+    picked.length <= discardMin
+      ? `${discardMin} Descartes mínimo`
+      : `${picked.length}/${discardMax}`;
+  // Solo “tirar 2 y saltar”: always n/2
+  const soloSkipCountLabel = `${Math.min(picked.length, pickNeed)}/${pickNeed}`;
+
+  const roundLine = isDiscarding
+    ? `Descarte · ${discardCountLabel}`
+    : soloSkipMode
+      ? `Descarte · ${soloSkipCountLabel}`
+    : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
+        isSolo ? 'Solo' : game.code
+      }`;
+  const scoreLine = isSolo
+    ? `${human?.score ?? 0}/${game.targetScore}`
+    : `Zar ${zar?.nickname} · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
+
+  return (
+    <View style={styles.root}>
+      <View style={styles.sticky}>
+        <View style={styles.roundSticky}>
+          <Text style={styles.roundStickyTitle} numberOfLines={1}>
+            {roundLine}
+          </Text>
+          <Text style={styles.roundStickyScore} numberOfLines={1}>
+            {scoreLine}
+          </Text>
+        </View>
+        {isDiscarding && !alreadyAnswered ? (
+          <View style={styles.discardCounterBox}>
+            <Text style={styles.discardCounterText}>{discardCountLabel}</Text>
+            <Text style={styles.discardCounterHint}>
+              {picked.length < discardMax
+                ? `Marca hasta ${discardMax} · toca cartas en rojo`
+                : 'Listo — enviando…'}
+            </Text>
+          </View>
+        ) : null}
+        {soloSkipMode && phase === 'submitting' && !alreadyAnswered ? (
+          <View style={styles.discardCounterBox}>
+            <Text style={styles.discardCounterText}>{soloSkipCountLabel}</Text>
+            <Text style={styles.discardCounterHint}>
+              {picked.length < pickNeed
+                ? `Elige ${pickNeed} cartas en rojo para saltar`
+                : 'Listo — saltando ronda…'}
+            </Text>
+          </View>
+        ) : null}
+        {stickyPromptVisible ? (
+          <View style={[styles.liveBox, styles.liveBoxWithFavSlot]}>
+            {/* Same label/layout while answering → reveal so the prompt doesn't jump */}
+            <Text style={styles.liveLabel}>
+              {soloSkipMode
+                ? `Descartar ${soloSkipCountLabel}`
+                : pickNeed > 1 && phase === 'submitting' && !alreadyAnswered
+                  ? `Elige ${pickNeed} (${picked.length}/${pickNeed})`
+                  : 'Pregunta'}
+            </Text>
+            {!soloSkipMode ? (
+              <FilledPromptText
+                large
+                promptText={game.currentPrompt!.text}
+                answers={stickyPromptAnswers}
+              />
+            ) : (
+              <Muted>Elige {pickNeed} cartas para tirar y saltar la ronda</Muted>
+            )}
+            {/* Star overlays top-right; doesn't shift the question */}
+            {phase === 'reveal' ? (
+              <Pressable
+                onPress={toggleMyAnswerFav}
+                hitSlop={12}
+                style={styles.revealFavStarAbs}
+                accessibilityLabel={
+                  myAnswerFav ? 'Respuesta guardada' : 'Marcar favorita'
+                }
+              >
+                <Text style={styles.revealFavStar}>
+                  {starFilled ? '★' : '☆'}
+                </Text>
+              </Pressable>
+            ) : null}
+            {/* Reserve next-round row height always in solo so reveal doesn't shove the prompt */}
+            {isSolo ? (
+              <View
+                style={[
+                  styles.soloCompactBlock,
+                  phase !== 'reveal' && styles.soloCompactBlockHidden,
+                ]}
+                pointerEvents={phase === 'reveal' ? 'auto' : 'none'}
+              >
+                <Button
+                  title="→  Siguiente ronda"
+                  variant="success"
+                  onPress={continueRound}
+                />
+                {revealShareSaveRow}
+              </View>
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[
+          styles.scrollInner,
+          phase === 'submitting' && styles.scrollInnerTight,
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+
+      {!isSolo ? (
+        <>
+          <Label>Asiento activo (pásame el móvil)</Label>
+          <View style={styles.seatRow}>
+            {game.players.map((p) => (
+              <Button
+                key={p.id}
+                title={p.nickname}
+                variant={game.activeSeatId === p.id ? 'primary' : 'ghost'}
+                onPress={() => {
+                  setPrivacy(true);
+                  setPicked([]);
+                  setForcedDiscardIds([]);
+                  discardSeedKeyRef.current = null;
+                  updateGame(game.code, (g) => Engine.setActiveSeat(g, p.id));
+                }}
+              />
+            ))}
+          </View>
+        </>
+      ) : null}
+
+      {isDiscarding ? (
+        <>
+          <Subtitle>
+            Ronda de descarte (antes de la 5) — 2 obligatorias (aleatorias), hasta 5
+          </Subtitle>
+          <Muted>
+            Marcadas en rojo se descartan. Mínimo {discardMin}; al llegar a {discardMax} se envía solo.
+            {isSolo
+              ? ''
+              : ` Completado: ${game.discardDonePlayerIds.length}/${game.players.length}`}
+          </Muted>
+
+          {game.discardDonePlayerIds.includes(active?.id ?? '') ? (
+            <View style={styles.doneBox}>
+              <Text style={styles.doneBadge}>✓ Descarte enviado</Text>
+              {!isSolo ? (
+                <Muted>Esperando al resto de jugadores…</Muted>
+              ) : null}
+            </View>
+          ) : privacy && !isSolo ? (
+            <>
+              <Subtitle>¿Eres {active?.nickname}?</Subtitle>
+              <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
+              <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
+            </>
+          ) : (
+            <>
+              <View style={styles.discardCounterBox}>
+                <Text style={styles.discardCounterText}>{discardCountLabel}</Text>
+                <Text style={styles.discardCounterHint}>
+                  {picked.length <= discardMin
+                    ? `Obligatorias ${discardMin} · puedes llegar a ${discardMax}`
+                    : `Descartes ${picked.length} de ${discardMax}`}
+                </Text>
+              </View>
+              <View style={styles.hand}>
+                {hand.map((c) => (
+                  <View
+                    key={c.id}
+                    style={[styles.handItem, { width: handItemWidth }]}
+                  >
+                    <CardFace
+                      kind="answer"
+                      text={c.text}
+                      square
+                      dense
+                      gridColumns={handColumns}
+                      selected={false}
+                      discardMarked={picked.includes(c.id)}
+                      onPress={() => pickCard(c.id)}
+                    />
+                  </View>
+                ))}
+              </View>
+              <Muted>
+                Marcadas en rojo se descartan. Mínimo {discardMin}; al llegar a {discardMax} se envía solo.
+              </Muted>
+              <Button
+                title={`Confirmar descarte (${discardCountLabel})`}
+                variant="discard"
+                disabled={
+                  picked.length < discardMin || picked.length > discardMax
+                }
+                onPress={() => autoSend(picked)}
+              />
+              {!isSolo ? (
+                <Button
+                  title="Ocultar mano"
+                  variant="ghost"
+                  onPress={() => {
+                    setPrivacy(true);
+                  }}
+                />
+              ) : null}
+            </>
+          )}
+        </>
+      ) : null}
+
+      {phase === 'submitting' ? (
+        <>
+          {alreadyAnswered ? (
+            <View style={styles.doneBox}>
+              <Text style={styles.doneBadge}>✓ Respuesta enviada</Text>
+              {game.currentPrompt && submittedAnswerTexts.length ? (
+                <FilledPromptText
+                  promptText={game.currentPrompt.text}
+                  answers={submittedAnswerTexts}
+                />
+              ) : null}
+              {!isSolo ? (
+                <Muted>
+                  Enviados {game.submissions.length}/{game.players.length - 1}. Esperando al resto…
+                </Muted>
+              ) : null}
+            </View>
+          ) : privacy && !isSolo ? (
+            <>
+              <Subtitle>¿Eres {active?.nickname}?</Subtitle>
+              <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
+              <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
+            </>
+          ) : active?.id === zar.id && !isSolo ? (
+            <Muted>
+              Eres el Zar. Espera a que el resto envíe. Enviados:{' '}
+              {game.submissions.length}/{game.players.length - 1}
+            </Muted>
+          ) : (
+            <>
+              {!isSolo ? (
+                <Label>Mano de {active?.nickname}</Label>
+              ) : null}
+              {soloSkipMode ? (
+                <View style={styles.discardCounterBox}>
+                  <Text style={styles.discardCounterText}>
+                    {soloSkipCountLabel}
+                  </Text>
+                  <Text style={styles.discardCounterHint}>
+                    {picked.length < pickNeed
+                      ? `Toca ${pickNeed} cartas · se ponen rojas`
+                      : '2/2 — enviando descarte…'}
+                  </Text>
+                </View>
+              ) : null}
+              <View style={styles.hand}>
+                {hand.map((c, slotIdx) => (
+                  <View
+                    key={c.id}
+                    style={[styles.handItem, { width: handItemWidth }]}
+                  >
+                    <CardFace
+                      kind="answer"
+                      text={c.text}
+                      square
+                      dense
+                      gridColumns={handColumns}
+                      selected={
+                        soloSkipMode ? false : picked.includes(c.id)
+                      }
+                      discardMarked={
+                        soloSkipMode ? picked.includes(c.id) : false
+                      }
+                      justReplaced={
+                        soloSkipMode
+                          ? false
+                          : replacedSlots.includes(slotIdx)
+                      }
+                      flashGreen={
+                        soloSkipMode
+                          ? false
+                          : flashGreenIds.includes(c.id)
+                      }
+                      selectionIndex={
+                        soloSkipMode
+                          ? undefined
+                          : selectionIndexFor(c.id)
+                      }
+                      onPress={() => pickCard(c.id)}
+                    />
+                  </View>
+                ))}
+              </View>
+              {isSolo && !soloSkipMode ? (
+                <Button
+                  title="Descartar (tirar 2 y saltar ronda)"
+                  variant="discard"
+                  onPress={() => {
+                    setPicked([]);
+                    setSoloSkipMode(true);
+                  }}
+                />
+              ) : null}
+              {isSolo && soloSkipMode ? (
+                <Button
+                  title={`Cancelar descarte (${soloSkipCountLabel})`}
+                  variant="ghost"
+                  onPress={() => {
+                    setPicked([]);
+                    setSoloSkipMode(false);
+                  }}
+                />
+              ) : null}
+              {!isSolo ? (
+                <Button
+                  title="Ocultar mano"
+                  variant="ghost"
+                  onPress={() => {
+                    setPrivacy(true);
+                    setPicked([]);
+                  }}
+                />
+              ) : null}
+            </>
+          )}
+        </>
+      ) : null}
+
+      {phase === 'judging' ? (
+        <>
+          {!isSolo && active?.id !== zar.id ? (
+            <Muted>Pasa el móvil al Zar ({zar.nickname}).</Muted>
+          ) : privacy && !isSolo ? (
+            <Button
+              title="Soy el Zar — revelar jugadas"
+              onPress={() => setPrivacy(false)}
+            />
+          ) : (
+            <>
+              <Label>
+                {isSolo ? '¿Cuál gana? (tú o un rival)' : 'Elige la mejor jugada'}
+              </Label>
+              {game.revealOrder.map((idx) => {
+                const sub = game.submissions[idx];
+                if (!sub) return null;
+                const isHumanSub =
+                  !!human && sub.playerId === human.id && !sub.rival;
+                const isRival = !!sub.rival || sub.playerId.startsWith('rival-');
+                const label = isHumanSub
+                  ? 'Tú'
+                  : isRival
+                    ? rivalLabel(sub.playerId)
+                    : game.players.find((p) => p.id === sub.playerId)?.nickname ??
+                      'Jugador';
+                return (
+                  <View key={sub.playerId} style={styles.judgeCard}>
+                    <Text style={styles.judgeLabel}>{label}</Text>
+                    <FilledPromptText
+                      large
+                      promptText={game.currentPrompt?.text ?? ''}
+                      answers={sub.cards.map((c) => c.text)}
+                    />
+                    <Button title="Gana esta" onPress={() => judge(sub.playerId)} />
+                  </View>
+                );
+              })}
+            </>
+          )}
+        </>
+      ) : null}
+
+      {phase === 'reveal' ? (
+        <>
+          {isSolo ? (
+            <>
+              {/* Rivales primero; tu respuesta al final del scroll para ★ */}
+              {game.submissions
+                .filter((s) => s.rival || s.playerId.startsWith('rival-'))
+                .map((sub) => {
+                  const filled = Engine.getFilledSubmission(game, sub);
+                  return (
+                    <View key={sub.playerId} style={styles.soloRival}>
+                      <View style={styles.soloRivalHead}>
+                        <Text style={styles.judgeLabel}>
+                          {rivalLabel(sub.playerId)}
+                        </Text>
+                        <Text
+                          style={styles.soloStar}
+                          onPress={() => toggleFavFilled(filled, sub.cards)}
+                        >
+                          {isFavFilled(filled) ? '★' : '☆'}
+                        </Text>
+                      </View>
+                      <FilledPromptText
+                        small
+                        promptText={game.currentPrompt?.text ?? ''}
+                        answers={sub.cards.map((c) => c.text)}
+                      />
+                    </View>
+                  );
+                })}
+              <Button
+                title="Favoritas"
+                variant="ghost"
+                onPress={() => router.push('/historial')}
+              />
+              {game.submissions
+                .filter((s) => !s.rival && human && s.playerId === human.id)
+                .map((sub) => {
+                  const filled = Engine.getFilledSubmission(game, sub);
+                  const fav =
+                    isFavFilled(filled) ||
+                    !!historyEntry?.favorite ||
+                    favJustSaved;
+                  return (
+                    <View key={`last-${sub.playerId}`} style={styles.roundLastAnswer}>
+                      <Text style={styles.roundLastTitle}>Tu última respuesta</Text>
+                      <FilledPromptText
+                        promptText={game.currentPrompt?.text ?? ''}
+                        answers={sub.cards.map((c) => c.text)}
+                      />
+                      <Button
+                        title={
+                          fav
+                            ? '★ Respuesta guardada'
+                            : '☆ Añadir a favoritas'
+                        }
+                        variant={fav ? 'ghost' : 'outline'}
+                        onPress={toggleMyAnswerFav}
+                      />
+                    </View>
+                  );
+                })}
+            </>
+          ) : (
+            <>
+              <View style={styles.revealTitleRow}>
+                <Title>¡Puntaco!</Title>
+                <Pressable
+                  onPress={toggleMyAnswerFav}
+                  hitSlop={12}
+                  accessibilityLabel={
+                    starFilled ? 'Respuesta guardada' : 'Marcar favorita'
+                  }
+                >
+                  <Text style={styles.revealFavStar}>
+                    {starFilled ? '★' : '☆'}
+                  </Text>
+                </Pressable>
+              </View>
+              <Subtitle>
+                {winnerIsRival
+                  ? `Gana el bot (${winnerName})`
+                  : `Gana: ${winnerName}`}
+              </Subtitle>
+              {winnerSub ? (
+                <CardFace
+                  kind="answer"
+                  text={Engine.getFilledSubmission(game, winnerSub)}
+                />
+              ) : null}
+              <Button
+                title="→  Siguiente ronda"
+                variant="success"
+                onPress={continueRound}
+              />
+              {revealShareSaveRow}
+              <Button
+                title="Respuestas favoritas"
+                variant="ghost"
+                onPress={() => router.push('/historial')}
+              />
+            </>
+          )}
+        </>
+      ) : null}
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.bg },
+  discardCounterBox: {
+    backgroundColor: '#5A1820',
+    borderWidth: 2,
+    borderColor: '#E53935',
+    borderRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    gap: 2,
+    marginBottom: 4,
+  },
+  discardCounterText: {
+    color: '#FFCDD2',
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  discardCounterHint: {
+    color: '#E57373',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  sticky: {
+
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.bg,
+    gap: 4,
+    zIndex: 20,
+  },
+  roundSticky: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  roundStickyTitle: {
+    color: colors.text,
+    fontSize: 13,
+    fontWeight: '900',
+    flexShrink: 1,
+  },
+  roundStickyScore: {
+    color: colors.accentSoft,
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  scrollInnerTight: {
+    paddingTop: 8,
+    gap: 8,
+  },
+  scroll: { flex: 1 },
+  scrollInner: { padding: 16, paddingBottom: 48, gap: 12 },
+  liveBox: {
+    backgroundColor: colors.promptBg,
+    borderRadius: 4,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingLeft: 12,
+    paddingRight: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 4,
+  },
+  liveBoxWithFavSlot: {
+    position: 'relative',
+    // Keep right gutter reserved so ★ never pushes the prompt sideways
+    paddingRight: 44,
+  },
+  liveLabel: {
+    color: colors.accentSoft,
+    fontWeight: '800',
+    fontSize: 11,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  doneBox: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 4,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    gap: 8,
+  },
+  doneBadge: {
+    color: colors.accentSoft,
+    fontWeight: '900',
+    fontSize: 15,
+  },
+  scores: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  scoreItem: {
+    color: colors.textMuted,
+    backgroundColor: colors.bgElevated,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+    fontWeight: '600',
+  },
+  seatRow: { gap: 8 },
+  hand: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    justifyContent: 'flex-start',
+    width: '100%',
+  },
+  handItem: {
+    flexGrow: 0,
+    flexShrink: 0,
+  },
+  revealFavStarAbs: {
+    position: 'absolute',
+    top: 4,
+    right: 6,
+    zIndex: 5,
+  },
+  revealFavStar: {
+    color: colors.zar,
+    fontSize: 28,
+    fontWeight: '900',
+    lineHeight: 32,
+    paddingHorizontal: 4,
+  },
+  revealTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  revealActionRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 8,
+    width: '100%',
+  },
+  shareSquare: {
+    width: 52,
+    height: 52,
+    borderRadius: 4,
+    borderWidth: 0,
+    backgroundColor: '#2AABEE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+    paddingTop: 2,
+  },
+  shareEnviar: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.2,
+    lineHeight: 10,
+    textTransform: 'lowercase',
+  },
+  sharePlane: {
+    fontSize: 24,
+    color: colors.accentSoft,
+    lineHeight: 28,
+  },
+  guardarFlex: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  soloCompactBlock: {
+    gap: 8,
+  },
+  soloCompactBlockHidden: {
+    opacity: 0,
+  },
+  soloMine: {
+    backgroundColor: colors.promptBg,
+    borderRadius: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    gap: 4,
+    borderWidth: 1.5,
+    borderColor: colors.accent,
+  },
+  soloMineBadge: {
+    color: colors.accentSoft,
+    fontWeight: '900',
+    fontSize: 10,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  soloMineAnswers: {
+    color: '#FF8A3D',
+    fontWeight: '800',
+    fontSize: 15,
+    lineHeight: 20,
+    textDecorationLine: 'underline',
+  },
+  soloSecondary: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  roundLastAnswer: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: colors.accent,
+    marginTop: 8,
+  },
+  roundLastTitle: {
+    color: colors.accentSoft,
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  soloRival: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 3,
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    gap: 2,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  soloMineRow: {
+    borderColor: colors.accent,
+    backgroundColor: colors.promptBg,
+  },
+  soloRivalHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  soloStar: {
+    color: colors.zar,
+    fontSize: 18,
+    fontWeight: '900',
+    paddingHorizontal: 4,
+  },
+  soloRivalText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '600',
+  },
+  judgeCard: {
+    backgroundColor: colors.bgElevated,
+    borderRadius: 4,
+    padding: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  judgeLabel: {
+    color: colors.accentSoft,
+    fontWeight: '800',
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+});

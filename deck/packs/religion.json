@@ -1,0 +1,458 @@
+{
+  "id": "religion",
+  "title": "Religión",
+  "description": "Religión, iglesias, sectas y fe con humor negro.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0002",
+      "type": "answer",
+      "text": "como Dios me trajo al mundo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0035",
+      "type": "answer",
+      "text": "la Iglesia de la Cienciología",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0148",
+      "type": "answer",
+      "text": "atropellar a una monja",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0227",
+      "type": "answer",
+      "text": "Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0248",
+      "type": "answer",
+      "text": "curar la homosexualidad rezando al niño Jesús",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0260",
+      "type": "answer",
+      "text": "la sangre de Cristo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0267",
+      "type": "answer",
+      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cancer...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0268",
+      "type": "answer",
+      "text": "el milagro de ser concebido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0271",
+      "type": "answer",
+      "text": "el cadáver del Papa Francisco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0414",
+      "type": "answer",
+      "text": "en el despacho del profesor de religión",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0421",
+      "type": "answer",
+      "text": "el Niño Jesús en el pesebre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0452",
+      "type": "answer",
+      "text": "tú eras su Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0503",
+      "type": "answer",
+      "text": "el primer Papa chino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0514",
+      "type": "answer",
+      "text": "una huelga de controladores aéreos en Semana Santa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0682",
+      "type": "answer",
+      "text": "un paraíso anarquista sin ningún tipo de jerarquía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0684",
+      "type": "answer",
+      "text": "un bofetón en la cara que resonó en toda la Iglesia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0742",
+      "type": "answer",
+      "text": "amar a Jesús y sentir que él también te ama",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0818",
+      "type": "answer",
+      "text": "una iglesia sólo para catalanes",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0874",
+      "type": "answer",
+      "text": "varios extractos de la Biblia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0978",
+      "type": "answer",
+      "text": "un pecado mortal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0980",
+      "type": "answer",
+      "text": "confirmar que Dios no existe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1195",
+      "type": "answer",
+      "text": "acabar metido en una secta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1219",
+      "type": "answer",
+      "text": "el cura de tu parroquia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1228",
+      "type": "answer",
+      "text": "la Sagrada Biblia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1236",
+      "type": "answer",
+      "text": "mi sinagoga favorita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1256",
+      "type": "answer",
+      "text": "tener al Fary como Dios único y supremo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1287",
+      "type": "answer",
+      "text": "la incontrolable expansión del Islam",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1352",
+      "type": "answer",
+      "text": "lanzar una virgen a un volcán",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1378",
+      "type": "answer",
+      "text": "un funeral donde el sacerdote lee tu historial de búsquedas de Pornhub en voz alta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1393",
+      "type": "answer",
+      "text": "DMT: la partícula de Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1408",
+      "type": "answer",
+      "text": "una cosa que hace que Dios se arrepienta de La Creación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1766",
+      "type": "answer",
+      "text": "un milagro estadístico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1778",
+      "type": "answer",
+      "text": "un cura que no cree en Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1791",
+      "type": "answer",
+      "text": "la juventud es un defecto que se cura con el tiempo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1901",
+      "type": "answer",
+      "text": "ir el sábado de putas pero el domingo a la iglesia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2001",
+      "type": "answer",
+      "text": "multar a Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2032",
+      "type": "answer",
+      "text": "te hace replantearte tus creencias sobre el infierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2055",
+      "type": "answer",
+      "text": "estar vivo de milagro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2063",
+      "type": "answer",
+      "text": "afirmar haber visto a Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2343",
+      "type": "answer",
+      "text": "un templo egipcio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2492",
+      "type": "answer",
+      "text": "el milagro de los panes y los peces",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2493",
+      "type": "answer",
+      "text": "expulsar a los mercaderes del templo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2670",
+      "type": "answer",
+      "text": "el Dios Sol",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2676",
+      "type": "answer",
+      "text": "una religión basada en el sufrimiento",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2677",
+      "type": "answer",
+      "text": "la religión Católica",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2681",
+      "type": "answer",
+      "text": "la religión Musulmana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2685",
+      "type": "answer",
+      "text": "algo que no tiene nada que ver con una religión",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2720",
+      "type": "answer",
+      "text": "el servicio de inteligencia de El Vaticano.",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2744",
+      "type": "answer",
+      "text": "Papá Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2827",
+      "type": "answer",
+      "text": "un acto de Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2936",
+      "type": "answer",
+      "text": "otro judío misteriosamente llegando a lo más alto de la sociedad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2953",
+      "type": "answer",
+      "text": "la Virgen de los Dolores",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3048",
+      "type": "answer",
+      "text": "recurrir a un curandero que te cura con chupitos de lejía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3055",
+      "type": "answer",
+      "text": "proponer quemar una mezquita como única propuesta urbanística",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3151",
+      "type": "answer",
+      "text": "la Virgen María",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3155",
+      "type": "answer",
+      "text": "con la ayuda de Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3169",
+      "type": "answer",
+      "text": "Jesus Gil en su jacuzzi de Marbella rodeado de las Mamachichos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3194",
+      "type": "answer",
+      "text": "un eterno infierno personalizado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3212",
+      "type": "answer",
+      "text": "monja monja monja monja monja monja monja monja monja monja monja monja",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3227",
+      "type": "answer",
+      "text": "quedar para hablar de Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3230",
+      "type": "answer",
+      "text": "palo santo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3233",
+      "type": "answer",
+      "text": "estafar 3000€ en el nombre de Jesús",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3256",
+      "type": "answer",
+      "text": "Virgen hasta el matrimonio",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0017",
+      "type": "prompt",
+      "text": "El mayor éxito del papado del Papa Francisco ha sido ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0049",
+      "type": "prompt",
+      "text": "Fui a un taller budista para entrenar mi ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0136",
+      "type": "prompt",
+      "text": "He descubierto que ______ cura el insomnio mejor que la valeriana.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0241",
+      "type": "prompt",
+      "text": "Esta versión de la Biblia es muy extraña: un capítulo se titula ______ en ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-a-0111",
+      "type": "answer",
+      "text": "hacer una “tierlist” de ciudadanos en función de su color de piel y religión",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0013",
+      "type": "answer",
+      "text": "un trio con Messi y Cristiano Ronaldo",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0034",
+      "type": "answer",
+      "text": "alimentar a los leones con cristianos",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0175",
+      "type": "answer",
+      "text": "el Dios griego que se folló a toda su familia",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0320",
+      "type": "answer",
+      "text": "la vagina a estrenar de una monja muy mayor",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0433",
+      "type": "answer",
+      "text": "todas las veces que Dios ha tenido que mirar a otra parte mientras te haces la paja",
+      "pick": 1
+    },
+    {
+      "id": "user-a-47802de4bf",
+      "type": "answer",
+      "text": "confesarme en mis Stories",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 74,
+    "prompts": 4,
+    "answers": 70
+  },
+  "playable": true
+}

@@ -1,0 +1,180 @@
+{
+  "id": "_banned",
+  "title": "Banearadas",
+  "description": "Cartas excluidas del juego jugable: sexualización, explotación o humor sobre abuso sexual de menores / pedofilia / CSAM-adjacent.",
+  "nsfw": true,
+  "playable": false,
+  "cards": [
+    {
+      "id": "banned-a-0001",
+      "type": "answer",
+      "text": "monaguillos",
+      "pick": 1,
+      "reason": "altar-boy abuse punchline",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0002",
+      "type": "answer",
+      "text": "pedofília",
+      "pick": 1,
+      "reason": "pedophilia",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0003",
+      "type": "answer",
+      "text": "descubrir que era menor de edad",
+      "pick": 1,
+      "reason": "underage sexual implication",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0004",
+      "type": "answer",
+      "text": "pedófilos rehabilitados",
+      "pick": 1,
+      "reason": "pedophilia",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0005",
+      "type": "answer",
+      "text": "pedofilia en el fútbol base",
+      "pick": 1,
+      "reason": "pedophilia",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0006",
+      "type": "answer",
+      "text": "prostitución de menores migrantes",
+      "pick": 1,
+      "reason": "sexual exploitation of minors",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0007",
+      "type": "answer",
+      "text": "Festival Internacional de Pedofilia",
+      "pick": 1,
+      "reason": "pedophilia",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0008",
+      "type": "answer",
+      "text": "pederastia financiada con tus impuestos",
+      "pick": 1,
+      "reason": "pederasty",
+      "would_be_pack": "politica"
+    },
+    {
+      "id": "banned-a-0009",
+      "type": "answer",
+      "text": "ir a la isla de Epstein",
+      "pick": 1,
+      "reason": "Epstein / CSAM-adjacent",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0010",
+      "type": "answer",
+      "text": "que te gusten los niños",
+      "pick": 1,
+      "reason": "pedophilic implication",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0011",
+      "type": "answer",
+      "text": "la menor de edad que se folló Torbe",
+      "pick": 1,
+      "reason": "sexual content involving minors",
+      "would_be_pack": "plus18"
+    },
+    {
+      "id": "banned-a-0012",
+      "type": "answer",
+      "text": "repetido abuso a menores",
+      "pick": 1,
+      "reason": "child abuse",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0013",
+      "type": "answer",
+      "text": "pedofília en “La Casita de Bad Bunny”",
+      "pick": 1,
+      "reason": "pedophilia",
+      "would_be_pack": "celebridades"
+    },
+    {
+      "id": "banned-a-0014",
+      "type": "answer",
+      "text": "la Teoría de la Relatividad de Albert Epstein",
+      "pick": 1,
+      "reason": "Epstein / CSAM-adjacent",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0015",
+      "type": "answer",
+      "text": "hacer dúo con Jeffrey Epstein en el Call of Duty",
+      "pick": 1,
+      "reason": "Epstein / CSAM-adjacent",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0016",
+      "type": "answer",
+      "text": "el campamento de verano que acabó en un escándalo de pederastia",
+      "pick": 1,
+      "reason": "pederasty",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0017",
+      "type": "answer",
+      "text": "2 menores de edad que te juro que no parecían menores de edad",
+      "pick": 1,
+      "reason": "sexualization of minors",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0018",
+      "type": "answer",
+      "text": "Vicente del Bosque denunciado por pederastia intrafamiliar",
+      "pick": 1,
+      "reason": "pederasty",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-a-0019",
+      "type": "answer",
+      "text": "llenar la blockchain de pornografía infantil",
+      "pick": 1,
+      "reason": "CSAM",
+      "would_be_pack": "plus18"
+    },
+    {
+      "id": "banned-p-0020",
+      "type": "prompt",
+      "text": "Estuve leyendo emails del caso Epstein en los que aparecía: ______+______+______, y cosas aún más turbias.",
+      "pick": 3,
+      "reason": "Epstein / CSAM-adjacent",
+      "would_be_pack": "core"
+    },
+    {
+      "id": "banned-p-0021",
+      "type": "prompt",
+      "text": "Descubrieron que todas las violaciones a niñas del pueblo fueron cometidas por ______.",
+      "pick": 1,
+      "reason": "sexual violence against children",
+      "would_be_pack": "plus18"
+    }
+  ],
+  "counts": {
+    "total": 21
+  }
+}

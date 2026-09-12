@@ -1,0 +1,1454 @@
+{
+  "id": "familia",
+  "title": "Familia",
+  "description": "Familia, suegros, críos, bodas y dramas domésticos.",
+  "nsfw": false,
+  "cards": [
+    {
+      "id": "core-a-0012",
+      "type": "answer",
+      "text": "esperar hasta el matrimonio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0040",
+      "type": "answer",
+      "text": "un bebé recién nacido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0060",
+      "type": "answer",
+      "text": "ir a un centro de planificación familiar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0105",
+      "type": "answer",
+      "text": "el corazón de un niño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0154",
+      "type": "answer",
+      "text": "un tío con un disfraz muy cutre de Darth Vader",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0158",
+      "type": "answer",
+      "text": "los niños de las favelas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0170",
+      "type": "answer",
+      "text": "robarle la novia a otro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0178",
+      "type": "answer",
+      "text": "bebés muertos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0194",
+      "type": "answer",
+      "text": "niños africanos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0198",
+      "type": "answer",
+      "text": "ser un cabrón con los niños",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0209",
+      "type": "answer",
+      "text": "un caso de exterminio familiar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0224",
+      "type": "answer",
+      "text": "casarse, tener hijos, comprar algunas cosas, jubilarse en Mallorca y morir",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0234",
+      "type": "answer",
+      "text": "el tío de la voz de Bruce Willis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0248",
+      "type": "answer",
+      "text": "curar la homosexualidad rezando al niño Jesús",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0267",
+      "type": "answer",
+      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cancer...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0278",
+      "type": "answer",
+      "text": "los Niños de San Idelfonso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0318",
+      "type": "answer",
+      "text": "someter a un oso y hacerlo tu esposa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0334",
+      "type": "answer",
+      "text": "las cenizas de mi abuelo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0382",
+      "type": "answer",
+      "text": "comprobar si un bebé flotaba",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0396",
+      "type": "answer",
+      "text": "acostarte con tu suegra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0410",
+      "type": "answer",
+      "text": "maratón de Kamasutra en familia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0419",
+      "type": "answer",
+      "text": "vivir de tus padres hasta poder vivir de tus hijos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0421",
+      "type": "answer",
+      "text": "el Niño Jesús en el pesebre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0433",
+      "type": "answer",
+      "text": "un niño con la cabeza deforme",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0435",
+      "type": "answer",
+      "text": "mi abuela agonizando",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0437",
+      "type": "answer",
+      "text": "bebés prematuros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0446",
+      "type": "answer",
+      "text": "deepfake de mi madre suplicando la muerte",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0463",
+      "type": "answer",
+      "text": "liarme con mi prima en las fiestas del pueblo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0469",
+      "type": "answer",
+      "text": "el secreto más vergonzonso de mi familia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0475",
+      "type": "answer",
+      "text": "dos hermanos italianos fontaneros con un rollo muy raro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0500",
+      "type": "answer",
+      "text": "esnifar las cenizas de tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0513",
+      "type": "answer",
+      "text": "tu madre preguntando si va a tener nietos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0525",
+      "type": "answer",
+      "text": "canibalismo de bebés",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0528",
+      "type": "answer",
+      "text": "matar a tu abuelo para conseguir antes su herencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0545",
+      "type": "answer",
+      "text": "la misteriosa desaparición de mi ex-novia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0558",
+      "type": "answer",
+      "text": "nudismo en familia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0591",
+      "type": "answer",
+      "text": "boda con divorcio instantáneo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0598",
+      "type": "answer",
+      "text": "la paradoja del abuelo incestuoso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0635",
+      "type": "answer",
+      "text": "un video viral en el que aparece tu madre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0658",
+      "type": "answer",
+      "text": "los consejos que me dio mi madre para hacer una buena comida",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0683",
+      "type": "answer",
+      "text": "hacer que tu novia te trate con respeto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0708",
+      "type": "answer",
+      "text": "un grupo de tías que estaban buenísimas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0715",
+      "type": "answer",
+      "text": "es lo único que me dejaron mis padres como herencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0716",
+      "type": "answer",
+      "text": "no es un juego para niños",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0720",
+      "type": "answer",
+      "text": "el ojo morado de mi novia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0732",
+      "type": "answer",
+      "text": "un matrimonio de 30 años lleno de odio y rencor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0741",
+      "type": "answer",
+      "text": "un ambiente familiar muy negativo y tóxico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0746",
+      "type": "answer",
+      "text": "la que probablemente sea la última Navidad del abuelo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0749",
+      "type": "answer",
+      "text": "un tío macizo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0757",
+      "type": "answer",
+      "text": "las tías con flequillo y un aro en la nariz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0760",
+      "type": "answer",
+      "text": "Parrilladas José Bretón e Hijos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0775",
+      "type": "answer",
+      "text": "el transexual con el que se enrrolló mi padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0777",
+      "type": "answer",
+      "text": "esconder el cadaver de mis padres para seguir cobrando su pensión",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0794",
+      "type": "answer",
+      "text": "un momento muy poco oportuno para pedir matrimonio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0817",
+      "type": "answer",
+      "text": "tías que te dejan en “leído”",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0828",
+      "type": "answer",
+      "text": "para no disgustar a mis padres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0832",
+      "type": "answer",
+      "text": "la sonrisa de un niño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0860",
+      "type": "answer",
+      "text": "ser madre con 14 años",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0861",
+      "type": "answer",
+      "text": "adoptar un bebé tailandés",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0888",
+      "type": "answer",
+      "text": "mi abuelo empezando a fumar vaper",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0920",
+      "type": "answer",
+      "text": "cambiar a mi esposa por 128 camellos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-0997",
+      "type": "answer",
+      "text": "mi madre ya me avisó de que no fuera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1000",
+      "type": "answer",
+      "text": "la hija única de un rico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1027",
+      "type": "answer",
+      "text": "ser detenido por la policía delante de todos tus familiares y amigos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1051",
+      "type": "answer",
+      "text": "depositar a tu hijo en un canasto y tirarlo al río",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1052",
+      "type": "answer",
+      "text": "embarazos no deseados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1063",
+      "type": "answer",
+      "text": "un taller con niños realizando trabajos forzosos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1069",
+      "type": "answer",
+      "text": "divorciarte e ir a Turquía a ponerte pelo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1070",
+      "type": "answer",
+      "text": "divorciarte y ponerte pechos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1125",
+      "type": "answer",
+      "text": "una cita para el año que viene para jugar a los médicos y amenazar a tu esposa con irte a la privada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1136",
+      "type": "answer",
+      "text": "mi novio favorito de Mamá",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1142",
+      "type": "answer",
+      "text": "tener un hijo como último intento de encontrar sentido a tu miserable vida",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1149",
+      "type": "answer",
+      "text": "una boda zulú",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1202",
+      "type": "answer",
+      "text": "regalarle un cintupene a tu novia como indirecta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1215",
+      "type": "answer",
+      "text": "abandonar a la abuela en la gasolinera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1226",
+      "type": "answer",
+      "text": "los niños taiwaneses que fabricaron tu teléfono",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1248",
+      "type": "answer",
+      "text": "el tigre que se comió a mi hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1250",
+      "type": "answer",
+      "text": "el maricón de tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1267",
+      "type": "answer",
+      "text": "ver a tu madre meando en la boca a tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1272",
+      "type": "answer",
+      "text": "descubrir que en realidad sois hermanos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1283",
+      "type": "answer",
+      "text": "matrimonio entre distintas especies",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1291",
+      "type": "answer",
+      "text": "intercambiar tu cuerpo con el de tu madre por un día",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1297",
+      "type": "answer",
+      "text": "mi ex-novio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1315",
+      "type": "answer",
+      "text": "ver tu aldea arder y ver a tus familiares siendo decapitados delante tuya",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1342",
+      "type": "answer",
+      "text": "decir que mi padre es polícia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1355",
+      "type": "answer",
+      "text": "el nuevo novio de mamá",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1385",
+      "type": "answer",
+      "text": "hizo rejuvenecer al abuelo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1397",
+      "type": "answer",
+      "text": "comer el hamster de mi hermana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1407",
+      "type": "answer",
+      "text": "llamar a mi madre para que me haga un bizum",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1510",
+      "type": "answer",
+      "text": "el niño que no llora se convierte en un hombre que no siente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1548",
+      "type": "answer",
+      "text": "una pastilla que me regalo un tío en los baños de la discoteca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1565",
+      "type": "answer",
+      "text": "las madres y bebés del pueblo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1600",
+      "type": "answer",
+      "text": "que tu madre vaya y aparezca lo que buscas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1601",
+      "type": "answer",
+      "text": "niños soldado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1603",
+      "type": "answer",
+      "text": "reunión familiar para la matanza",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1635",
+      "type": "answer",
+      "text": "un test genético que arruina la cena familiar de Navidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1656",
+      "type": "answer",
+      "text": "descubrir que tu boda era una broma de cámara oculta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1675",
+      "type": "answer",
+      "text": "tu tío que siempre trae vino a granel en una garrafa de lejía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1692",
+      "type": "answer",
+      "text": "abuelo gamer",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1725",
+      "type": "answer",
+      "text": "un niño preparándose para fracasar en cualquier estructura social",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1735",
+      "type": "answer",
+      "text": "la incomodidad de educar de verdad a tus hijos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1742",
+      "type": "answer",
+      "text": "el ramo de la novia conocido como “el balón de oro” de las solteras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1762",
+      "type": "answer",
+      "text": "matrimonio abierto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1765",
+      "type": "answer",
+      "text": "hijo sorpresa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1809",
+      "type": "answer",
+      "text": "la amiga que te copia el novio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1811",
+      "type": "answer",
+      "text": "mi suegra entrando en casa sin llamar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1812",
+      "type": "answer",
+      "text": "la hija que te sale respondona",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1813",
+      "type": "answer",
+      "text": "tu hermano superándote en todo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1818",
+      "type": "answer",
+      "text": "el suegro que critica tu trabajo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1835",
+      "type": "answer",
+      "text": "la típica tía soltera que dice \"los hombres son todos iguales\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1838",
+      "type": "answer",
+      "text": "el momento de presentarlo a tu madre, el juicio definitivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1911",
+      "type": "answer",
+      "text": "en el trastero de la casa de mis padres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-1937",
+      "type": "answer",
+      "text": "afeitarle el bigote a mi prima portuguesa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2009",
+      "type": "answer",
+      "text": "predecir divorcios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2016",
+      "type": "answer",
+      "text": "dedicar un cumtribute a mi hermana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2025",
+      "type": "answer",
+      "text": "un bebé recién nacido con bigote",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2026",
+      "type": "answer",
+      "text": "ese amigo que se bebe el aceite de la lata de atún",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2027",
+      "type": "answer",
+      "text": "apostar toda la pensión de tu abuelo a que el Betis saca el primer corner del partido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2028",
+      "type": "answer",
+      "text": "una jeringuilla que encontraste en la guantera del coche de tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2033",
+      "type": "answer",
+      "text": "Erasmus 2.0: mudarte a vivir con tus padres a los 39 años",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2035",
+      "type": "answer",
+      "text": "la dentadura postiza de tu abuela flotando en un vaso de agua al lado de la cama",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2040",
+      "type": "answer",
+      "text": "amor de madre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2065",
+      "type": "answer",
+      "text": "familia tóxica",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2074",
+      "type": "answer",
+      "text": "la chancla de tu madre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2144",
+      "type": "answer",
+      "text": "gravar a mis padres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2185",
+      "type": "answer",
+      "text": "echarte una novia canibal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2201",
+      "type": "answer",
+      "text": "una tía con los pies muy bonitos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2232",
+      "type": "answer",
+      "text": "el novio marroquí de mi hija",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2274",
+      "type": "answer",
+      "text": "abrir una franquicia de Los Pollos Hermanos en Ibiza",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2279",
+      "type": "answer",
+      "text": "enterrar a tu abuelo en una caja de cartón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2332",
+      "type": "answer",
+      "text": "el marcapasos de mi hermano pequeño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2338",
+      "type": "answer",
+      "text": "embarazo psicológico la Matrix",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2435",
+      "type": "answer",
+      "text": "deficiencias nutricionales en el embarazo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2436",
+      "type": "answer",
+      "text": "bebés unidos por la cabeza",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2541",
+      "type": "answer",
+      "text": "no necesitas a tu hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2554",
+      "type": "answer",
+      "text": "la Madre Teresa de Calcuta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2564",
+      "type": "answer",
+      "text": "un hechizo para matar a mi novio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2651",
+      "type": "answer",
+      "text": "disparar sin querer a su hermano mayor en la cabeza y heredar todo el Reino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2662",
+      "type": "answer",
+      "text": "fundir todos los bebés en un bebé gigantesco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2700",
+      "type": "answer",
+      "text": "el chocho de tu madre goteando al verme",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2704",
+      "type": "answer",
+      "text": "en la carita, bebé",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2754",
+      "type": "answer",
+      "text": "de tu madre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2823",
+      "type": "answer",
+      "text": "la liada padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2842",
+      "type": "answer",
+      "text": "descubrir que tienes un hijo después de 2 años de ese loco viaje a Brasil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2847",
+      "type": "answer",
+      "text": "familia feliz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2852",
+      "type": "answer",
+      "text": "divorcio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2905",
+      "type": "answer",
+      "text": "tu abuela de 92 años con un strap-on de 40cm gritando “¡esto es por lo de la guerra!”",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2906",
+      "type": "answer",
+      "text": "echarme una novia de 21 años en años de perro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-2974",
+      "type": "answer",
+      "text": "coger a la hija de mi vecino en argentino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3007",
+      "type": "answer",
+      "text": "la cama de mis padres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3025",
+      "type": "answer",
+      "text": "mi hermana consiguiendo trabajo como tragadora de sables",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3091",
+      "type": "answer",
+      "text": "echar la culpa de todo lo que me pasa a mis padres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3104",
+      "type": "answer",
+      "text": "embarazo por inyección",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3119",
+      "type": "answer",
+      "text": "sujetar un bebe entre mis brazos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3149",
+      "type": "answer",
+      "text": "que tu hijo desaparezca dentro de una tubería como si fuese Super Mario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3196",
+      "type": "answer",
+      "text": "su padre es Conde",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3256",
+      "type": "answer",
+      "text": "Virgen hasta el matrimonio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3291",
+      "type": "answer",
+      "text": "la niñera de mis hijos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3337",
+      "type": "answer",
+      "text": "decidir lo mejor para optimizar mis finanzas personales y el futuro de mi familia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3352",
+      "type": "answer",
+      "text": "que te salga un hijo politoxicómano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3398",
+      "type": "answer",
+      "text": "la madre que los parió",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0008",
+      "type": "prompt",
+      "text": "Mi madre dice que ______ es una enfermedad. ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0011",
+      "type": "prompt",
+      "text": "______ permite ______ con tu novia.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0012",
+      "type": "prompt",
+      "text": "¿Cómo le gusta a mi familia celebrar el fin de año?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0021",
+      "type": "prompt",
+      "text": "Echo de menos ______ con mi hijo y con ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0030",
+      "type": "prompt",
+      "text": "Escucha hijo: si quieres ______, yo te ayudaré, pero mantente siempre alejado de ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0032",
+      "type": "prompt",
+      "text": "Cuidado tío, no entres en ese baño: hay ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0036",
+      "type": "prompt",
+      "text": "Mi madre se quedó flipando cuando vio en mi historial: ______.com/______",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0039",
+      "type": "prompt",
+      "text": "El último fin de semana con mi familia fue increible: el sábado ______ y el domingo ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0041",
+      "type": "prompt",
+      "text": "Mi abuelo siempre me despertaba de la siesta con ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0048",
+      "type": "prompt",
+      "text": "Mi novia me dejó por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0050",
+      "type": "prompt",
+      "text": "En mi futuro esposo busco: ______, ______ y ______.",
+      "pick": 3
+    },
+    {
+      "id": "core-p-0056",
+      "type": "prompt",
+      "text": "El secreto para criar un hijo sano es ______ y______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0067",
+      "type": "prompt",
+      "text": "Mi madre ya me lo decía: menos ______ y más ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0079",
+      "type": "prompt",
+      "text": "La cosa más asquerosa que he hecho con un familiar es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0088",
+      "type": "prompt",
+      "text": "Mi cuñado es ______ y me enseñó que tenía en un cajón ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0092",
+      "type": "prompt",
+      "text": "Mi padre me observó a escondidas toda la noche y lo que descubrió fue ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0093",
+      "type": "prompt",
+      "text": "Mi abuelo vivió con ______ y los chavales de hoy en día sólo tienen ______ y ______.",
+      "pick": 3
+    },
+    {
+      "id": "core-p-0098",
+      "type": "prompt",
+      "text": "Tuve que aceptar que mi novia prefiriera ______ a dormir abrazados...",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0111",
+      "type": "prompt",
+      "text": "La única herencia que me dejó mi abuelo fue ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0114",
+      "type": "prompt",
+      "text": "Cuando abrí la caja fuerte de mi padre encontré ______ y una nota que decía “______”",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0128",
+      "type": "prompt",
+      "text": "Abandoné a mi esposo por ______, pero echo mucho de menos sus ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0129",
+      "type": "prompt",
+      "text": "Mi primo dejó de estudiar y al final ha acabado como ______ en ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0130",
+      "type": "prompt",
+      "text": "Mi madre no será famosa, pero es la numero uno en ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0135",
+      "type": "prompt",
+      "text": "Para mi boda solo pido tres cosas: amor y ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0141",
+      "type": "prompt",
+      "text": "Te lo juro cariño, no sé por qué hay fotos de ______ mezcladas con las de la boda.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0143",
+      "type": "prompt",
+      "text": "Cuando mi hijo cumpla los 18 sólo le daré un consejo: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0155",
+      "type": "prompt",
+      "text": "Mi padre tiene una salsa secreta que él llama ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0161",
+      "type": "prompt",
+      "text": "Mi madre siempre me lo decía: lo mejor de ______ es ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0173",
+      "type": "prompt",
+      "text": "A mi padre no le gustó nada la idea de prestarme dinero para ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0179",
+      "type": "prompt",
+      "text": "______ está bien, pero mi madre prefiere ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0222",
+      "type": "prompt",
+      "text": "Mi madre no me deja volver a casa hasta que no aprenda a ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0226",
+      "type": "prompt",
+      "text": "Mi padre rebuscó entre mis cosas y encontró ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0243",
+      "type": "prompt",
+      "text": "El resultado de 30 años de matrimonio de mis padres ha sido ______ y ______ en exceso.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0244",
+      "type": "prompt",
+      "text": "Flipé cuando vi que a mi hija le estaban enseñando a ______ en el colegio….",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0257",
+      "type": "prompt",
+      "text": "¿Cómo conocí a vuestra madre?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0260",
+      "type": "prompt",
+      "text": "Mi abuelo murió haciendo lo que más le gustaba: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0265",
+      "type": "prompt",
+      "text": "En la graduación de mi hijo no faltó ______ ni ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0272",
+      "type": "prompt",
+      "text": "La última discusión que tuve con mis padres fue por culpa de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0029",
+      "type": "answer",
+      "text": "tener un novio israelí",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0061",
+      "type": "answer",
+      "text": "poner a prueba los limites de la paciencia de tu familia política",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0099",
+      "type": "answer",
+      "text": "monjas robando bebés en el franquismo",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0016",
+      "type": "answer",
+      "text": "Bad Bunny pidiéndote matrimonio a través de OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0020",
+      "type": "answer",
+      "text": "una tía que se parece un montón a Taylor Swift",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0047",
+      "type": "answer",
+      "text": "el algoritmo de TikTok sabiendo más de ti que tu madre",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0054",
+      "type": "answer",
+      "text": "las memorias no autorizadas del hijo de la Pantoja escritas por ChatGPT",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0057",
+      "type": "answer",
+      "text": "gran hermano fiscal",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0002",
+      "type": "prompt",
+      "text": "La verdadera razón por la que me echaron del Whatsapp de la familia es ______.",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0041",
+      "type": "answer",
+      "text": "violar a un familiar lejano",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0070",
+      "type": "answer",
+      "text": "tíos que te follan y no vuelves a saber nada más de ellos",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0083",
+      "type": "answer",
+      "text": "unos hermanos siameses follándose a unas hermanas siamesas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0094",
+      "type": "answer",
+      "text": "una tía sin tetas",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0106",
+      "type": "answer",
+      "text": "hijo de puta",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0124",
+      "type": "answer",
+      "text": "tu abuela descubriendo lo que es un squirt en el asilo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0126",
+      "type": "answer",
+      "text": "Jordi el Niño Polla",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0175",
+      "type": "answer",
+      "text": "el Dios griego que se folló a toda su familia",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0200",
+      "type": "answer",
+      "text": "viaje familiar a la clínica abortiva",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0203",
+      "type": "answer",
+      "text": "comerme un huevo duro que salió del culo de mi novio",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0216",
+      "type": "answer",
+      "text": "hablar por teléfono con tu novia mientras tiene el pene de otro en la vagina",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0245",
+      "type": "answer",
+      "text": "no saber si tus padres se están muriendo o si están follando en la habitación de al lado",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0248",
+      "type": "answer",
+      "text": "después de que mis padres descubrieran dónde escondía la droga",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0274",
+      "type": "answer",
+      "text": "las tías que disfrutan del sexo anal",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0279",
+      "type": "answer",
+      "text": "sexo durante el embarazo",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0281",
+      "type": "answer",
+      "text": "tu madre es puta",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0305",
+      "type": "answer",
+      "text": "chupársela a unos tíos en un callejón en San Fermines",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0312",
+      "type": "answer",
+      "text": "ser un grandísimo hijo de puta",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0328",
+      "type": "answer",
+      "text": "sexo oral en plena autopista mientras hablas con tu madre por el manos libres",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0333",
+      "type": "answer",
+      "text": "la cara de sexo de tu padre",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0358",
+      "type": "answer",
+      "text": "la incomodidad de tener una erección en la comida familiar",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0400",
+      "type": "answer",
+      "text": "la peli porno de tus abuelos filmada por los hermanos Lumiere",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0412",
+      "type": "answer",
+      "text": "tu puta madre",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0416",
+      "type": "answer",
+      "text": "me parece un hijo de puta",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0431",
+      "type": "answer",
+      "text": "tu puto padre",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0462",
+      "type": "answer",
+      "text": "lamer el culo de un mendigo y descubrir que sabe mejor que el de tu novio",
+      "pick": 1
+    },
+    {
+      "id": "plus18-a-0490",
+      "type": "answer",
+      "text": "tener relaciones sexuales con la mascota familiar",
+      "pick": 1
+    },
+    {
+      "id": "plus18-p-0011",
+      "type": "prompt",
+      "text": "Mi madre me arrancó mi poster de ______ porque creía que me masturbaba con él.",
+      "pick": 1
+    },
+    {
+      "id": "user-a-c753b4586c",
+      "type": "answer",
+      "text": "la mesa de Navidad como tribunal de La Haya",
+      "pick": 1
+    },
+    {
+      "id": "user-a-e0b3737530",
+      "type": "answer",
+      "text": "el tío que solo habla de criptomonedas",
+      "pick": 1
+    },
+    {
+      "id": "user-a-667ac13196",
+      "type": "answer",
+      "text": "heredar deudas y opiniones",
+      "pick": 1
+    },
+    {
+      "id": "user-a-7829f04e30",
+      "type": "answer",
+      "text": "un pueblo donde todo el mundo sabe tu historial médico",
+      "pick": 1
+    }
+  ],
+  "counts": {
+    "total": 240,
+    "prompts": 40,
+    "answers": 200
+  },
+  "playable": true
+}

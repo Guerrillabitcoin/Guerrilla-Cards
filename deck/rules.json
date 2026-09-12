@@ -1,0 +1,71 @@
+{
+  "game": "Guerrilla Cards",
+  "language": "es",
+  "source_note": "Reglas de casa adaptadas a partir del PDF printable v1 (cch1). Rebranding: Guerrilla Cards. No se importan textos de cartas stock traducidas de Cartas Contra la Humanidad / CAH (copyright).",
+  "basic": {
+    "hand_size": 10,
+    "czar_title": "Zar",
+    "czar_selection": "La persona que haya cagado más recientemente es designada como el Zar del primer turno. Tras cada ronda, el jugador a la derecha del Zar se convierte en el nuevo Zar.",
+    "turn_flow": [
+      "Cada jugador recibe 10 cartas de respuesta.",
+      "El Zar elige una carta de pregunta y la lee en voz alta.",
+      "Los demás jugadores responden bocabajo (bandeja/bolsa recomendada).",
+      "El Zar baraja y lee cada respuesta junto con la pregunta.",
+      "El Zar elige la respuesta ganadora; ese jugador gana 1 Puntaco.",
+      "Todos roban hasta tener de nuevo 10 cartas de respuesta."
+    ],
+    "scoring": {
+      "win_token": "Puntaco",
+      "per_round": 1,
+      "end_conditions_examples": [
+        "Llegar a X Puntacos",
+        "Tras jugar X rondas",
+        "Al llegar a cierta hora",
+        "Cuando la policía aporree la puerta"
+      ]
+    },
+    "reading_tip": "Se recomienda que el Zar lea en voz alta la respuesta y la pregunta por cada participante, no sólo la respuesta."
+  },
+  "multi_response": {
+    "description": "Además de preguntas con un hueco, hay preguntas que necesitan 2 o 3 cartas de respuesta. Acordad el orden bocabajo (clips o doblez en la esquina ayudan a no mezclar jugadas múltiples).",
+    "hand_exception": "En rondas de 3 cartas se roban 2 cartas de más (mano temporal de 12) para poder combinar mejor.",
+    "pick_field": "Us the prompt card's pick value (1, 2, or 3)."
+  },
+  "house_variants": [
+    {
+      "id": "reiniciar_universo",
+      "title": "Reiniciar el Universo",
+      "text": "En cualquier momento un jugador puede descartar las cartas de respuesta que desee y robar la misma cantidad, a cambio de 1 Puntaco."
+    },
+    {
+      "id": "me_juego_mi_casa",
+      "title": "Me juego mi casa y las llaves del coche",
+      "text": "Si se tiene un Puntaco, se pueden jugar dos respuestas a cambio de 1 Puntaco. Si alguna gana, se reciben 3 Puntacos; si no, se pierde 1."
+    },
+    {
+      "id": "senor_random",
+      "title": "Señor Random Cardrissian",
+      "text": "Jugador imaginario adicional con mazo propio. Cada turno se elige una carta suya al azar. Si gana, los demás (excepto el Zar) pierden un Puntaco si lo tienen. También se puede usar sin penalización con pocos jugadores."
+    },
+    {
+      "id": "dios_ha_muerto",
+      "title": "Dios ha muerto",
+      "text": "Ronda sin Zar: cada jugador elige su carta favorita. La más votada gana."
+    },
+    {
+      "id": "solo_puede_quedar_uno",
+      "title": "Sólo puede quedar uno",
+      "text": "Tras responder, los jugadores van eliminando cartas por turnos. La última carta que queda gana."
+    },
+    {
+      "id": "eurovision_style",
+      "title": "Eurovisión style",
+      "text": "El Zar elige las tres cartas más divertidas: 3, 2 y 1 Puntacos. Al final, el vencedor es el más divertido matemáticamente hablando."
+    },
+    {
+      "id": "wtf",
+      "title": "¡¿WTF?!",
+      "text": "Si un jugador no entiende una carta, puede descartarla y cambiarla por otra a cambio de confesar su ignorancia y una humillación pública."
+    }
+  ]
+}
