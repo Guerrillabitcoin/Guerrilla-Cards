@@ -576,7 +576,10 @@ export default function PlayScreen() {
     if (existing) {
       deleteFavoriteAnswer(existing.id);
     } else {
-      addFavoriteAnswer(t);
+      addFavoriteAnswer(t, {
+        promptText: game.currentPrompt?.text,
+        answers: cards?.map((c) => c.text),
+      });
       if (cards) {
         for (const c of cards) {
           recordFavoriteMark(c.id, c.text);

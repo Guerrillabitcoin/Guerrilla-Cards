@@ -38,7 +38,10 @@ interface HistoryContextValue {
   }) => Promise<WinningHistoryItem>;
   toggleFavorite: (id: string) => void;
   deleteHistoryItem: (id: string) => void;
-  addFavoriteAnswer: (text: string) => void;
+  addFavoriteAnswer: (
+    text: string,
+    meta?: { promptText?: string; answers?: string[] }
+  ) => void;
   deleteFavoriteAnswer: (id: string) => void;
   favorites: WinningHistoryItem[];
   recordDiscards: (cards: { id: string; text: string }[]) => void;
@@ -290,14 +293,38 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addFavoriteAnswer = useCallback(
-    (text: string) => {
+    (
+      text: string,
+      meta?: { promptText?: string; answers?: string[] }
+    ) => {
       const t = text.trim();
       if (!t) return;
-      if (favAnswersRef.current.some((a) => a.text === t)) return;
+      const existing = favAnswersRef.current.find((a) => a.text === t);
+      if (existing) {
+        // Upgrade legacy entries that only had plain text
+        if (
+          meta?.promptText &&
+          (!existing.promptText || existing.promptText === '______')
+        ) {
+          const upgraded: FavoriteAnswer = {
+            ...existing,
+            promptText: meta.promptText,
+            answers: meta.answers?.length ? meta.answers : existing.answers,
+          };
+          void persistFavAnswers(
+            favAnswersRef.current.map((a) =>
+              a.id === existing.id ? upgraded : a
+            )
+          );
+        }
+        return;
+      }
       const entry: FavoriteAnswer = {
         id: uid('ans'),
         text: t,
         createdAt: Date.now(),
+        promptText: meta?.promptText?.trim() || undefined,
+        answers: meta?.answers?.filter(Boolean),
       };
       void persistFavAnswers([entry, ...favAnswersRef.current].slice(0, 100));
       bumpFavoriteByText(t);

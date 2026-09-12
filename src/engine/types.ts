@@ -109,8 +109,13 @@ export interface WinningHistoryItem {
 
 export interface FavoriteAnswer {
   id: string;
+  /** Filled sentence (legacy + share fallback). */
   text: string;
   createdAt: number;
+  /** Prompt with blanks — required for white/orange share format. */
+  promptText?: string;
+  /** Answer phrases that fill the blanks (orange). */
+  answers?: string[];
 }
 
 /** Global most-discarded answer card ranking */

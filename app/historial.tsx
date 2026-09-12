@@ -94,10 +94,20 @@ ${label.slice(0, 100)}`, [
         winningHistory.find(
           (h) => h.filledText.trim().toLocaleLowerCase('es-ES') === k
         ) ?? null;
+      const promptText =
+        (a.promptText && a.promptText !== '______'
+          ? a.promptText
+          : matched?.promptText) || '';
+      const answers =
+        a.answers?.length
+          ? a.answers
+          : matched?.answers?.length
+            ? matched.answers
+            : [];
       out.push({
         key: `a-${a.id}`,
-        promptText: matched?.promptText ?? '______',
-        answers: matched?.answers?.length ? matched.answers : [a.text],
+        promptText,
+        answers,
         filledText: matched?.filledText ?? a.text,
         answerId: a.id,
         historyId: matched?.id,
@@ -154,11 +164,28 @@ ${label.slice(0, 100)}`, [
                   <Text style={styles.starFav}>★</Text>
                 </Pressable>
               </View>
-              <FilledPromptText
-                small
-                promptText={item.promptText}
-                answers={item.answers}
-              />
+              {item.promptText && /_/.test(item.promptText) && item.answers.length ? (
+                <FilledPromptText
+                  small
+                  promptText={item.promptText}
+                  answers={item.answers}
+                />
+              ) : item.promptText && item.answers.length ? (
+                <View style={styles.favSplit}>
+                  <Text style={styles.favPromptOnly}>{item.promptText}</Text>
+                  <Text style={styles.favAnswersOnly}>
+                    {item.answers.join(' · ')}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.favSplit}>
+                  <Text style={styles.favLegacyHint}>
+                    Formato antiguo — vuelve a marcar ★ en partida para separar
+                    pregunta (blanco) y respuesta (naranja).
+                  </Text>
+                  <Text style={styles.favPromptOnly}>{item.filledText}</Text>
+                </View>
+              )}
               <View style={styles.cardFooterRight}>
                 <EnviarShareButton
                   size="sm"
@@ -166,7 +193,7 @@ ${label.slice(0, 100)}`, [
                     router.push({
                       pathname: '/compartir',
                       params: {
-                        promptText: item.promptText,
+                        promptText: item.promptText || '',
                         answers: JSON.stringify(item.answers),
                         filledText: item.filledText,
                       },
@@ -330,6 +357,26 @@ const styles = StyleSheet.create({
   },
   cardFav: {
     borderColor: colors.accent,
+  },
+  favSplit: { gap: 6 },
+  favPromptOnly: {
+    color: colors.promptText,
+    fontWeight: '700',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  favAnswersOnly: {
+    color: '#FF8A3D',
+    fontWeight: '900',
+    fontSize: 14,
+    lineHeight: 20,
+    textDecorationLine: 'underline',
+  },
+  favLegacyHint: {
+    color: colors.textDim,
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 2,
   },
   cardHead: {
     flexDirection: 'row',

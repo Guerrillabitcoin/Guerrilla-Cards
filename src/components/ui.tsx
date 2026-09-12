@@ -557,7 +557,12 @@ export function FilledPromptText({
             </Text>
           );
         }
-        return <Text key={i}>{p.text}</Text>;
+        // Explicit prompt color — RN-web can inherit orange from answer spans
+        return (
+          <Text key={i} style={styles.filledPromptBody}>
+            {p.text}
+          </Text>
+        );
       })}
     </Text>
   );
@@ -808,6 +813,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 18,
     lineHeight: 26,
+  },
+  filledPromptBody: {
+    color: colors.promptText,
+    fontWeight: '700',
   },
   filledPromptLarge: {
     fontSize: 26,
