@@ -224,12 +224,13 @@ export function promptShape(text: string): string {
 }
 
 /**
- * Prompt order for a new/restarted match:
- * - ONLY count avoid ids that exist in THIS pack selection (else Core-only
- *   wasted the budget on plus18/etc ids and felt endlessly repetitive)
- * - Never-seen prompts first; recently seen last (oldest-among-seen before newest)
- * - Interleave packs + space similar shapes
- * - Random cut ONLY inside the never-seen prefix
+ * Prompt order for a new/restarted match — maximize entropy over the pool:
+ * - Avoid-ids only if they exist in THIS pack selection
+ * - Never-seen first, recently seen last (no mid-match reshuffle of used)
+ * - Within each block: Fisher–Yates uniform shuffle (each card equally likely
+ *   in each slot). Pack interleave / aggressive shape spacing were removing
+ *   entropy and over-representing tiny packs early.
+ * - Only break exact adjacent shape twins (window 1) — tiny local fix, not a bias
  */
 export function buildVariedPromptDeck(
   prompts: Card[],
@@ -238,31 +239,18 @@ export function buildVariedPromptDeck(
   if (!prompts.length) return [];
 
   const inPool = new Set(prompts.map((c) => c.id));
-  // Newest-first rank among ids that actually appear in this deck
-  const rank = new Map<string, number>();
+  const seenSet = new Set<string>();
   for (const id of avoidIds) {
-    if (!inPool.has(id) || rank.has(id)) continue;
-    rank.set(id, rank.size);
+    if (!inPool.has(id) || seenSet.has(id)) continue;
+    seenSet.add(id);
   }
 
-  const neverSeen = prompts.filter((c) => !rank.has(c.id));
-  const seen = prompts
-    .filter((c) => rank.has(c.id))
-    // Higher rank = seen longer ago → draw sooner among the "seen" tail
-    .sort((a, b) => (rank.get(b.id) ?? 0) - (rank.get(a.id) ?? 0));
+  const neverSeen = prompts.filter((c) => !seenSet.has(c.id));
+  const seen = prompts.filter((c) => seenSet.has(c.id));
 
-  let orderedFresh = spaceOutShapes(interleaveByPack(shuffle(neverSeen)), 4);
-  if (orderedFresh.length > 6) {
-    const span = Math.max(
-      2,
-      Math.min(Math.floor(orderedFresh.length * 0.35), orderedFresh.length - 2)
-    );
-    const cut = 1 + Math.floor(Math.random() * span);
-    orderedFresh = orderedFresh.slice(cut).concat(orderedFresh.slice(0, cut));
-  }
-
-  // Keep relative age order; light pack interleave without reshuffling ages away
-  const orderedRecent = spaceOutShapes(interleaveByPack(seen), 3);
+  // Max-entropy draw order among eligible cards
+  const orderedFresh = spaceOutShapes(shuffle(neverSeen), 1);
+  const orderedRecent = spaceOutShapes(shuffle(seen), 1);
   return [...orderedFresh, ...orderedRecent];
 }
 
