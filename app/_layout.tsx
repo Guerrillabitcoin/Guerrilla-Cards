@@ -2,11 +2,13 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { Text, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { GameProvider } from '@/src/store/GameContext';
 import { HistoryProvider } from '@/src/store/HistoryContext';
 import { colors } from '@/src/theme/colors';
+import { APP_VERSION } from '@/src/version';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -36,7 +38,38 @@ export default function RootLayout() {
           <Stack.Screen name="lobby" options={{ title: 'Lobby' }} />
           <Stack.Screen
             name="play"
-            options={{ title: 'Partida', headerBackVisible: false }}
+            options={{
+              title: 'Partida',
+              headerBackVisible: false,
+              headerTitle: () => (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'baseline',
+                    gap: 6,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: colors.text,
+                      fontWeight: '800',
+                      fontSize: 17,
+                    }}
+                  >
+                    Partida
+                  </Text>
+                  <Text
+                    style={{
+                      color: colors.textDim,
+                      fontSize: 11,
+                      fontWeight: '700',
+                    }}
+                  >
+                    {APP_VERSION}
+                  </Text>
+                </View>
+              ),
+            }}
           />
           <Stack.Screen name="results" options={{ title: 'Resultados' }} />
           <Stack.Screen

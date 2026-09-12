@@ -2,7 +2,7 @@
   "expo": {
     "name": "Guerrilla Cards",
     "slug": "guerrilla-cards",
-    "version": "1.0.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "guerrilla-cards",
@@ -33,7 +33,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0B0B0C"
         }
-      ]
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true
