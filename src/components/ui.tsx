@@ -618,7 +618,8 @@ export function Loading() {
 }
 
 function useUiStyles() {
-  const { colors, fontFamily } = useTheme();
+  const { colors, fontFamily, themeId } = useTheme();
+  const classic = themeId === 'classic';
   return useMemo(
     () =>
       StyleSheet.create({
@@ -824,7 +825,7 @@ function useUiStyles() {
   },
   cardAnswer: {
     backgroundColor: colors.answerBg,
-    borderColor: '#E07A30',
+    borderColor: classic ? colors.border : '#E07A30',
   },
   cardSelected: {
     borderColor: colors.zar,
@@ -856,9 +857,14 @@ function useUiStyles() {
   },
   cardAnswerText: {
     color: colors.answerText,
-    textShadowColor: 'rgba(0, 0, 0, 0.85)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    // Classic: pequeño glow naranja detrás de las letras (cartas negras)
+    textShadowColor: classic
+      ? 'rgba(224, 106, 26, 0.9)'
+      : 'rgba(0, 0, 0, 0.85)',
+    textShadowOffset: classic
+      ? { width: 0, height: 0 }
+      : { width: 0, height: 1 },
+    textShadowRadius: classic ? 5 : 3,
   },
   filledPrompt: {
     color: colors.promptText,
@@ -881,12 +887,16 @@ function useUiStyles() {
     fontWeight: '600',
   },
   filledAnswer: {
-    color: '#FF8A3D',
+    color: classic ? '#E06A1A' : '#FF8A3D',
     textDecorationLine: 'underline',
     fontWeight: '900',
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    textShadowColor: classic
+      ? 'rgba(224, 106, 26, 0.55)'
+      : 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: classic
+      ? { width: 0, height: 0 }
+      : { width: 0, height: 1 },
+    textShadowRadius: classic ? 4 : 2,
   },
   filledAnswerSmall: {
     fontSize: 13,
@@ -1111,6 +1121,6 @@ function useUiStyles() {
     backgroundColor: colors.bg,
   },
       }),
-    [colors, fontFamily]
+    [colors, fontFamily, classic]
   );
 }

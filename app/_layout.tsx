@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { VercelMetrics } from '@/src/components/VercelMetrics';
 import { GameProvider } from '@/src/store/GameContext';
 import { HistoryProvider } from '@/src/store/HistoryContext';
+import { AdminProvider } from '@/src/store/AdminContext';
 import { ThemeProvider, useTheme } from '@/src/store/ThemeContext';
 import { APP_VERSION_LABEL } from '@/src/version';
 
@@ -93,11 +94,13 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <GameProvider>
-        <HistoryProvider>
-          <ThemedStack />
-        </HistoryProvider>
-      </GameProvider>
+      <AdminProvider>
+        <GameProvider>
+          <HistoryProvider>
+            <ThemedStack />
+          </HistoryProvider>
+        </GameProvider>
+      </AdminProvider>
     </ThemeProvider>
   );
 }

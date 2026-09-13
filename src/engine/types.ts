@@ -136,7 +136,7 @@ export const SOLO_DEFAULT_TARGET = 10;
 export const SOLO_BOT_COUNT_DEFAULT = 2;
 export const SOLO_BOT_COUNT_MAX = 3;
 /** Random rival answers injected after you submit in solo. */
-export const SOLO_RIVAL_COUNT = 5;
+export const SOLO_RIVAL_COUNT = 3;
 
 /** Insert discarding phase before this round number starts */
 export const DISCARD_AT_ROUND = 5;

@@ -15,21 +15,29 @@ import {
   Subtitle,
   Title,
 } from '@/src/components/ui';
+import { AdminEntryButton, AdminPanel } from '@/src/components/AdminPanel';
 import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
-import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS } from '@/src/engine/types';
+import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, type Card } from '@/src/engine/types';
+import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function rivalLabel(playerId: string): string {
   const m = /^rival-(\d+)$/.exec(playerId);
-  if (m) return `Rival ${m[1]}`;
-  return 'Bot';
+  if (m) return `RESPUESTA BOT ${m[1]}`;
+  return 'RESPUESTA BOT';
 }
 
 export default function PlayScreen() {
   const styles = usePlayStyles();
+  const { unlocked: adminUnlocked, patches: adminPatches } = useAdmin();
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [adminEditTarget, setAdminEditTarget] = useState<Card | null>(null);
+  const [adminStartMode, setAdminStartMode] = useState<
+    'menu' | 'unlock' | 'edit' | 'add' | 'list' | undefined
+  >(undefined);
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
@@ -76,7 +84,19 @@ export default function PlayScreen() {
   const staleRecordedRef = useRef<string | null>(null);
 
   const gameCode = code ? String(code).toUpperCase() : '';
-  const game = ready && gameCode ? getGame(gameCode) : undefined;
+  const rawGame = ready && gameCode ? getGame(gameCode) : undefined;
+  const game = useMemo(
+    () => (rawGame ? remapGameCards(rawGame, adminPatches) : undefined),
+    [rawGame, adminPatches]
+  );
+
+  useEffect(() => {
+    // Tras la ronda 5: en la ronda 6 no hay descartar/pasar; en la 7 vuelve.
+    if (game?.round === 6 && soloSkipMode) {
+      setSoloSkipMode(false);
+      setPicked([]);
+    }
+  }, [game?.round, soloSkipMode]);
   const isSolo = game?.mode === 'solo';
   const phase = paintPhase ?? game?.phase;
   const isDiscarding = phase === 'discarding';
@@ -762,6 +782,52 @@ export default function PlayScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.sticky}>
+        <View style={styles.adminBar}>
+          <AdminEntryButton
+            onPress={() => {
+              setAdminEditTarget(null);
+              setAdminStartMode(adminUnlocked ? 'menu' : 'unlock');
+              setAdminOpen(true);
+            }}
+          />
+          {adminUnlocked && game?.currentPrompt ? (
+            <Pressable
+              style={styles.adminChip}
+              onPress={() => {
+                setAdminEditTarget(game.currentPrompt);
+                setAdminStartMode('edit');
+                setAdminOpen(true);
+              }}
+            >
+              <Text style={styles.adminChipText}>Editar pregunta</Text>
+            </Pressable>
+          ) : null}
+          {adminUnlocked ? (
+            <Pressable
+              style={styles.adminChip}
+              onPress={() => {
+                const host =
+                  game?.players.find((p) => p.isHost) ?? game?.players[0];
+                const fromPick =
+                  picked.length === 1
+                    ? host?.hand.find((c) => c.id === picked[0])
+                    : undefined;
+                if (fromPick) {
+                  setAdminEditTarget(fromPick);
+                  setAdminStartMode('edit');
+                } else {
+                  setAdminEditTarget(null);
+                  setAdminStartMode('add');
+                }
+                setAdminOpen(true);
+              }}
+            >
+              <Text style={styles.adminChipText}>
+                {picked.length === 1 ? 'Editar respuesta' : 'Añadir carta'}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
             {roundLine}
@@ -1040,7 +1106,9 @@ export default function PlayScreen() {
                   </View>
                 ))}
               </View>
-              {isSolo && !soloSkipMode ? (
+              {isSolo &&
+              !soloSkipMode &&
+              game.round !== 6 ? (
                 <Button
                   title="Descartar (tirar 2 y saltar ronda)"
                   variant="discard"
@@ -1050,7 +1118,7 @@ export default function PlayScreen() {
                   }}
                 />
               ) : null}
-              {isSolo && soloSkipMode ? (
+              {isSolo && soloSkipMode && game.round !== 6 ? (
                 <Button
                   title={`Cancelar descarte (${soloSkipCountLabel})`}
                   variant="ghost"
@@ -1224,6 +1292,72 @@ export default function PlayScreen() {
         </>
       ) : null}
       </ScrollView>
+
+      <AdminPanel
+        visible={adminOpen}
+        onClose={() => {
+          setAdminOpen(false);
+          setAdminEditTarget(null);
+          setAdminStartMode(undefined);
+        }}
+        editTarget={adminEditTarget}
+        preferredPackIds={game?.packIds}
+        startMode={adminStartMode}
+        onCardEdited={(cardId, text, pick) => {
+          if (!game) return;
+          updateGame(game.code, (g) => {
+            const mapC = (c: Card): Card =>
+              c.id === cardId
+                ? {
+                    ...c,
+                    text,
+                    pick: typeof pick === 'number' ? pick : c.pick,
+                  }
+                : c;
+            return {
+              ...g,
+              currentPrompt: g.currentPrompt ? mapC(g.currentPrompt) : null,
+              players: g.players.map((pl) => ({
+                ...pl,
+                hand: (pl.hand ?? []).map(mapC),
+              })),
+              promptDeck: (g.promptDeck ?? []).map(mapC),
+              answerDeck: (g.answerDeck ?? []).map(mapC),
+              submissions: (g.submissions ?? []).map((s) => ({
+                ...s,
+                cards: (s.cards ?? []).map(mapC),
+              })),
+            };
+          });
+        }}
+        onCardAdded={(added) => {
+          if (!game) return;
+          const card: Card = {
+            id: added.id,
+            type: added.type,
+            text: added.text,
+            pick: added.pick,
+            sourcePack: added.packId,
+          };
+          updateGame(game.code, (g) => {
+            if (added.type === 'prompt') {
+              const pos = g.promptDeckPos ?? 0;
+              const deck = g.promptDeck ?? [];
+              return {
+                ...g,
+                promptDeck: [...deck.slice(0, pos), card, ...deck.slice(pos)],
+              };
+            }
+            const pos = g.answerDeckPos ?? 0;
+            const deck = g.answerDeck ?? [];
+            return {
+              ...g,
+              answerDeck: [...deck.slice(0, pos), card, ...deck.slice(pos)],
+            };
+          });
+        }}
+      />
+
     </View>
   );
 }
@@ -1255,6 +1389,28 @@ function usePlayStyles() {
     color: '#E57373',
     fontSize: 12,
     fontWeight: '600',
+  },
+  adminBar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 2,
+  },
+  adminChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgElevated,
+    borderRadius: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  adminChipText: {
+    color: colors.accentSoft,
+    fontSize: 11,
+    fontWeight: '800',
   },
   sticky: {
 

@@ -3,12 +3,29 @@
  * Bump this when shipping a visible change to Vercel / stores.
  * UI always prefixes with "v" via APP_VERSION_LABEL.
  */
-export const APP_VERSION = '0.77';
+export const APP_VERSION = '0.79';
 
 /** Display form, e.g. `v0.69` — use this in UI next to Partida / home. */
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.79',
+    date: '2026-09-13',
+    notes: [
+      'Classic: home B/N; respuestas negras con glow naranja en letras',
+      'Solo: 3 respuestas bot (RESPUESTA BOT 1–3)',
+      'Solo: sin descartar/pasar en ronda 6; vuelve en la 7',
+    ],
+  },
+  {
+    version: '0.78',
+    date: '2026-09-13',
+    notes: [
+      'Modo Admin (PIN / ?admin=1): editar y añadir cartas con parches locales',
+      'Exportar parches JSON para commit al mazo live',
+    ],
+  },
   {
     version: '0.77',
     date: '2026-09-13',

@@ -14,6 +14,11 @@ import techPack from '../../deck/packs/tech.json';
 import saludPack from '../../deck/packs/salud.json';
 import espanaPack from '../../deck/packs/espana.json';
 import type { Card, PackFile, PackMeta } from './types';
+import {
+  applyPatchesToDeck,
+  patchesAreEmpty,
+  type DeckPatches,
+} from './patches';
 
 const PACK_FILES: Record<string, PackFile> = {
   core: corePack as PackFile,
@@ -34,6 +39,20 @@ const PACK_FILES: Record<string, PackFile> = {
 const bannedIds = new Set(
   ((bannedPack as PackFile).cards ?? []).map((c) => c.id)
 );
+
+
+/** Live admin overlays — cleared caches when set. */
+let activeDeckPatches: DeckPatches | null = null;
+
+export function setActiveDeckPatches(patches: DeckPatches | null) {
+  activeDeckPatches = patchesAreEmpty(patches) ? null : patches;
+  countCache.clear();
+  deckCache.clear();
+}
+
+export function getActiveDeckPatches(): DeckPatches | null {
+  return activeDeckPatches;
+}
 
 export function getPlayablePackMeta(): PackMeta[] {
   return (manifestJson.packs as PackMeta[]).filter((p) => p.playable !== false && p.id !== '_banned');
@@ -125,11 +144,14 @@ export function loadCombinedDeck(packIds: string[]): {
   packCounts: Record<string, { prompts: number; answers: number }>;
 } {
   const selected = packIds.filter((id) => id !== '_banned' && PACK_FILES[id]);
-  const key = (selected.length ? selected : ['core']).slice().sort().join('|');
+  const ids = selected.length ? selected : ['core'];
+  const patchKey = activeDeckPatches
+    ? `e${activeDeckPatches.edits.length}a${activeDeckPatches.adds.length}:${activeDeckPatches.edits.map((e) => e.cardId).join(',')}:${activeDeckPatches.adds.map((a) => a.id).join(',')}`
+    : 'nopatch';
+  const key = ids.slice().sort().join('|') + '::' + patchKey;
   const cached = deckCache.get(key);
   if (cached) return cached;
 
-  const ids = selected.length ? selected : ['core'];
   const prompts: Card[] = [];
   const answers: Card[] = [];
   const seenIds = new Set<string>();
@@ -159,7 +181,23 @@ export function loadCombinedDeck(packIds: string[]): {
     packCounts[id] = { prompts: p, answers: a };
   }
 
-  const result = { prompts, answers, packCounts };
+  const patched = applyPatchesToDeck(prompts, answers, ids, activeDeckPatches);
+  // Recount packCounts roughly after adds
+  if (activeDeckPatches && !patchesAreEmpty(activeDeckPatches)) {
+    for (const add of activeDeckPatches.adds) {
+      if (!ids.includes(add.packId)) continue;
+      const pc = packCounts[add.packId] ?? { prompts: 0, answers: 0 };
+      if (add.type === 'prompt') pc.prompts += 1;
+      else pc.answers += 1;
+      packCounts[add.packId] = pc;
+    }
+  }
+
+  const result = {
+    prompts: patched.prompts,
+    answers: patched.answers,
+    packCounts,
+  };
   deckCache.set(key, result);
   return result;
 }
