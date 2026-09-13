@@ -15,7 +15,8 @@ import {
   Muted,
   Screen,
 } from '@/src/components/ui';
-import { colors, radii } from '@/src/theme/colors';
+import { radii } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
 
 function parseAnswers(raw: string | string[] | undefined): string[] {
   if (!raw) return [];
@@ -38,6 +39,8 @@ function paramStr(v: string | string[] | undefined): string {
 }
 
 export default function CompartirScreen() {
+  const styles = useCompartirStyles();
+
   const router = useRouter();
   const params = useLocalSearchParams<{
     promptText?: string;
@@ -180,7 +183,11 @@ export default function CompartirScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function useCompartirStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   screenTitle: {
     color: colors.text,
     fontSize: 22,
@@ -233,4 +240,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 0.5,
   },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import {
   Button,
@@ -20,7 +20,7 @@ import * as Engine from '@/src/engine/game';
 import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
 
 function rivalLabel(playerId: string): string {
   const m = /^rival-(\d+)$/.exec(playerId);
@@ -29,6 +29,8 @@ function rivalLabel(playerId: string): string {
 }
 
 export default function PlayScreen() {
+  const styles = usePlayStyles();
+
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready } = useGameStore();
@@ -1226,7 +1228,11 @@ export default function PlayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function usePlayStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bg },
   discardCounterBox: {
     backgroundColor: '#5A1820',
@@ -1496,4 +1502,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+

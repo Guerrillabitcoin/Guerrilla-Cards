@@ -13,7 +13,7 @@ import {
 } from '@/src/components/ui';
 import { EnviarShareButton } from '@/src/components/EnviarShareButton';
 import { useHistoryStore } from '@/src/store/HistoryContext';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
 
 type Tab = 'favoritos' | 'recientes' | 'descartes' | 'stats';
 type StatsSort = 'problem' | 'discard' | 'stale' | 'wins';
@@ -23,6 +23,8 @@ function pct(rate: number): string {
 }
 
 export default function HistorialScreen() {
+  const styles = useHistorialStyles();
+
   const router = useRouter();
   const { width: winW } = useWindowDimensions();
   const compact = winW < 700;
@@ -332,7 +334,11 @@ ${label.slice(0, 100)}`, [
   );
 }
 
-const styles = StyleSheet.create({
+function useHistorialStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   cardFooterRight: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -479,4 +485,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+

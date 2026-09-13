@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
   Button,
@@ -14,9 +14,11 @@ import {
 import * as Engine from '@/src/engine/game';
 import { MAX_PLAYERS, MIN_PLAYERS } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
 
 export default function LobbyScreen() {
+  const styles = useLobbyStyles();
+
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready } = useGameStore();
@@ -148,7 +150,11 @@ export default function LobbyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function useLobbyStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   seat: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -161,4 +167,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   seatName: { color: colors.text, fontWeight: '700', fontSize: 16 },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+

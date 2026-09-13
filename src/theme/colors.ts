@@ -1,22 +1,10 @@
-export const colors = {
-  bg: '#14081F',
-  bgElevated: '#221033',
-  bgCard: '#2C1742',
-  border: '#4A2F6A',
-  accent: '#E06A1A',
-  accentDim: '#8C3F0C',
-  accentSoft: '#F08A3A',
-  text: '#F7F2FF',
-  textMuted: '#C4B3D9',
-  textDim: '#8E7AA8',
-  success: '#2ECC71',
-  warning: '#F1C40F',
-  promptBg: '#3B1A5C',
-  promptText: '#F7F2FF',
-  answerBg: '#B84F0E',
-  answerText: '#FFF8F0',
-  zar: '#FFC857',
-};
+import { guerrillaTheme, type ThemeColors } from './themes';
+
+/**
+ * @deprecated Prefer useTheme().colors — kept as Guerrilla defaults for
+ * module-level StyleSheets that haven't migrated yet.
+ */
+export const colors: ThemeColors = guerrillaTheme.colors;
 
 export const guerrillaDark = {
   dark: true,
@@ -36,7 +24,5 @@ export const radii = {
   sm: 3,
   md: 4,
   lg: 4,
-  /** Chips/buttons: square-ish, not capsules */
   chip: 4,
 };
-

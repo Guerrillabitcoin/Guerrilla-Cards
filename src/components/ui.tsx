@@ -1,4 +1,5 @@
 import React, { memo, useMemo } from 'react';
+import { useTheme } from '../store/ThemeContext';
 import {
   ActivityIndicator,
   Platform,
@@ -14,7 +15,6 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { fillBlankParts, type FillPart } from '../engine/deck';
-import { colors } from '../theme/colors';
 
 export function Screen({
   children,
@@ -26,6 +26,8 @@ export function Screen({
   /** Tighter padding/gaps so the home menu fits on large PC screens. */
   contentDense?: boolean;
 }) {
+  const styles = useUiStyles();
+
   return (
     <View style={[styles.screen, style]}>
       <ScrollView
@@ -48,6 +50,8 @@ export function Title({
   children: React.ReactNode;
   style?: TextStyle;
 }) {
+  const styles = useUiStyles();
+
   return <Text style={[styles.title, style]}>{children}</Text>;
 }
 
@@ -58,6 +62,8 @@ export function Subtitle({
   children: React.ReactNode;
   style?: TextStyle;
 }) {
+  const styles = useUiStyles();
+
   return <Text style={[styles.subtitle, style]}>{children}</Text>;
 }
 
@@ -68,14 +74,21 @@ export function Muted({
   children: React.ReactNode;
   style?: TextStyle;
 }) {
+  const styles = useUiStyles();
+
   return <Text style={[styles.muted, style]}>{children}</Text>;
 }
 
 export function Label({ children }: { children: React.ReactNode }) {
+  const styles = useUiStyles();
+
   return <Text style={styles.label}>{children}</Text>;
 }
 
 export function Input(props: TextInputProps) {
+  const styles = useUiStyles();
+  const { colors } = useTheme();
+
   return (
     <TextInput
       placeholderTextColor={colors.textDim}
@@ -98,6 +111,9 @@ export function Button({
   disabled?: boolean;
   style?: object;
 }) {
+  const styles = useUiStyles();
+  const { colors } = useTheme();
+
   return (
     <Pressable
       onPress={onPress}
@@ -153,6 +169,8 @@ export function Chip({
   badge?: string;
   disabled?: boolean;
 }) {
+  const styles = useUiStyles();
+
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
@@ -201,6 +219,8 @@ export function PackTile({
   /** Smaller tiles for dense PC menus / many columns. */
   compact?: boolean;
 }) {
+  const styles = useUiStyles();
+
   const { width: winW } = useWindowDimensions();
   const pcPack = winW >= 700;
   return (
@@ -416,6 +436,8 @@ function CardFaceInner({
   /** Shared hand font — one size for every tile in the grid. */
   forceFontSize?: number;
 }) {
+  const styles = useUiStyles();
+
   const isPrompt = kind === 'prompt';
   const { width: winW, height: winH } = useWindowDimensions();
   const columns = gridColumns ?? (winW >= 700 ? 6 : 2);
@@ -541,6 +563,8 @@ export function FilledPromptText({
   /** Smaller question text (e.g. bot rival fills). */
   small?: boolean;
 }) {
+  const styles = useUiStyles();
+
   const parts = useMemo(
     () => fillBlankParts(promptText, answers),
     [promptText, answers]
@@ -583,6 +607,9 @@ export function FilledPromptText({
 }
 
 export function Loading() {
+  const styles = useUiStyles();
+  const { colors } = useTheme();
+
   return (
     <View style={styles.loading}>
       <ActivityIndicator color={colors.accent} />
@@ -590,7 +617,11 @@ export function Loading() {
   );
 }
 
-const styles = StyleSheet.create({
+function useUiStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -611,22 +642,26 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
+    fontFamily,
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: 1,
   },
   subtitle: {
     color: colors.textMuted,
+    fontFamily,
     fontSize: 15,
     lineHeight: 22,
   },
   muted: {
     color: colors.textDim,
+    fontFamily,
     fontSize: 13,
     lineHeight: 18,
   },
   label: {
     color: colors.textMuted,
+    fontFamily,
     fontSize: 12,
     fontWeight: '700',
     textTransform: 'uppercase',
@@ -634,6 +669,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   input: {
+    fontFamily,
     backgroundColor: colors.bgElevated,
     borderWidth: 1,
     borderColor: colors.border,
@@ -671,6 +707,7 @@ const styles = StyleSheet.create({
     borderColor: '#C62828',
   },
   btnDiscardText: {
+    fontFamily,
     color: '#1A1024',
     fontWeight: '800',
   },
@@ -683,6 +720,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   btnText: {
+    fontFamily,
     color: '#fff',
     fontWeight: '800',
     fontSize: 15,
@@ -1072,4 +1110,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.bg,
   },
-});
+      }),
+    [colors, fontFamily]
+  );
+}

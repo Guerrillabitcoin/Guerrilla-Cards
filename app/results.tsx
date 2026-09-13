@@ -14,10 +14,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { fillBlank } from '@/src/engine/deck';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
 
 
 export default function ResultsScreen() {
+  const styles = useResultsStyles();
+
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, restartSameSetup, ready } = useGameStore();
@@ -327,7 +329,11 @@ export default function ResultsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function useResultsStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   heroCompact: {
     backgroundColor: colors.bgElevated,
     borderWidth: 1,
@@ -458,4 +464,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '900',
   },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+

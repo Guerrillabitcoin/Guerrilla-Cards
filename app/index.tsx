@@ -27,7 +27,8 @@ import {
 } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import { randomNickname } from '@/src/engine/nicknames';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
+import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { APP_VERSION_LABEL } from '@/src/version';
 
 
@@ -54,6 +55,8 @@ function shortPackTitle(id: string, title: string): string {
 const ADULT_OK_KEY = 'guerrilla_adult_ok_v1';
 
 export default function HomeScreen() {
+  const styles = useHomeStyles();
+
   const router = useRouter();
   const { createGame, createAndStartSolo, joinOrOpen, games, ready } =
     useGameStore();
@@ -302,6 +305,9 @@ export default function HomeScreen() {
 
   return (
     <Screen style={denseMenu ? styles.screenDense : undefined} contentDense={denseMenu}>
+      <View style={styles.brandTop}>
+        <ThemeToggle />
+      </View>
       <View style={styles.brandRow}>
         <Text
           style={[styles.brandTitle, denseMenu && styles.brandTitleDense]}
@@ -469,9 +475,19 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function useHomeStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   screenDense: {
     // consumed by Screen via style prop on outer view
+  },
+  brandTop: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   brandRow: {
     flexDirection: 'row',
@@ -533,4 +549,8 @@ const styles = StyleSheet.create({
   packCell: {
     width: '23%',
   },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+

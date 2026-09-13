@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '@/src/theme/colors';
+import { useTheme } from '@/src/store/ThemeContext';
 
 export default function NotFoundScreen() {
+  const styles = useNotFoundStyles();
+
   return (
     <>
       <Stack.Screen options={{ title: '404' }} />
@@ -16,7 +19,11 @@ export default function NotFoundScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function useNotFoundStyles() {
+  const { colors, fontFamily } = useTheme();
+  return useMemo(
+    () =>
+      StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -27,4 +34,8 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 20, fontWeight: '700' },
   link: { marginTop: 16 },
   linkText: { color: colors.accent, fontWeight: '700' },
-});
+}),
+    [colors, fontFamily]
+  );
+}
+
