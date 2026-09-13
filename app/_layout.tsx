@@ -8,7 +8,8 @@ import 'react-native-reanimated';
 import { GameProvider } from '@/src/store/GameContext';
 import { HistoryProvider } from '@/src/store/HistoryContext';
 import { colors } from '@/src/theme/colors';
-import { APP_VERSION } from '@/src/version';
+import { APP_VERSION_LABEL } from '@/src/version';
+import { VercelMetrics } from '@/src/components/VercelMetrics';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -23,6 +24,7 @@ export default function RootLayout() {
     <GameProvider>
       <HistoryProvider>
         <StatusBar style="light" />
+        <VercelMetrics />
         <Stack
           screenOptions={{
             headerStyle: { backgroundColor: colors.bgElevated },
@@ -65,7 +67,7 @@ export default function RootLayout() {
                       fontWeight: '700',
                     }}
                   >
-                    {APP_VERSION}
+                    {APP_VERSION_LABEL}
                   </Text>
                 </View>
               ),

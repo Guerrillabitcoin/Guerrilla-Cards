@@ -1,9 +1,11 @@
 {
   "name": "guerrilla-cards",
   "main": "expo-router/entry",
-  "version": "0.6.0",
+  "version": "0.69.0",
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "expo": "~57.0.22",
     "expo-constants": "~57.0.18",
     "expo-file-system": "~57.0.7",
@@ -42,5 +44,5 @@
     "build": "expo export -p web"
   },
   "private": true,
-  "description": "Guerrilla Cards \u2014 party card game MVP (Expo)"
+  "description": "Guerrilla Cards — party card game MVP (Expo)"
 }

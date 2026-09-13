@@ -15,6 +15,7 @@ import type {
   FavoriteAnswer,
   WinningHistoryItem,
 } from '../engine/types';
+import { trackCards } from '../analytics';
 
 const HISTORY_KEY = 'guerrilla_cards_winning_history_v1';
 const FAV_ANSWERS_KEY = 'guerrilla_cards_fav_answers_v1';
@@ -405,6 +406,8 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const recordPlayed = useCallback(
     (cards: CardRef[], opts?: { won?: boolean }) => {
       if (!cards.length) return;
+      trackCards('card_played', cards);
+      if (opts?.won) trackCards('card_won', cards, { won: true });
       mutateCardStats((byId) => {
         for (const c of cards) {
           if (!c.id) continue;
@@ -429,6 +432,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const recordDiscarded = useCallback(
     (cards: CardRef[]) => {
       if (!cards.length) return;
+      trackCards('card_discarded', cards);
       mutateCardStats((byId) => {
         for (const c of cards) {
           if (!c.id) continue;
@@ -481,6 +485,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
   const recordFavoriteMark = useCallback(
     (cardId: string, text?: string) => {
       if (!cardId) return;
+      trackCards('card_favorited', [{ id: cardId, text: text || '', kind: 'answer' }]);
       mutateCardStats((byId) => {
         const s = ensureInMap(byId, cardId, text ?? '', 'answer');
         if (text) s.text = text;

@@ -28,7 +28,7 @@ import {
 import { useGameStore } from '@/src/store/GameContext';
 import { randomNickname } from '@/src/engine/nicknames';
 import { colors } from '@/src/theme/colors';
-import { APP_VERSION } from '@/src/version';
+import { APP_VERSION_LABEL } from '@/src/version';
 
 
 function shortPackTitle(id: string, title: string): string {
@@ -312,7 +312,7 @@ export default function HomeScreen() {
         >
           GUERRILLA CARDS
         </Text>
-        <Text style={styles.brandVersion}>{APP_VERSION}</Text>
+        <Text style={styles.brandVersion}>{APP_VERSION_LABEL}</Text>
       </View>
       <Subtitle style={denseMenu ? styles.subDense : undefined}>
         Juego de humor negro en español. Rellena los huecos de las preguntas con
