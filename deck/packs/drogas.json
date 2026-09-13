@@ -513,12 +513,96 @@
       "type": "answer",
       "text": "el último porro “de verdad el último”",
       "pick": 1
+    },
+    {
+      "id": "drogas-a-0001",
+      "type": "answer",
+      "text": "un lugar lleno de fiesta, estupefacientes y relaciones íntimas",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0002",
+      "type": "answer",
+      "text": "coordinador de mulas",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0003",
+      "type": "answer",
+      "text": "tu amigo, el más liante y farlopero que acabó de Guardia Local de Azuqueca de Henares",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0004",
+      "type": "answer",
+      "text": "volver a consumir",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0005",
+      "type": "answer",
+      "text": "TeleCocaína",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0006",
+      "type": "answer",
+      "text": "ser una mula de hachís",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0007",
+      "type": "answer",
+      "text": "ramón el Vanidoso, el Yonki de Pitis",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0008",
+      "type": "answer",
+      "text": "colocarme en otra dimensión",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0009",
+      "type": "answer",
+      "text": "pastillas de todo tipo",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0010",
+      "type": "answer",
+      "text": "llevar la riñonera llena de todo tipo de drogas",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0011",
+      "type": "answer",
+      "text": "tu amigo el que siempre “pierde” la droga",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0012",
+      "type": "answer",
+      "text": "pillar droga a un desconocido y meterte todo porque ya no puede salir nada peor",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0013",
+      "type": "answer",
+      "text": "confirmar la teoría del mono dopado",
+      "pick": 1
+    },
+    {
+      "id": "drogas-a-0014",
+      "type": "answer",
+      "text": "un bolso de hombre Gucci donde todo el mundo sabe que llevo droga",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 85,
+    "total": 99,
     "prompts": 3,
-    "answers": 82
+    "answers": 96
   },
   "playable": true
 }

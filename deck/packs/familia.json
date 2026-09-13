@@ -37,7 +37,7 @@
     {
       "id": "core-a-0158",
       "type": "answer",
-      "text": "los niños de las favelas",
+      "text": "los niños de las fAVElas",
       "pick": 1
     },
     {
@@ -91,7 +91,7 @@
     {
       "id": "core-a-0267",
       "type": "answer",
-      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cancer...",
+      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cáncer...",
       "pick": 1
     },
     {
@@ -211,7 +211,7 @@
     {
       "id": "core-a-0545",
       "type": "answer",
-      "text": "la misteriosa desaparición de mi ex-novia",
+      "text": "la misteriOSa desaparición de mi ex-novia",
       "pick": 1
     },
     {
@@ -319,7 +319,7 @@
     {
       "id": "core-a-0777",
       "type": "answer",
-      "text": "esconder el cadaver de mis padres para seguir cobrando su pensión",
+      "text": "esconder el cadAVEr de mis padres para seguir cobrando su pensión",
       "pick": 1
     },
     {
@@ -685,7 +685,7 @@
     {
       "id": "core-a-2009",
       "type": "answer",
-      "text": "predecir divorcios",
+      "text": "predecir divorciOS",
       "pick": 1
     },
     {
@@ -727,7 +727,7 @@
     {
       "id": "core-a-2035",
       "type": "answer",
-      "text": "la dentadura postiza de tu abuela flotando en un vaso de agua al lado de la cama",
+      "text": "la dentadura postiza de tu abuela flOTANdo en un vaso de agua al lado de la cama",
       "pick": 1
     },
     {
@@ -1201,7 +1201,7 @@
     {
       "id": "politica-a-0029",
       "type": "answer",
-      "text": "tener un novio israelí",
+      "text": "tener un novio Israelí",
       "pick": 1
     },
     {
@@ -1249,7 +1249,7 @@
     {
       "id": "celebridades-p-0002",
       "type": "prompt",
-      "text": "La verdadera razón por la que me echaron del Whatsapp de la familia es ______.",
+      "text": "La verdadera razón por la que me echaron del WhatsApp de la familia es ______.",
       "pick": 1
     },
     {
@@ -1297,7 +1297,7 @@
     {
       "id": "plus18-a-0175",
       "type": "answer",
-      "text": "el Dios griego que se folló a toda su familia",
+      "text": "el DiOS griego que se folló a toda su familia",
       "pick": 1
     },
     {
@@ -1515,12 +1515,42 @@
       "type": "prompt",
       "text": "Abrí la caja de galletas danesas de mi casa y me encontré ______ y ______.",
       "pick": 2
+    },
+    {
+      "id": "familia-a-0001",
+      "type": "answer",
+      "text": "lobotomizar a sus hijos con todo tipo de sobreestímulos",
+      "pick": 1
+    },
+    {
+      "id": "familia-a-0002",
+      "type": "answer",
+      "text": "mi ex compañero de piso",
+      "pick": 1
+    },
+    {
+      "id": "familia-a-0003",
+      "type": "answer",
+      "text": "el ruido de tirar canicas al suelo de tu vecino de arriba",
+      "pick": 1
+    },
+    {
+      "id": "familia-a-0004",
+      "type": "answer",
+      "text": "guiñar un ojo a mi prima, que ya ha cumplido 18",
+      "pick": 1
+    },
+    {
+      "id": "familia-a-0005",
+      "type": "answer",
+      "text": "dar con el fuelle a mi prima",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 252,
+    "total": 257,
     "prompts": 52,
-    "answers": 200
+    "answers": 205
   },
   "playable": true
 }

@@ -67,7 +67,7 @@
     {
       "id": "celebridades-a-0009",
       "type": "answer",
-      "text": "el delicioso ano de Jorge Javier Vázquez",
+      "text": "el deliciOSo ano de Jorge Javier Vázquez",
       "pick": 1
     },
     {
@@ -259,7 +259,7 @@
     {
       "id": "celebridades-a-0056",
       "type": "answer",
-      "text": "tu sobrino que ahora es youtuber y gana más que tú estudiando dos putas carreras",
+      "text": "tu sobrino que ahora es YouTuber y gana más que tú estudiando dos putas carreras",
       "pick": 1
     },
     {
@@ -417,12 +417,114 @@
       "type": "prompt",
       "text": "Se rumorea que la causa del divorcio fue ______.",
       "pick": 1
+    },
+    {
+      "id": "celebridades-a-0080",
+      "type": "answer",
+      "text": "Mulder y Scully",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0081",
+      "type": "answer",
+      "text": "Raúl González Blanco",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0082",
+      "type": "answer",
+      "text": "Manolo Lama, Paco González y Pepe Domingo Castaño",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0083",
+      "type": "answer",
+      "text": "las modelos de Victoria's Secret",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0084",
+      "type": "answer",
+      "text": "más rápido que Usain Bolt",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0085",
+      "type": "answer",
+      "text": "Azúcar Moreno",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0086",
+      "type": "answer",
+      "text": "el Gigante Verde regalándome maíz en el baño",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0087",
+      "type": "answer",
+      "text": "el presentador de la Ruleta de la Fortuna",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0088",
+      "type": "answer",
+      "text": "First Dates corazón",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0089",
+      "type": "answer",
+      "text": "Farruquito como nuevo piloto de Aston Martin",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0090",
+      "type": "answer",
+      "text": "hasbulla sometiéndose a una operación de alargamiento de fémures",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0091",
+      "type": "answer",
+      "text": "Mike Tyson y George Foreman",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0092",
+      "type": "answer",
+      "text": "El Pequeño Nicolás",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0093",
+      "type": "answer",
+      "text": "La Sirenita",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0132",
+      "type": "answer",
+      "text": "Pedro Sánchez haciendo de Skeletor en la nueva de He-Man",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0094",
+      "type": "answer",
+      "text": "Barbie Gaza",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-a-0095",
+      "type": "answer",
+      "text": "Greta Thunberg",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 69,
+    "total": 86,
     "prompts": 10,
-    "answers": 59
+    "answers": 76
   },
   "playable": true
 }

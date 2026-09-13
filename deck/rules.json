@@ -3,16 +3,16 @@
   "language": "es",
   "source_note": "Reglas de casa adaptadas a partir del PDF printable v1 (cch1). Rebranding: Guerrilla Cards. No se importan textos de cartas stock traducidas de Cartas Contra la Humanidad / CAH (copyright).",
   "basic": {
-    "hand_size": 10,
+    "hand_size": 12,
     "czar_title": "Zar",
     "czar_selection": "La persona que haya cagado más recientemente es designada como el Zar del primer turno. Tras cada ronda, el jugador a la derecha del Zar se convierte en el nuevo Zar.",
     "turn_flow": [
-      "Cada jugador recibe 10 cartas de respuesta.",
+      "Cada jugador recibe 12 cartas de respuesta.",
       "El Zar elige una carta de pregunta y la lee en voz alta.",
       "Los demás jugadores responden bocabajo (bandeja/bolsa recomendada).",
       "El Zar baraja y lee cada respuesta junto con la pregunta.",
       "El Zar elige la respuesta ganadora; ese jugador gana 1 Puntaco.",
-      "Todos roban hasta tener de nuevo 10 cartas de respuesta."
+      "Todos roban hasta tener de nuevo 12 cartas de respuesta."
     ],
     "scoring": {
       "win_token": "Puntaco",
@@ -28,7 +28,7 @@
   },
   "multi_response": {
     "description": "Además de preguntas con un hueco, hay preguntas que necesitan 2 o 3 cartas de respuesta. Acordad el orden bocabajo (clips o doblez en la esquina ayudan a no mezclar jugadas múltiples).",
-    "hand_exception": "En rondas de 3 cartas se roban 2 cartas de más (mano temporal de 12) para poder combinar mejor.",
+    "hand_exception": "La mano es siempre de 12 cartas (también en multipick). No se roban extras por encima de 12.",
     "pick_field": "Us the prompt card's pick value (1, 2, or 3)."
   },
   "house_variants": [

@@ -37,7 +37,7 @@
     {
       "id": "core-a-0459",
       "type": "answer",
-      "text": "descubrir que el bluetooth da cancer",
+      "text": "descubrir que el bluetooth da cáncer",
       "pick": 1
     },
     {
@@ -85,7 +85,7 @@
     {
       "id": "core-a-1384",
       "type": "answer",
-      "text": "AVE supersónico descarrilando en el metaverso",
+      "text": "AVE supersónico descarrilando en el metAVErso",
       "pick": 1
     },
     {
@@ -193,13 +193,13 @@
     {
       "id": "core-a-2153",
       "type": "answer",
-      "text": "sitios extraños de Internet",
+      "text": "sitiOS extraños de Internet",
       "pick": 1
     },
     {
       "id": "core-a-2160",
       "type": "answer",
-      "text": "uno de los sitios más polémicos de Internet",
+      "text": "uno de los sitiOS más polémicos de Internet",
       "pick": 1
     },
     {
@@ -271,7 +271,7 @@
     {
       "id": "core-a-3135",
       "type": "answer",
-      "text": "una resolución judicial que me impide navegar por internet",
+      "text": "una resolución judicial que me impide nAVEgar por internet",
       "pick": 1
     },
     {
@@ -319,7 +319,7 @@
     {
       "id": "politica-a-0103",
       "type": "answer",
-      "text": "buscar en tiktok si el nazismo fue verdad",
+      "text": "buscar en TikTok si el nazismo fue verdad",
       "pick": 1
     },
     {
@@ -337,7 +337,7 @@
     {
       "id": "celebridades-a-0017",
       "type": "answer",
-      "text": "reunión en Google Meet con demonios del inframundo",
+      "text": "reunión en Google Meet con demoniOS del inframundo",
       "pick": 1
     },
     {
@@ -385,7 +385,7 @@
     {
       "id": "celebridades-a-0049",
       "type": "answer",
-      "text": "la amiga que te manda 80 audios de WhatsApp mientras duermes",
+      "text": "la amiga que te manda 80 audiOS de WhatsApp mientras duermes",
       "pick": 1
     },
     {
@@ -397,7 +397,7 @@
     {
       "id": "celebridades-a-0060",
       "type": "answer",
-      "text": "la nueva versión de Whatsapp",
+      "text": "la nueva versión de WhatsApp",
       "pick": 1
     },
     {
@@ -427,13 +427,13 @@
     {
       "id": "celebridades-p-0001",
       "type": "prompt",
-      "text": "El video de tiktok con más reproducciones este mes es ______ hecho con ______.",
+      "text": "El video de TikTok con más reproducciones este mes es ______ hecho con ______.",
       "pick": 2
     },
     {
       "id": "celebridades-p-0002",
       "type": "prompt",
-      "text": "La verdadera razón por la que me echaron del Whatsapp de la familia es ______.",
+      "text": "La verdadera razón por la que me echaron del WhatsApp de la familia es ______.",
       "pick": 1
     },
     {
@@ -579,12 +579,102 @@
       "type": "prompt",
       "text": "Me hackearon la cuenta y lo único que cambiaron fue ______.",
       "pick": 1
+    },
+    {
+      "id": "tech-a-0001",
+      "type": "answer",
+      "text": "un millón de seguidores en YouTube y medio millón en Twitch",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0002",
+      "type": "answer",
+      "text": "MK Ultra en YouTube Kids",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0003",
+      "type": "answer",
+      "text": "un par de moros guiados por una IA",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0004",
+      "type": "answer",
+      "text": "un mercado anónimo en la darkweb",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0004",
+      "type": "answer",
+      "text": "sinapsis cerebral",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0005",
+      "type": "answer",
+      "text": "un update del servidor mundial que fue una decepción",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0006",
+      "type": "answer",
+      "text": "redes neuronales",
+      "pick": 1
+    },
+    {
+      "id": "religion-a-0002",
+      "type": "answer",
+      "text": "un PDF donde tengo la cura del cáncer",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0007",
+      "type": "answer",
+      "text": "armar un ejército revolucionario armado con diminutas pistolas hechas con impresoras 3D",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0008",
+      "type": "answer",
+      "text": "defragmentar el disco duro",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0009",
+      "type": "answer",
+      "text": "pajearte con el asistente de voz diciéndote cosas",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0010",
+      "type": "answer",
+      "text": "me reiniciaron el Tamagotchi",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0011",
+      "type": "answer",
+      "text": "un perfil de Instagram con 180.000 seguidores",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0126",
+      "type": "answer",
+      "text": "drones Ucranianos pagados con dinero europeo",
+      "pick": 1
+    },
+    {
+      "id": "tech-a-0012",
+      "type": "answer",
+      "text": "El Algorrino",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 96,
+    "total": 111,
     "prompts": 17,
-    "answers": 79
+    "answers": 94
   },
   "playable": true
 }

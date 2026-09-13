@@ -19,7 +19,7 @@
     {
       "id": "core-a-0267",
       "type": "answer",
-      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cancer...",
+      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cáncer...",
       "pick": 1
     },
     {
@@ -37,7 +37,7 @@
     {
       "id": "core-a-0459",
       "type": "answer",
-      "text": "descubrir que el bluetooth da cancer",
+      "text": "descubrir que el bluetooth da cáncer",
       "pick": 1
     },
     {
@@ -459,12 +459,84 @@
       "type": "prompt",
       "text": "Mi profesor del gimnasio murió por ______.",
       "pick": 1
+    },
+    {
+      "id": "salud-a-0001",
+      "type": "answer",
+      "text": "100 burpees a las 6 de la mañana",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0002",
+      "type": "answer",
+      "text": "me he hecho un esguince",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0003",
+      "type": "answer",
+      "text": "somnolencia",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0004",
+      "type": "answer",
+      "text": "candidiasis",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0005",
+      "type": "answer",
+      "text": "leishmaniOSis, el SIDA de los perros",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0005",
+      "type": "answer",
+      "text": "moretones en las piernas",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0006",
+      "type": "answer",
+      "text": "tuberculosis en las aulas",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0007",
+      "type": "answer",
+      "text": "clases sin calefacción",
+      "pick": 1
+    },
+    {
+      "id": "religion-a-0002",
+      "type": "answer",
+      "text": "un PDF donde tengo la cura del cáncer",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0005",
+      "type": "answer",
+      "text": "celebrar que te concedan la discapacidad permanente en el Telepizza",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0008",
+      "type": "answer",
+      "text": "la libertad es vacunar vacunar vacunar",
+      "pick": 1
+    },
+    {
+      "id": "salud-a-0009",
+      "type": "answer",
+      "text": "masajes craneales contra la cefalea",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 76,
+    "total": 88,
     "prompts": 17,
-    "answers": 59
+    "answers": 71
   },
   "playable": true
 }

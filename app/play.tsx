@@ -4,10 +4,13 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, Vi
 import {
   Button,
   CardFace,
+  cardFontSize,
   FilledPromptText,
   Label,
   Loading,
   Muted,
+  PC_CARD_FONT,
+  PC_CARD_FONT_HD,
   Screen,
   Subtitle,
   Title,
@@ -47,7 +50,7 @@ export default function PlayScreen() {
   const [picked, setPicked] = useState<string[]>([]);
   const [forcedDiscardIds, setForcedDiscardIds] = useState<string[]>([]);
   const [soloSkipMode, setSoloSkipMode] = useState(false);
-  const { width: winW } = useWindowDimensions();
+  const { width: winW, height: winH } = useWindowDimensions();
   const [privacy, setPrivacy] = useState(true);
   const [lastHistoryId, setLastHistoryId] = useState<string | null>(null);
   /** Show ★ filled briefly before advancing after favoriting */
@@ -290,21 +293,32 @@ export default function PlayScreen() {
   const handCount = Math.max(1, hand.length);
   const handGap = 6;
   const handPad = 32; // scrollInner horizontal padding
-  const handColumns = (() => {
-    // Base hand is 10 → mobile 2×5, desktop 5×2.
-    // Multirespuesta extras (hand > 10): same grid, extra row; many extras → +1 col.
-    if (winW < 700) {
-      if (handCount > 12) return 3;
-      return 2;
-    }
-    if (handCount > 12) return 6;
-    return 5;
-  })();
+  // Always 12 cards → mobile 2×6, PC 6×2 (never grow past 12).
+  const handColumns = winW < 700 ? 2 : 6;
   // Pixel width — % widths often collapse to 1 column in RN flexWrap.
   const handItemWidth = Math.max(
     72,
     Math.floor((winW - handPad - handGap * (handColumns - 1)) / handColumns)
   );
+  const isPcHand = winW >= 700;
+  const hdPcHand = isPcHand && (winW >= 1600 || winH >= 1000);
+  const handContentH = Math.max(40, handItemWidth / 1.35 - (isPcHand ? 5 : 6) * 2 - (isPcHand ? 2 : 4));
+  // One shared font for the whole hand (min of per-card fits; prefer large base).
+  const handFontSize = (() => {
+    if (!hand.length) return isPcHand ? (hdPcHand ? PC_CARD_FONT_HD : PC_CARD_FONT) : 16;
+    const base = isPcHand ? (hdPcHand ? PC_CARD_FONT_HD : PC_CARD_FONT) : 16;
+    let minSz = base;
+    for (const c of hand) {
+      const f = cardFontSize(c.text, Math.max(48, handItemWidth - 10), {
+        square: true,
+        uniformPc: isPcHand,
+        hdPc: hdPcHand,
+        contentHeight: handContentH,
+      });
+      if (f.fontSize < minSz) minSz = f.fontSize;
+    }
+    return minSz;
+  })();
 
   const alreadyAnswered =
     !!active &&
@@ -897,6 +911,7 @@ export default function PlayScreen() {
                       square
                       dense
                       gridColumns={handColumns}
+                      forceFontSize={handFontSize}
                       selected={false}
                       discardMarked={picked.includes(c.id)}
                       onPress={() => pickCard(c.id)}
@@ -986,6 +1001,7 @@ export default function PlayScreen() {
                       square
                       dense
                       gridColumns={handColumns}
+                      forceFontSize={handFontSize}
                       selected={
                         soloSkipMode ? false : picked.includes(c.id)
                       }

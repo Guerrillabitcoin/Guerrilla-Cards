@@ -392,6 +392,7 @@ function CardFaceInner({
   dense,
   gridColumns,
   selectionIndex,
+  forceFontSize,
 }: {
   text: string;
   kind: 'prompt' | 'answer';
@@ -412,10 +413,12 @@ function CardFaceInner({
   gridColumns?: number;
   /** 1-based multipick order badge (bottom-right). */
   selectionIndex?: number;
+  /** Shared hand font — one size for every tile in the grid. */
+  forceFontSize?: number;
 }) {
   const isPrompt = kind === 'prompt';
   const { width: winW, height: winH } = useWindowDimensions();
-  const columns = gridColumns ?? (winW >= 900 ? 5 : winW >= 700 ? 4 : 2);
+  const columns = gridColumns ?? (winW >= 700 ? 6 : 2);
   const gap = dense ? 6 : 10;
   const approxTileRaw = square
     ? (winW - 40 - gap * (columns - 1)) / columns
@@ -443,19 +446,14 @@ function CardFaceInner({
     [text, approxTile, square, compact, dense, isPrompt, isPc, hdPc, contentHeight]
   );
   const longWord = !!fitted.longWord;
-  const heavy = !!fitted.heavy;
+  const heavy = forceFontSize != null ? false : !!fitted.heavy;
   const lineCap = square || dense || compact ? 8 : 12;
-  const textFit = isPc
-    ? {
-        fontSize: fitted.fontSize,
-        lineHeight: fitted.lineHeight,
-      }
-    : dense
-      ? {
-          fontSize: Math.max(longWord ? 10 : 13, fitted.fontSize),
-          lineHeight: Math.max(longWord ? 13 : 17, fitted.lineHeight),
-        }
-      : { fontSize: fitted.fontSize, lineHeight: fitted.lineHeight };
+  const sharedSize = forceFontSize != null ? forceFontSize : fitted.fontSize;
+  const sharedLh = Math.round(sharedSize * (isPc ? 1.22 : 1.2));
+  const textFit = {
+    fontSize: sharedSize,
+    lineHeight: sharedLh,
+  };
 
   const handLike = !!(square || dense || compact);
   // Same base size for all; RN auto-shrink only when we already know it won't fit

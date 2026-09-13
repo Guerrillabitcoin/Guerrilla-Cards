@@ -407,6 +407,10 @@ function dealHands(state: GameState): GameState {
   let answerDeck = next.answerDeck;
   let answerDeckPos = next.answerDeckPos ?? 0;
   const players = next.players.map((p) => {
+    // Always target HAND_SIZE (12); never keep more.
+    if (p.hand.length > HAND_SIZE) {
+      return { ...p, hand: p.hand.slice(0, HAND_SIZE) };
+    }
     const need = HAND_SIZE - p.hand.length;
     if (need <= 0) return p;
     if (answerDeck.length - answerDeckPos < need) {
@@ -437,28 +441,13 @@ export function startGame(state: GameState): GameState {
 export function beginRound(state: GameState): GameState {
   const dealt = dealHands(state);
   const { prompt, promptDeck, promptDeckPos, usedPromptIds } = drawPrompt(dealt);
-  const pick = Math.max(1, prompt.pick || 1);
   const isSolo = dealt.mode === 'solo';
 
+  // Hand is always HAND_SIZE (12); multipick uses cards from the same hand
+  // without drawing extras (never grow above 12).
   let answerDeck = dealt.answerDeck;
   let answerDeckPos = dealt.answerDeckPos ?? 0;
   let players = dealt.players;
-  if (pick === 3) {
-    players = players.map((p, i) => {
-      if (!isSolo && i === dealt.zarIndex) return p;
-      if (answerDeck.length - answerDeckPos < 2) {
-        const topped = ensureAnswerDeck(
-          { ...dealt, players, answerDeck, answerDeckPos },
-          2
-        );
-        answerDeck = topped.answerDeck;
-        answerDeckPos = topped.answerDeckPos ?? answerDeckPos;
-      }
-      const { drawn, pos } = drawAnswers(answerDeck, answerDeckPos, 2);
-      answerDeckPos = pos;
-      return { ...p, hand: [...p.hand, ...drawn] };
-    });
-  }
 
   const human =
     players.find((p) => !p.isBot) ?? players[0];

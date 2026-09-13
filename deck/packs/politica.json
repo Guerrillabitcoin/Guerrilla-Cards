@@ -49,7 +49,7 @@
     {
       "id": "politica-a-0007",
       "type": "answer",
-      "text": "destrozar ese culo como si de una aldea palestina se tratase",
+      "text": "destrozar ese culo como si de una aldea Palestina se tratase",
       "pick": 1
     },
     {
@@ -61,7 +61,7 @@
     {
       "id": "politica-a-0010",
       "type": "answer",
-      "text": "Francisco Franco",
+      "text": "FranCISco Franco",
       "pick": 1
     },
     {
@@ -481,7 +481,7 @@
     {
       "id": "politica-a-0103",
       "type": "answer",
-      "text": "buscar en tiktok si el nazismo fue verdad",
+      "text": "buscar en TikTok si el nazismo fue verdad",
       "pick": 1
     },
     {
@@ -547,7 +547,7 @@
     {
       "id": "politica-a-0118",
       "type": "answer",
-      "text": "look fascista",
+      "text": "look fasCISta",
       "pick": 1
     },
     {
@@ -565,7 +565,7 @@
     {
       "id": "politica-p-0003",
       "type": "prompt",
-      "text": "La mejor decisión de gobierno que tomó Pedro Sanchez fue: ______ para todos.",
+      "text": "La mejor deCISión de gobierno que tomó Pedro Sanchez fue: ______ para todos.",
       "pick": 1
     },
     {
@@ -747,12 +747,114 @@
       "type": "prompt",
       "text": "La foto oficial del G20 incluye accidentalmente ______.",
       "pick": 1
+    },
+    {
+      "id": "politica-a-0120",
+      "type": "answer",
+      "text": "no es magia, son tus impuestos",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0121",
+      "type": "answer",
+      "text": "mal consejo del Poder Judicial",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0122",
+      "type": "answer",
+      "text": "estado de “Bienestar”",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0123",
+      "type": "answer",
+      "text": "la democracia ha decidido",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0124",
+      "type": "answer",
+      "text": "entrada masiva de inmigrantes",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0125",
+      "type": "answer",
+      "text": "mi jefe de gabinete",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0126",
+      "type": "answer",
+      "text": "drones Ucranianos pagados con dinero europeo",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0127",
+      "type": "answer",
+      "text": "enfrentarme al populacho",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0128",
+      "type": "answer",
+      "text": "40 horas de audiOS robados",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0129",
+      "type": "answer",
+      "text": "detener un atentado",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0130",
+      "type": "answer",
+      "text": "nacionalizar antepasados del tercer mundo hasta ganar las elecciones",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0131",
+      "type": "answer",
+      "text": "El Referéndum de la OTAN",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0132",
+      "type": "answer",
+      "text": "Pedro Sánchez haciendo de Skeletor en la nueva de He-Man",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0133",
+      "type": "answer",
+      "text": "si no pagas impuestos no deberías poder votar",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0134",
+      "type": "answer",
+      "text": "cordón sanitario a la ultraderecha",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0135",
+      "type": "answer",
+      "text": "garantizar la igualdad de oportunidades con euros",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0136",
+      "type": "answer",
+      "text": "dejar de ser facha",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 124,
+    "total": 141,
     "prompts": 32,
-    "answers": 92
+    "answers": 109
   },
   "playable": true
 }

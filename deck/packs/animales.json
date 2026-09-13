@@ -187,7 +187,7 @@
     {
       "id": "core-a-1784",
       "type": "answer",
-      "text": "la curiosidad mató al gato",
+      "text": "la curiOSidad mató al gato",
       "pick": 1
     },
     {
@@ -199,7 +199,7 @@
     {
       "id": "core-a-1904",
       "type": "answer",
-      "text": "muchísimos peces muertos flotando en el rio",
+      "text": "muchísimos peces muertos flOTANdo en el rio",
       "pick": 1
     },
     {
@@ -423,12 +423,60 @@
       "type": "prompt",
       "text": "Adopté un hamster y terminó en ______.",
       "pick": 1
+    },
+    {
+      "id": "animales-a-0001",
+      "type": "answer",
+      "text": "lágrimas de cocodrilos",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0002",
+      "type": "answer",
+      "text": "un pez abisal con propiedades afrodisíacas",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0003",
+      "type": "answer",
+      "text": "atrapar un cerdo engrasado",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0004",
+      "type": "answer",
+      "text": "un gato que se deja rascar la panza",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0005",
+      "type": "answer",
+      "text": "leishmaniOSis, el SIDA de los perros",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0006",
+      "type": "answer",
+      "text": "proteger a mi perro del ataque de un canguro",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0007",
+      "type": "answer",
+      "text": "perretes y gatetes",
+      "pick": 1
+    },
+    {
+      "id": "animales-a-0008",
+      "type": "answer",
+      "text": "ojitos de perrito",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 70,
+    "total": 78,
     "prompts": 6,
-    "answers": 64
+    "answers": 72
   },
   "playable": true
 }

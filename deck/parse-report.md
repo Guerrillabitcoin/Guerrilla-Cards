@@ -61,3 +61,11 @@ The game engine merges selected packs and **dedupes by `id`** (first pack wins),
 ## Banned
 - `_banned.json` cards: **21** (not playable)
 - Engine skips banned ids when building a match deck.
+
+
+## Import 2026-09-13 (v1.3 / app v0.71)
+- Source PDF: user print sheet (16 pages × 24 cards ≈ 384 answers).
+- Added **382** new answer cards (1 duplicate skipped: Camarón de la Isla).
+- Classified into theme packs with multi-membership; unmatched → `core`.
+- Kept original JSON card shape `{id,type,text,pick}` (deck 1.0 format).
+- Did **not** mass-delete answers starting with «en»/«por» (~37 unique): they fit prompts like «___» where a location/reason clause wins; deleting them loses combo space. Prefer filtering in UI later if desired.

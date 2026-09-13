@@ -1,7 +1,7 @@
 {
   "name": "guerrilla-cards",
   "main": "expo-router/entry",
-  "version": "0.70.0",
+  "version": "0.72.0",
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "@vercel/analytics": "^2.0.1",

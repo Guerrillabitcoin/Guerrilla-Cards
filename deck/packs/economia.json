@@ -37,7 +37,7 @@
     {
       "id": "core-a-0195",
       "type": "answer",
-      "text": "esconder varios millones de euros debajo del colchón",
+      "text": "esconder variOS millones de euros debajo del colchón",
       "pick": 1
     },
     {
@@ -283,7 +283,7 @@
     {
       "id": "core-a-1819",
       "type": "answer",
-      "text": "el legítimo interés de los socios comerciales",
+      "text": "el legítimo interés de los sociOS comerciales",
       "pick": 1
     },
     {
@@ -669,12 +669,84 @@
       "type": "prompt",
       "text": "El cryptobró que entró al despacho prometió ______ y desapareció la semana siguiente.",
       "pick": 1
+    },
+    {
+      "id": "economia-a-0001",
+      "type": "answer",
+      "text": "no saber de qué color son los billetes de 100 y 200 euros",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0002",
+      "type": "answer",
+      "text": "50 pavitos",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0003",
+      "type": "answer",
+      "text": "los criptobrós de los años 2000",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0120",
+      "type": "answer",
+      "text": "no es magia, son tus impuestos",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0004",
+      "type": "answer",
+      "text": "un mercado anónimo en la darkweb",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0005",
+      "type": "answer",
+      "text": "celebrar que te concedan la discapacidad permanente en el Telepizza",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0006",
+      "type": "answer",
+      "text": "era lo más barato en AliExpress",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0007",
+      "type": "answer",
+      "text": "colapsar el mundo hiperconectado y hundir la economía global",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0008",
+      "type": "answer",
+      "text": "drogarte y estar fatal y que el Estado te conceda una paga para poder drogarte sin trabajar",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0133",
+      "type": "answer",
+      "text": "si no pagas impuestos no deberías poder votar",
+      "pick": 1
+    },
+    {
+      "id": "politica-a-0135",
+      "type": "answer",
+      "text": "garantizar la igualdad de oportunidades con euros",
+      "pick": 1
+    },
+    {
+      "id": "economia-a-0009",
+      "type": "answer",
+      "text": "unas cosas cuestan más que otras",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 111,
+    "total": 123,
     "prompts": 22,
-    "answers": 89
+    "answers": 101
   },
   "playable": true
 }

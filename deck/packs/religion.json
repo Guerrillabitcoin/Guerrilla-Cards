@@ -7,7 +7,7 @@
     {
       "id": "core-a-0002",
       "type": "answer",
-      "text": "como Dios me trajo al mundo",
+      "text": "como DiOS me trajo al mundo",
       "pick": 1
     },
     {
@@ -25,7 +25,7 @@
     {
       "id": "core-a-0227",
       "type": "answer",
-      "text": "Dios",
+      "text": "DiOS",
       "pick": 1
     },
     {
@@ -43,7 +43,7 @@
     {
       "id": "core-a-0267",
       "type": "answer",
-      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cancer...",
+      "text": "la tía de la lejía Neutrex que trae el blanco del futuro en lugar de la cura del cáncer...",
       "pick": 1
     },
     {
@@ -55,7 +55,7 @@
     {
       "id": "core-a-0271",
       "type": "answer",
-      "text": "el cadáver del Papa Francisco",
+      "text": "el cadáver del Papa FranCISco",
       "pick": 1
     },
     {
@@ -73,7 +73,7 @@
     {
       "id": "core-a-0452",
       "type": "answer",
-      "text": "tú eras su Dios",
+      "text": "tú eras su DiOS",
       "pick": 1
     },
     {
@@ -115,7 +115,7 @@
     {
       "id": "core-a-0874",
       "type": "answer",
-      "text": "varios extractos de la Biblia",
+      "text": "variOS extractos de la Biblia",
       "pick": 1
     },
     {
@@ -127,7 +127,7 @@
     {
       "id": "core-a-0980",
       "type": "answer",
-      "text": "confirmar que Dios no existe",
+      "text": "confirmar que DiOS no existe",
       "pick": 1
     },
     {
@@ -157,7 +157,7 @@
     {
       "id": "core-a-1256",
       "type": "answer",
-      "text": "tener al Fary como Dios único y supremo",
+      "text": "tener al Fary como DiOS único y supremo",
       "pick": 1
     },
     {
@@ -181,13 +181,13 @@
     {
       "id": "core-a-1393",
       "type": "answer",
-      "text": "DMT: la partícula de Dios",
+      "text": "DMT: la partícula de DiOS",
       "pick": 1
     },
     {
       "id": "core-a-1408",
       "type": "answer",
-      "text": "una cosa que hace que Dios se arrepienta de La Creación",
+      "text": "una cosa que hace que DiOS se arrepienta de La Creación",
       "pick": 1
     },
     {
@@ -199,7 +199,7 @@
     {
       "id": "core-a-1778",
       "type": "answer",
-      "text": "un cura que no cree en Dios",
+      "text": "un cura que no cree en DiOS",
       "pick": 1
     },
     {
@@ -217,7 +217,7 @@
     {
       "id": "core-a-2001",
       "type": "answer",
-      "text": "multar a Dios",
+      "text": "multar a DiOS",
       "pick": 1
     },
     {
@@ -235,7 +235,7 @@
     {
       "id": "core-a-2063",
       "type": "answer",
-      "text": "afirmar haber visto a Dios",
+      "text": "afirmar haber visto a DiOS",
       "pick": 1
     },
     {
@@ -259,7 +259,7 @@
     {
       "id": "core-a-2670",
       "type": "answer",
-      "text": "el Dios Sol",
+      "text": "el DiOS Sol",
       "pick": 1
     },
     {
@@ -295,19 +295,19 @@
     {
       "id": "core-a-2744",
       "type": "answer",
-      "text": "Papá Dios",
+      "text": "Papá DiOS",
       "pick": 1
     },
     {
       "id": "core-a-2827",
       "type": "answer",
-      "text": "un acto de Dios",
+      "text": "un acto de DiOS",
       "pick": 1
     },
     {
       "id": "core-a-2936",
       "type": "answer",
-      "text": "otro judío misteriosamente llegando a lo más alto de la sociedad",
+      "text": "otro judío misteriOSamente llegando a lo más alto de la sociedad",
       "pick": 1
     },
     {
@@ -337,7 +337,7 @@
     {
       "id": "core-a-3155",
       "type": "answer",
-      "text": "con la ayuda de Dios",
+      "text": "con la ayuda de DiOS",
       "pick": 1
     },
     {
@@ -361,7 +361,7 @@
     {
       "id": "core-a-3227",
       "type": "answer",
-      "text": "quedar para hablar de Dios",
+      "text": "quedar para hablar de DiOS",
       "pick": 1
     },
     {
@@ -385,7 +385,7 @@
     {
       "id": "core-p-0017",
       "type": "prompt",
-      "text": "El mayor éxito del papado del Papa Francisco ha sido ______.",
+      "text": "El mayor éxito del papado del Papa FranCISco ha sido ______.",
       "pick": 1
     },
     {
@@ -427,7 +427,7 @@
     {
       "id": "plus18-a-0175",
       "type": "answer",
-      "text": "el Dios griego que se folló a toda su familia",
+      "text": "el DiOS griego que se folló a toda su familia",
       "pick": 1
     },
     {
@@ -439,7 +439,7 @@
     {
       "id": "plus18-a-0433",
       "type": "answer",
-      "text": "todas las veces que Dios ha tenido que mirar a otra parte mientras te haces la paja",
+      "text": "todas las veces que DiOS ha tenido que mirar a otra parte mientras te haces la paja",
       "pick": 1
     },
     {
@@ -457,7 +457,7 @@
     {
       "id": "religion-p-0002",
       "type": "prompt",
-      "text": "Dios me contestó con un WhatsApp con ______.",
+      "text": "DiOS me contestó con un WhatsApp con ______.",
       "pick": 1
     },
     {
@@ -483,12 +483,30 @@
       "type": "prompt",
       "text": "Tras la iluminación espiritual solo quedaba ______.",
       "pick": 1
+    },
+    {
+      "id": "religion-a-0001",
+      "type": "answer",
+      "text": "la cruz de Borgoña",
+      "pick": 1
+    },
+    {
+      "id": "religion-a-0002",
+      "type": "answer",
+      "text": "un PDF donde tengo la cura del cáncer",
+      "pick": 1
+    },
+    {
+      "id": "religion-a-0003",
+      "type": "answer",
+      "text": "agua bendita",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 80,
+    "total": 83,
     "prompts": 10,
-    "answers": 70
+    "answers": 73
   },
   "playable": true
 }
