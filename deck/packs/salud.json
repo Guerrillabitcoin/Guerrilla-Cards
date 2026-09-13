@@ -85,7 +85,7 @@
     {
       "id": "core-a-1054",
       "type": "answer",
-      "text": "alzheimer prematuro camuflado en la vacuna del Covid",
+      "text": "alzheimer prematuro camuflado en la vacuna del COVID",
       "pick": 1
     },
     {
@@ -181,7 +181,7 @@
     {
       "id": "core-a-2369",
       "type": "answer",
-      "text": "el Covid-26",
+      "text": "el COVID-26",
       "pick": 1
     },
     {
@@ -295,7 +295,7 @@
     {
       "id": "core-p-0134",
       "type": "prompt",
-      "text": "La única forma de arreglar la sanidad pública es implantar ______ en urgencias.",
+      "text": "La única forma de arreglar la Sanidad pública es implantar ______ en urgencias.",
       "pick": 1
     },
     {
@@ -487,7 +487,7 @@
     {
       "id": "animales-a-0005",
       "type": "answer",
-      "text": "leishmaniOSis, el SIDA de los perros",
+      "text": "leishmaniosis, el SIDA de los perros",
       "pick": 1
     },
     {

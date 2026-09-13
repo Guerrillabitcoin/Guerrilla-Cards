@@ -85,7 +85,7 @@
     {
       "id": "core-a-1384",
       "type": "answer",
-      "text": "AVE supersónico descarrilando en el metAVErso",
+      "text": "AVE supersónico descarrilando en el metaverso",
       "pick": 1
     },
     {
@@ -193,13 +193,13 @@
     {
       "id": "core-a-2153",
       "type": "answer",
-      "text": "sitiOS extraños de Internet",
+      "text": "sitios extraños de Internet",
       "pick": 1
     },
     {
       "id": "core-a-2160",
       "type": "answer",
-      "text": "uno de los sitiOS más polémicos de Internet",
+      "text": "uno de los sitios más polémicos de Internet",
       "pick": 1
     },
     {
@@ -271,7 +271,7 @@
     {
       "id": "core-a-3135",
       "type": "answer",
-      "text": "una resolución judicial que me impide nAVEgar por internet",
+      "text": "una resolución judicial que me impide navegar por internet",
       "pick": 1
     },
     {
@@ -337,7 +337,7 @@
     {
       "id": "celebridades-a-0017",
       "type": "answer",
-      "text": "reunión en Google Meet con demoniOS del inframundo",
+      "text": "reunión en Google Meet con demonios del inframundo",
       "pick": 1
     },
     {
@@ -385,7 +385,7 @@
     {
       "id": "celebridades-a-0049",
       "type": "answer",
-      "text": "la amiga que te manda 80 audiOS de WhatsApp mientras duermes",
+      "text": "la amiga que te manda 80 audios de WhatsApp mientras duermes",
       "pick": 1
     },
     {
@@ -565,7 +565,7 @@
     {
       "id": "tech-p-0008",
       "type": "prompt",
-      "text": "Actualicé a iOS y ahora mi móvil me pide ______.",
+      "text": "Actualicé a ios y ahora mi móvil me pide ______.",
       "pick": 1
     },
     {

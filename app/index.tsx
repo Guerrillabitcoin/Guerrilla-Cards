@@ -471,11 +471,12 @@ export default function HomeScreen() {
     </Screen>
     <Pressable
       accessibilityLabel="Reportar fallo"
-      hitSlop={10}
+      hitSlop={12}
       onPress={() => router.push('/report')}
       style={styles.reportFab}
     >
       <Text style={styles.reportFabIcon}>⚑</Text>
+      <Text style={styles.reportFabLabel}>Report</Text>
     </Pressable>
     </View>
   );
@@ -485,23 +486,32 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   reportFab: {
     position: 'absolute',
-    left: 10,
-    bottom: 10,
-    width: 28,
-    height: 28,
+    left: 12,
+    bottom: 14,
+    minHeight: 32,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderRadius: 4,
     backgroundColor: colors.bgElevated,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.accent,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    opacity: 0.55,
-    zIndex: 20,
+    gap: 4,
+    opacity: 0.92,
+    zIndex: 50,
+    elevation: 6,
   },
   reportFabIcon: {
-    color: colors.textDim,
-    fontSize: 13,
-    fontWeight: '700',
+    color: colors.accent,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  reportFabLabel: {
+    color: colors.text,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   screenDense: {
     // consumed by Screen via style prop on outer view

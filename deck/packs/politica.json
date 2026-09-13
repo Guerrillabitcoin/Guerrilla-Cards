@@ -61,7 +61,7 @@
     {
       "id": "politica-a-0010",
       "type": "answer",
-      "text": "FranCISco Franco",
+      "text": "Francisco Franco",
       "pick": 1
     },
     {
@@ -73,7 +73,7 @@
     {
       "id": "politica-a-0012",
       "type": "answer",
-      "text": "el primer presidente del gobierno no humano",
+      "text": "el primer presidente del Gobierno no humano",
       "pick": 1
     },
     {
@@ -193,7 +193,7 @@
     {
       "id": "politica-a-0034",
       "type": "answer",
-      "text": "contacto directo con el presidente del gobierno",
+      "text": "contacto directo con el presidente del Gobierno",
       "pick": 1
     },
     {
@@ -211,7 +211,7 @@
     {
       "id": "politica-a-0039",
       "type": "answer",
-      "text": "el gobierno más corrupto hasta la fecha",
+      "text": "el Gobierno más corrupto hasta la fecha",
       "pick": 1
     },
     {
@@ -289,13 +289,13 @@
     {
       "id": "politica-a-0056",
       "type": "answer",
-      "text": "podemos",
+      "text": "Podemos",
       "pick": 1
     },
     {
       "id": "politica-a-0058",
       "type": "answer",
-      "text": "Capitalismo, ahorro y trabajo duru",
+      "text": "Capitalismo, ahorro y Trabajo duru",
       "pick": 1
     },
     {
@@ -397,7 +397,7 @@
     {
       "id": "politica-a-0084",
       "type": "answer",
-      "text": "eliminar toda la deuda global de los ciudadanos",
+      "text": "eliminar toda la deuda global de los Ciudadanos",
       "pick": 1
     },
     {
@@ -517,7 +517,7 @@
     {
       "id": "politica-a-0111",
       "type": "answer",
-      "text": "hacer una “tierlist” de ciudadanos en función de su color de piel y religión",
+      "text": "hacer una “tierlist” de Ciudadanos en función de su color de piel y religión",
       "pick": 1
     },
     {
@@ -547,7 +547,7 @@
     {
       "id": "politica-a-0118",
       "type": "answer",
-      "text": "look fasCISta",
+      "text": "look fascista",
       "pick": 1
     },
     {
@@ -565,7 +565,7 @@
     {
       "id": "politica-p-0003",
       "type": "prompt",
-      "text": "La mejor deCISión de gobierno que tomó Pedro Sanchez fue: ______ para todos.",
+      "text": "La mejor decisión de Gobierno que tomó Pedro Sánchez fue: ______ para todos.",
       "pick": 1
     },
     {
@@ -601,7 +601,7 @@
     {
       "id": "politica-p-0010",
       "type": "prompt",
-      "text": "BIO: “Hola, soy ______ si te gusta ______ nos llevaremos bien. Abstenerse fachas y VOX”",
+      "text": "BIO: “Hola, soy ______ si te gusta ______ nos llevaremos bien. Abstenerse fachas y Vox”",
       "pick": 2
     },
     {
@@ -619,13 +619,13 @@
     {
       "id": "politica-p-0013",
       "type": "prompt",
-      "text": "La última carta que recibió Pedro Sanchez se titulaba: ______ contra ______.",
+      "text": "La última carta que recibió Pedro Sánchez se titulaba: ______ contra ______.",
       "pick": 2
     },
     {
       "id": "politica-p-0015",
       "type": "prompt",
-      "text": "La nueva coalición de gobierno está formada por ______ y ______.",
+      "text": "La nueva coalición de Gobierno está formada por ______ y ______.",
       "pick": 2
     },
     {
@@ -679,7 +679,7 @@
     {
       "id": "politica-p-0027",
       "type": "prompt",
-      "text": "VOX: ______ y ______.",
+      "text": "Vox: ______ y ______.",
       "pick": 2
     },
     {
@@ -763,7 +763,7 @@
     {
       "id": "politica-a-0122",
       "type": "answer",
-      "text": "estado de “Bienestar”",
+      "text": "Estado de Bienestar”",
       "pick": 1
     },
     {
@@ -799,7 +799,7 @@
     {
       "id": "politica-a-0128",
       "type": "answer",
-      "text": "40 horas de audiOS robados",
+      "text": "40 horas de audios robados",
       "pick": 1
     },
     {
@@ -841,7 +841,7 @@
     {
       "id": "politica-a-0135",
       "type": "answer",
-      "text": "garantizar la igualdad de oportunidades con euros",
+      "text": "garantizar la Igualdad de oportunidades con euros",
       "pick": 1
     },
     {
