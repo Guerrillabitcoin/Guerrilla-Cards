@@ -293,32 +293,42 @@ export default function PlayScreen() {
   const handCount = Math.max(1, hand.length);
   const handGap = 6;
   const handPad = 32; // scrollInner horizontal padding
-  // Always 12 cards → mobile 2×6, PC 6×2 (never grow past 12).
-  const handColumns = winW < 700 ? 2 : 6;
-  // Pixel width — % widths often collapse to 1 column in RN flexWrap.
-  const handItemWidth = Math.max(
-    72,
-    Math.floor((winW - handPad - handGap * (handColumns - 1)) / handColumns)
-  );
+  // 12 cards: mobile 2×6; PC prefer 6×2, fall back to 4×3 if font would shrink too much (e.g. 1080p).
   const isPcHand = winW >= 700;
   const hdPcHand = isPcHand && (winW >= 1600 || winH >= 1000);
-  const handContentH = Math.max(40, handItemWidth / 1.35 - (isPcHand ? 5 : 6) * 2 - (isPcHand ? 2 : 4));
-  // One shared font for the whole hand (min of per-card fits; prefer large base).
-  const handFontSize = (() => {
-    if (!hand.length) return isPcHand ? (hdPcHand ? PC_CARD_FONT_HD : PC_CARD_FONT) : 16;
+  const fontForCols = (cols: number) => {
+    const itemW = Math.max(
+      72,
+      Math.floor((winW - handPad - handGap * (cols - 1)) / cols)
+    );
+    const contentH = Math.max(
+      40,
+      itemW / 1.35 - (isPcHand ? 5 : 6) * 2 - (isPcHand ? 2 : 4)
+    );
     const base = isPcHand ? (hdPcHand ? PC_CARD_FONT_HD : PC_CARD_FONT) : 16;
+    if (!hand.length) return { cols, itemW, size: base };
     let minSz = base;
     for (const c of hand) {
-      const f = cardFontSize(c.text, Math.max(48, handItemWidth - 10), {
+      const f = cardFontSize(c.text, Math.max(48, itemW - 10), {
         square: true,
         uniformPc: isPcHand,
         hdPc: hdPcHand,
-        contentHeight: handContentH,
+        contentHeight: contentH,
       });
       if (f.fontSize < minSz) minSz = f.fontSize;
     }
-    return minSz;
+    return { cols, itemW, size: minSz };
+  };
+  const handLayout = (() => {
+    if (!isPcHand) return fontForCols(2); // 2×6 mobile
+    const six = fontForCols(6); // 6×2
+    const minOk = hdPcHand ? 17 : 15;
+    if (six.size >= minOk) return six;
+    return fontForCols(4); // 4×3 when 6 cols crush text (typical ~1080p)
   })();
+  const handColumns = handLayout.cols;
+  const handItemWidth = handLayout.itemW;
+  const handFontSize = handLayout.size;
 
   const alreadyAnswered =
     !!active &&

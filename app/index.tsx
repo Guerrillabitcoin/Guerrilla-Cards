@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -302,6 +303,7 @@ export default function HomeScreen() {
         : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo (sin asientos bot).';
 
   return (
+    <View style={styles.root}>
     <Screen style={denseMenu ? styles.screenDense : undefined} contentDense={denseMenu}>
       <View style={styles.brandRow}>
         <Text
@@ -467,10 +469,40 @@ export default function HomeScreen() {
         Packs +18 piden confirmación de edad la primera vez.
       </Muted>
     </Screen>
+    <Pressable
+      accessibilityLabel="Reportar fallo"
+      hitSlop={10}
+      onPress={() => router.push('/report')}
+      style={styles.reportFab}
+    >
+      <Text style={styles.reportFabIcon}>⚑</Text>
+    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: { flex: 1 },
+  reportFab: {
+    position: 'absolute',
+    left: 10,
+    bottom: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 4,
+    backgroundColor: colors.bgElevated,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.55,
+    zIndex: 20,
+  },
+  reportFabIcon: {
+    color: colors.textDim,
+    fontSize: 13,
+    fontWeight: '700',
+  },
   screenDense: {
     // consumed by Screen via style prop on outer view
   },

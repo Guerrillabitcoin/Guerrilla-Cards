@@ -82,6 +82,10 @@ export default function RootLayout() {
             name="compartir"
             options={{ title: 'Compartir' }}
           />
+          <Stack.Screen
+            name="report"
+            options={{ title: 'Reportar fallo' }}
+          />
         </Stack>
       </HistoryProvider>
     </GameProvider>

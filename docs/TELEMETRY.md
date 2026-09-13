@@ -33,3 +33,11 @@ En la app, la pestaña / pantalla de **Stats** (historial de cartas) sigue siend
 - Comparte capturas o export de Analytics / Events, o
 - Pega fragmentos de Runtime Logs con `guerrilla_card_telemetry`, o
 - Cuando haya KV, exporta las keys `gc:card:*`
+
+
+## Reports de usuarios (v0.73)
+
+El botón ⚑ abajo-izquierda en inicio abre **Reportar fallo**.
+
+- POST `/api/report`
+- Runtime Logs → busca `guerrilla_user_report`
