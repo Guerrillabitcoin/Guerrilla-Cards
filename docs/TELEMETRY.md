@@ -35,9 +35,3 @@ En la app, la pestaña / pantalla de **Stats** (historial de cartas) sigue siend
 - Cuando haya KV, exporta las keys `gc:card:*`
 
 
-## Reports de usuarios (v0.73)
-
-El botón ⚑ abajo-izquierda en inicio abre **Reportar fallo**.
-
-- POST `/api/report`
-- Runtime Logs → busca `guerrilla_user_report`

@@ -4,7 +4,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -55,7 +54,6 @@ function shortPackTitle(id: string, title: string): string {
 const ADULT_OK_KEY = 'guerrilla_adult_ok_v1';
 
 export default function HomeScreen() {
-
   const router = useRouter();
   const { createGame, createAndStartSolo, joinOrOpen, games, ready } =
     useGameStore();
@@ -303,7 +301,6 @@ export default function HomeScreen() {
         : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo (sin asientos bot).';
 
   return (
-    <View style={styles.root}>
     <Screen style={denseMenu ? styles.screenDense : undefined} contentDense={denseMenu}>
       <View style={styles.brandRow}>
         <Text
@@ -469,50 +466,10 @@ export default function HomeScreen() {
         Packs +18 piden confirmación de edad la primera vez.
       </Muted>
     </Screen>
-    <Pressable
-      accessibilityLabel="Reportar fallo"
-      hitSlop={12}
-      onPress={() => router.push('/report')}
-      style={styles.reportFab}
-    >
-      <Text style={styles.reportFabIcon}>⚑</Text>
-      <Text style={styles.reportFabLabel}>Report</Text>
-    </Pressable>
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  reportFab: {
-    position: 'absolute',
-    left: 12,
-    bottom: 14,
-    minHeight: 32,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 4,
-    backgroundColor: colors.bgElevated,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    opacity: 0.92,
-    zIndex: 50,
-    elevation: 6,
-  },
-  reportFabIcon: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  reportFabLabel: {
-    color: colors.text,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.3,
-  },
   screenDense: {
     // consumed by Screen via style prop on outer view
   },
