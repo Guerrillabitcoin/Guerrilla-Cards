@@ -627,11 +627,53 @@
       "type": "answer",
       "text": "la versión de los hechos compatible con LinkedIn",
       "pick": 1
+    },
+    {
+      "id": "economia-p-0001",
+      "type": "prompt",
+      "text": "En el IRPF ahora cuentan ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0002",
+      "type": "prompt",
+      "text": "Mi nómina se evaporó en ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0003",
+      "type": "prompt",
+      "text": "En la reunión de presentación de resultados solo se habló de ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0004",
+      "type": "prompt",
+      "text": "El banco me ofreció un préstamo para ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0005",
+      "type": "prompt",
+      "text": "Inflación: ahora ______ cuesta lo que antes un alquiler.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0006",
+      "type": "prompt",
+      "text": "Me prejubilaron por ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0007",
+      "type": "prompt",
+      "text": "El cryptobró que entró al despacho prometió ______ y desapareció la semana siguiente.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 104,
-    "prompts": 15,
+    "total": 111,
+    "prompts": 22,
     "answers": 89
   },
   "playable": true

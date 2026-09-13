@@ -393,11 +393,41 @@
       "type": "answer",
       "text": "tener relaciones sexuales con la mascota familiar",
       "pick": 1
+    },
+    {
+      "id": "animales-p-0001",
+      "type": "prompt",
+      "text": "Mi perro aprendió a ______ y ahora no hay quien lo pare.",
+      "pick": 1
+    },
+    {
+      "id": "animales-p-0002",
+      "type": "prompt",
+      "text": "En el zoo han tenido problemas con ______.",
+      "pick": 1
+    },
+    {
+      "id": "animales-p-0003",
+      "type": "prompt",
+      "text": "El gato del vecino es sospechoso de ______.",
+      "pick": 1
+    },
+    {
+      "id": "animales-p-0004",
+      "type": "prompt",
+      "text": "El documental de National Geographic explica ______ en delfines, me quedé flipando...",
+      "pick": 1
+    },
+    {
+      "id": "animales-p-0005",
+      "type": "prompt",
+      "text": "Adopté un hamster y terminó en ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 65,
-    "prompts": 1,
+    "total": 70,
+    "prompts": 6,
     "answers": 64
   },
   "playable": true

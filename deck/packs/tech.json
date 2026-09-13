@@ -519,11 +519,71 @@
       "type": "answer",
       "text": "la versión de los hechos compatible con LinkedIn",
       "pick": 1
+    },
+    {
+      "id": "tech-p-0001",
+      "type": "prompt",
+      "text": "ChatGPT me aconsejó ______ en mi despacho y casi me despiden.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0002",
+      "type": "prompt",
+      "text": "Mi historial de cookies prueba que soy adicto a ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0003",
+      "type": "prompt",
+      "text": "El bug no era del código: era ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0004",
+      "type": "prompt",
+      "text": "Me banearon de la red social pública del Gobierno de España por ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0005",
+      "type": "prompt",
+      "text": "La startup unicornio colombiana pivota a ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0006",
+      "type": "prompt",
+      "text": "Mi prompt secreto para la IA es ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0007",
+      "type": "prompt",
+      "text": "El deepfake que se creyó todo el mundo en 2026 es ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0008",
+      "type": "prompt",
+      "text": "Actualicé a iOS y ahora mi móvil me pide ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0009",
+      "type": "prompt",
+      "text": "El captcha me pidió seleccionar todas las imágenes de ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0010",
+      "type": "prompt",
+      "text": "Me hackearon la cuenta y lo único que cambiaron fue ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 86,
-    "prompts": 7,
+    "total": 96,
+    "prompts": 17,
     "answers": 79
   },
   "playable": true

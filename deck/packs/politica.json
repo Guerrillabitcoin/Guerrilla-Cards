@@ -681,11 +681,77 @@
       "type": "prompt",
       "text": "VOX: ______ y ______.",
       "pick": 2
+    },
+    {
+      "id": "politica-p-0028",
+      "type": "prompt",
+      "text": "¿A ti quién te representa? ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0029",
+      "type": "prompt",
+      "text": "En el debate electoral, el único punto en común fue ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0030",
+      "type": "prompt",
+      "text": "El nuevo eslogan del Gobierno: «______ para todos o para ninguno».",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0031",
+      "type": "prompt",
+      "text": "La moción de censura fracasó por el voto en contra de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0032",
+      "type": "prompt",
+      "text": "En París han prohibido ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0033",
+      "type": "prompt",
+      "text": "El lobby más poderoso de España no es la banca: es ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0034",
+      "type": "prompt",
+      "text": "Un diputado vasco dimite tras ser pillado con ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0035",
+      "type": "prompt",
+      "text": "La coalición se rompió por ______ y tener muy poco ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0036",
+      "type": "prompt",
+      "text": "El CIS mide ahora la popularidad de ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0037",
+      "type": "prompt",
+      "text": "La próxima ley estrella con la que se estrenará el PP regulará ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0038",
+      "type": "prompt",
+      "text": "La foto oficial del G20 incluye accidentalmente ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 113,
-    "prompts": 21,
+    "total": 124,
+    "prompts": 32,
     "answers": 92
   },
   "playable": true

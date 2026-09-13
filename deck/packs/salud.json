@@ -411,11 +411,59 @@
       "type": "answer",
       "text": "un pueblo donde todo el mundo sabe tu historial médico",
       "pick": 1
+    },
+    {
+      "id": "salud-p-0001",
+      "type": "prompt",
+      "text": "El jefe de mi tribu me ordenó ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0002",
+      "type": "prompt",
+      "text": "Mi smart watch me felicitó por ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0003",
+      "type": "prompt",
+      "text": "Nada más llegar a Urgencias me preguntaron si había consumido ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0004",
+      "type": "prompt",
+      "text": "El biohacking casero del mes: ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0005",
+      "type": "prompt",
+      "text": "Lamentablemente, mi seguro no cubre ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0006",
+      "type": "prompt",
+      "text": "Un chamán de TikTok recomienda ______ en ayunas.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0007",
+      "type": "prompt",
+      "text": "Tras el análisis de sangre, el resultado sorprendente: ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0008",
+      "type": "prompt",
+      "text": "Mi profesor del gimnasio murió por ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 68,
-    "prompts": 9,
+    "total": 76,
+    "prompts": 17,
     "answers": 59
   },
   "playable": true

@@ -1443,11 +1443,83 @@
       "type": "answer",
       "text": "un pueblo donde todo el mundo sabe tu historial médico",
       "pick": 1
+    },
+    {
+      "id": "familia-p-0001",
+      "type": "prompt",
+      "text": "En la comida del domingo mi tía preguntó por ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0002",
+      "type": "prompt",
+      "text": "El regalo de Reyes que nadie quería: ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0003",
+      "type": "prompt",
+      "text": "Mi pareja y yo discutimos sobre ______ a gritos a las 2 a.m.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0004",
+      "type": "prompt",
+      "text": "El consejo de mi abuela que nadie pidió: «nunca confíes en ______».",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0005",
+      "type": "prompt",
+      "text": "En el bautizo, el cura contó una parábola poco conocida sobre ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0006",
+      "type": "prompt",
+      "text": "El grupo familiar se dividió en dos bandos: ______ vs ______.",
+      "pick": 2
+    },
+    {
+      "id": "familia-p-0007",
+      "type": "prompt",
+      "text": "Mi madre todavía guarda ______ en una caja de zapatos.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0008",
+      "type": "prompt",
+      "text": "El secreto que todos saben pero nadie dice en Navidad: ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0009",
+      "type": "prompt",
+      "text": "Tras 10 años juntos descubrí que le gustaba ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0010",
+      "type": "prompt",
+      "text": "El testamento familiar menciona explícitamente ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0011",
+      "type": "prompt",
+      "text": "En terapia de pareja salió a la luz mi afición a ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0012",
+      "type": "prompt",
+      "text": "Abrí la caja de galletas danesas de mi casa y me encontré ______ y ______.",
+      "pick": 2
     }
   ],
   "counts": {
-    "total": 240,
-    "prompts": 40,
+    "total": 252,
+    "prompts": 52,
     "answers": 200
   },
   "playable": true

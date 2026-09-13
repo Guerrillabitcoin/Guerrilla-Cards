@@ -1,6 +1,6 @@
 {
   "name": "Guerrilla Cards",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "language": "es",
   "rules": "rules.json",
   "packs": [
@@ -11,8 +11,8 @@
       "nsfw": false,
       "file": "packs/core.json",
       "counts": {
-        "total": 3228,
-        "prompts": 219,
+        "total": 3258,
+        "prompts": 249,
         "answers": 3009
       },
       "playable": true
@@ -24,8 +24,8 @@
       "nsfw": false,
       "file": "packs/politica.json",
       "counts": {
-        "total": 113,
-        "prompts": 21,
+        "total": 124,
+        "prompts": 32,
         "answers": 92
       },
       "playable": true
@@ -37,8 +37,8 @@
       "nsfw": false,
       "file": "packs/celebridades.json",
       "counts": {
-        "total": 61,
-        "prompts": 2,
+        "total": 69,
+        "prompts": 10,
         "answers": 59
       },
       "playable": true
@@ -50,8 +50,8 @@
       "nsfw": false,
       "file": "packs/economia.json",
       "counts": {
-        "total": 104,
-        "prompts": 15,
+        "total": 111,
+        "prompts": 22,
         "answers": 89
       },
       "playable": true
@@ -63,8 +63,8 @@
       "nsfw": false,
       "file": "packs/animales.json",
       "counts": {
-        "total": 65,
-        "prompts": 1,
+        "total": 70,
+        "prompts": 6,
         "answers": 64
       },
       "playable": true
@@ -102,8 +102,8 @@
       "nsfw": false,
       "file": "packs/familia.json",
       "counts": {
-        "total": 240,
-        "prompts": 40,
+        "total": 252,
+        "prompts": 52,
         "answers": 200
       },
       "playable": true
@@ -115,8 +115,8 @@
       "nsfw": false,
       "file": "packs/religion.json",
       "counts": {
-        "total": 74,
-        "prompts": 4,
+        "total": 80,
+        "prompts": 10,
         "answers": 70
       },
       "playable": true
@@ -128,8 +128,8 @@
       "nsfw": false,
       "file": "packs/tech.json",
       "counts": {
-        "total": 86,
-        "prompts": 7,
+        "total": 96,
+        "prompts": 17,
         "answers": 79
       },
       "playable": true
@@ -141,8 +141,8 @@
       "nsfw": false,
       "file": "packs/salud.json",
       "counts": {
-        "total": 68,
-        "prompts": 9,
+        "total": 76,
+        "prompts": 17,
         "answers": 59
       },
       "playable": true
@@ -154,8 +154,8 @@
       "nsfw": false,
       "file": "packs/espana.json",
       "counts": {
-        "total": 53,
-        "prompts": 10,
+        "total": 67,
+        "prompts": 24,
         "answers": 43
       },
       "playable": true

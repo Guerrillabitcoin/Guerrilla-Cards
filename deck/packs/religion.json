@@ -447,11 +447,47 @@
       "type": "answer",
       "text": "confesarme en mis Stories",
       "pick": 1
+    },
+    {
+      "id": "religion-p-0001",
+      "type": "prompt",
+      "text": "En el confesonario admití ______ y el cura me pidió mi teléfono.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0002",
+      "type": "prompt",
+      "text": "Dios me contestó con un WhatsApp con ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0003",
+      "type": "prompt",
+      "text": "El milagro de este siglo es ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0004",
+      "type": "prompt",
+      "text": "En la procesión de Semana Santa nadie esperaba ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0005",
+      "type": "prompt",
+      "text": "El nuevo mandamiento que propone León XIV: no codiciarás ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0006",
+      "type": "prompt",
+      "text": "Tras la iluminación espiritual solo quedaba ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 74,
-    "prompts": 4,
+    "total": 80,
+    "prompts": 10,
     "answers": 70
   },
   "playable": true

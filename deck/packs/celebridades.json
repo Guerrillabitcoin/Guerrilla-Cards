@@ -369,11 +369,59 @@
       "type": "answer",
       "text": "confesarme en mis Stories",
       "pick": 1
+    },
+    {
+      "id": "celebridades-p-0007",
+      "type": "prompt",
+      "text": "El próximo reality de ______ será sobre ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-p-0008",
+      "type": "prompt",
+      "text": "Cancelaron a ______ por ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-p-0009",
+      "type": "prompt",
+      "text": "En la alfombra roja solo se hablaba de ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0010",
+      "type": "prompt",
+      "text": "El debate de la semana en Twitter: ______ vs ______.",
+      "pick": 2
+    },
+    {
+      "id": "celebridades-p-0011",
+      "type": "prompt",
+      "text": "Un nuevo documental de Netflix revela cómo ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0012",
+      "type": "prompt",
+      "text": "El Rubius se disculpó con un vídeo llorando en directo por ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0013",
+      "type": "prompt",
+      "text": "El casting de Operación Triunfo pedía ______.",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0014",
+      "type": "prompt",
+      "text": "Se rumorea que la causa del divorcio fue ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 61,
-    "prompts": 2,
+    "total": 69,
+    "prompts": 10,
     "answers": 59
   },
   "playable": true

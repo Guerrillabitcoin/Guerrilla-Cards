@@ -19371,11 +19371,191 @@
       "type": "answer",
       "text": "la versión de los hechos compatible con LinkedIn",
       "pick": 1
+    },
+    {
+      "id": "core-p-0281",
+      "type": "prompt",
+      "text": "Mi terapeuta me dijo que el problema no era yo, sino ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0282",
+      "type": "prompt",
+      "text": "El plan B de la élite siempre acaba en ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0283",
+      "type": "prompt",
+      "text": "Lo que realmente une mi grupo de amigos es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0284",
+      "type": "prompt",
+      "text": "En mi CV puse «experto en ______» y me contrataron. Jajajaj",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0285",
+      "type": "prompt",
+      "text": "La boda de mi primo se torció cuando apareció ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0286",
+      "type": "prompt",
+      "text": "Mi última búsqueda en Xvideos a las 3:17 fue ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0287",
+      "type": "prompt",
+      "text": "______: la nueva religión de los milennials.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0288",
+      "type": "prompt",
+      "text": "Cancelaron el concierto de Carlos Baute por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0289",
+      "type": "prompt",
+      "text": "Mi mayor logro este año ha sido sobrevivir a ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0290",
+      "type": "prompt",
+      "text": "El secreto del éxito, según LinkedIn, es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0291",
+      "type": "prompt",
+      "text": "Rompí con mi pareja por ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0292",
+      "type": "prompt",
+      "text": "En el funeral de estado nadie esperaba ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0293",
+      "type": "prompt",
+      "text": "El apocalipsis empezó con ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0294",
+      "type": "prompt",
+      "text": "Si mi vida fuera un reality, el título sería ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0295",
+      "type": "prompt",
+      "text": "Me echaron del piso de alquiler por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0296",
+      "type": "prompt",
+      "text": "La verdadera razón por la que llego tarde es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0297",
+      "type": "prompt",
+      "text": "Si en la primera cita no me hablan de ______ ya es un éxito.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0298",
+      "type": "prompt",
+      "text": "El algoritmo me castigó por ver un video de ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0299",
+      "type": "prompt",
+      "text": "Antes moría por ______; ahora muero por ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0300",
+      "type": "prompt",
+      "text": "RRHH me llamó a una reunión «rápida» sobre ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0301",
+      "type": "prompt",
+      "text": "Mi declaración de la renta incluye ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0302",
+      "type": "prompt",
+      "text": "En el grupo de WhatsApp del curro ya no se habla de trabajo, solo de ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0303",
+      "type": "prompt",
+      "text": "Mi autobiografía se titulará: «______ y otras decisiones cuestionables».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0304",
+      "type": "prompt",
+      "text": "El fin de semana perfecto: ______ + ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0305",
+      "type": "prompt",
+      "text": "Me diagnosticaron FOMO crónico por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0306",
+      "type": "prompt",
+      "text": "Mi karma me cobró en forma de ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0307",
+      "type": "prompt",
+      "text": "Si pudiera borrar una cosa de Internet, borraría ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0308",
+      "type": "prompt",
+      "text": "Mi plan de jubilación es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0309",
+      "type": "prompt",
+      "text": "En el avión me senté al lado de ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0310",
+      "type": "prompt",
+      "text": "La crisis existencial del martes por la mañana se llama ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 3228,
-    "prompts": 219,
+    "total": 3258,
+    "prompts": 249,
     "answers": 3009
   },
   "playable": true

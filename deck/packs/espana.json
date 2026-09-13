@@ -321,11 +321,95 @@
       "type": "answer",
       "text": "un pueblo donde todo el mundo sabe tu historial médico",
       "pick": 1
+    },
+    {
+      "id": "espana-p-0001",
+      "type": "prompt",
+      "text": "En España, ______ es un deporte olímpico no oficial.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0002",
+      "type": "prompt",
+      "text": "El próximo escándalo de La Moncloa involucra ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0003",
+      "type": "prompt",
+      "text": "Un verano en Cádiz sin ______ no es un verano.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0004",
+      "type": "prompt",
+      "text": "La Comunidad de Madrid ha declarado ______ «bien de interés cultural».",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0005",
+      "type": "prompt",
+      "text": "En el bar de siempre, el tapa de la casa es ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0006",
+      "type": "prompt",
+      "text": "El motivo real de la próxima huelga general: ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0007",
+      "type": "prompt",
+      "text": "En mi pueblo todavía se celebra ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0008",
+      "type": "prompt",
+      "text": "El reality español que nadie pidió de vuelta: «Supervivientes: ______».",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0009",
+      "type": "prompt",
+      "text": "En la Feria de Abril, lo más peligroso no es el vino: es ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0010",
+      "type": "prompt",
+      "text": "El BOE del viernes incluye una nueva norma sobre ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0011",
+      "type": "prompt",
+      "text": "En Galicia, si no tienes ______, no eres de aquí.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0012",
+      "type": "prompt",
+      "text": "El turismo de masas ha destruido ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0013",
+      "type": "prompt",
+      "text": "La última moda en Madrid es ______ con aceite de oliva.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0014",
+      "type": "prompt",
+      "text": "¿A mediodía? ¡______!.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 53,
-    "prompts": 10,
+    "total": 67,
+    "prompts": 24,
     "answers": 43
   },
   "playable": true
