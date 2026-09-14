@@ -171,6 +171,38 @@ export function addPlayer(
   };
 }
 
+
+export function renamePlayer(
+  state: GameState,
+  playerId: string,
+  nickname: string
+): GameState {
+  if (state.phase !== 'lobby') {
+    throw new Error('Solo puedes cambiar el nombre en el lobby.');
+  }
+  const nick = nickname.trim();
+  if (!nick) throw new Error('Pon un apodo.');
+  if (
+    state.players.some(
+      (p) =>
+        p.id !== playerId &&
+        p.nickname.toLowerCase() === nick.toLowerCase()
+    )
+  ) {
+    throw new Error('Ese apodo ya está en uso.');
+  }
+  if (!state.players.some((p) => p.id === playerId)) {
+    throw new Error('Jugador no encontrado.');
+  }
+  return {
+    ...state,
+    players: state.players.map((p) =>
+      p.id === playerId ? { ...p, nickname: nick.slice(0, 42) } : p
+    ),
+    updatedAt: now(),
+  };
+}
+
 /** Add 2–3 bot seats for solo mode (lobby only). Kept for back-compat; unused by new solo. */
 export function addSoloBots(
   state: GameState,

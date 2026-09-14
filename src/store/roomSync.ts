@@ -1,6 +1,6 @@
 /**
  * Cross-device async room sync via /api/room (Vercel KV).
- * Fog of war: slimForRoom strips decks, other hands, and early submission text.
+ * Sync: slimForRoom strips decks + early submission text; hands kept so deals reach all devices.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
@@ -43,22 +43,14 @@ function shouldRedactSubmissionTexts(phase: GameState['phase']): boolean {
 }
 
 /**
- * Strip bulky decks + fog hands/submissions before KV.
- * - Always strip promptDeck/answerDeck.
- * - If myPlayerId: other players get hand: [].
- * - Early phases: redact submission card text (keep own real text when myPlayerId set).
+ * Strip bulky decks + redact early submission text before KV.
+ * Hands are kept for all seats so a deal on the host reaches every device
+ * (UI still only shows «Tu mano»). Submission text stays fogged until judging.
  */
 export function slimForRoom(
   state: GameState,
   myPlayerId?: string | null
 ): GameState {
-  const players = state.players.map((p) => {
-    if (myPlayerId && p.id !== myPlayerId) {
-      return { ...p, hand: [] };
-    }
-    return p;
-  });
-
   let submissions = state.submissions;
   if (shouldRedactSubmissionTexts(state.phase)) {
     submissions = state.submissions.map((s) => {
@@ -69,7 +61,7 @@ export function slimForRoom(
 
   return {
     ...state,
-    players,
+    players: state.players,
     submissions,
     promptDeck: [],
     answerDeck: [],

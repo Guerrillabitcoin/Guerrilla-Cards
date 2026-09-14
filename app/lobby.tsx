@@ -57,6 +57,13 @@ export default function LobbyScreen() {
     };
   }, [gameCode]);
 
+  // Seed / refresh local name field from my seat
+  useEffect(() => {
+    if (!game || !myPlayerId) return;
+    const me = game.players.find((p) => p.id === myPlayerId);
+    if (me?.nickname) setNick(me.nickname);
+  }, [game?.code, myPlayerId, game?.players]);
+
   // Poll remote room while in lobby (async online)
   useEffect(() => {
     if (!ready || !gameCode || !onlineRoom) return;
@@ -214,10 +221,50 @@ export default function LobbyScreen() {
         </View>
       ))}
 
-      {/* Online: others join from Home; host may still add local seats as fallback */}
-      {game.players.length < seatMax && canAddLocal ? (
+      {/* Online: cada uno elige SOLO su nombre; no añadir asientos locales (confuso). */}
+      {isOnline && myPlayerId ? (
         <>
-          <Label>{isOnline ? 'Añadir asiento (mismo dispositivo)' : 'Añadir asiento'}</Label>
+          <Label>Tu nombre</Label>
+          <Input
+            value={nick}
+            onChangeText={setNick}
+            placeholder="Tu apodo"
+            maxLength={42}
+          />
+          <Button
+            title="Otro nombre raro"
+            variant="ghost"
+            onPress={() => setNick(randomNickname(nick))}
+          />
+          <Button
+            title="Guardar nombre"
+            variant="outline"
+            onPress={() => {
+              try {
+                const nextNick = nick.trim() || randomNickname();
+                updateGame(game.code, (g) =>
+                  Engine.renamePlayer(g, myPlayerId, nextNick)
+                );
+                setNick(nextNick);
+              } catch (e) {
+                Alert.alert(
+                  'Nombre',
+                  e instanceof Error ? e.message : 'No se pudo guardar'
+                );
+              }
+            }}
+          />
+          <Muted>
+            Los demás se unen desde Inicio con el código {game.code}. Aquí no se
+            añaden jugadores del mismo dispositivo.
+          </Muted>
+        </>
+      ) : null}
+
+      {/* Pass-and-play (sin online): añadir asientos en este dispositivo */}
+      {!isOnline && game.players.length < seatMax ? (
+        <>
+          <Label>Añadir asiento</Label>
           <Input
             value={nick}
             onChangeText={setNick}
