@@ -68,12 +68,6 @@ export default function CompartirScreen() {
   const { width: winW } = useWindowDimensions();
   /** Preview mirrors export size; capture forced to 420×420. */
   const shareSide = Math.min(420, Math.max(260, winW - 48));
-  const shareTextLen =
-    (promptText?.length ?? 0) +
-    answers.reduce((n, a) => n + a.length, 0) +
-    (filledText?.length ?? 0);
-  const shareTextCompact = shareTextLen > 140;
-
   const captureAndSend = useCallback(async () => {
     if (!canShare || busy) return;
     setBusy(true);
@@ -176,18 +170,15 @@ export default function CompartirScreen() {
           <View style={styles.promptBox}>
             {promptText && answers.length ? (
               <FilledPromptText
+                large
                 promptText={promptText}
                 answers={answers}
-                small={shareTextCompact}
               />
             ) : (
               <Text
-                style={[
-                  styles.filledFallback,
-                  shareTextCompact && styles.filledFallbackCompact,
-                ]}
+                style={styles.filledFallback}
                 adjustsFontSizeToFit
-                minimumFontScale={0.45}
+                minimumFontScale={0.5}
               >
                 {filledText}
               </Text>
@@ -226,25 +217,25 @@ function useCompartirStyles() {
     borderWidth: 2,
     borderColor: colors.accent,
     borderRadius: radii.md,
-    padding: 14,
-    gap: 8,
+    padding: 16,
+    gap: 10,
     overflow: 'hidden',
     justifyContent: 'flex-start',
   },
   brand: {
     color: colors.accent,
     fontFamily,
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '900',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
     textAlign: 'center',
     flexShrink: 0,
   },
   tag: {
     color: colors.textMuted,
     fontFamily,
-    fontSize: 10,
-    lineHeight: 14,
+    fontSize: 11,
+    lineHeight: 15,
     textAlign: 'center',
     marginTop: -2,
     paddingHorizontal: 2,
@@ -255,7 +246,7 @@ function useCompartirStyles() {
     borderRadius: radii.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 12,
+    padding: 14,
     flex: 1,
     minHeight: 0,
     justifyContent: 'center',
@@ -264,13 +255,9 @@ function useCompartirStyles() {
   filledFallback: {
     color: colors.text,
     fontFamily,
-    fontSize: 16,
-    fontWeight: '700',
-    lineHeight: 22,
-  },
-  filledFallbackCompact: {
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 26,
+    fontWeight: '800',
+    lineHeight: 34,
   },
   footer: {
     color: colors.textDim,
