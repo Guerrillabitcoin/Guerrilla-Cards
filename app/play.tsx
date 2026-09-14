@@ -425,13 +425,30 @@ export default function PlayScreen() {
 
   const human = game.players.find((p) => !p.isBot) ?? game.players[0];
   const isOnline = !isSolo && onlineRoom && !!myPlayerId;
-  // Solo: human seat. Online: locked seat. Else: pass-and-play activeSeatId.
+  const onlineMissingSeat = !isSolo && onlineRoom && !myPlayerId;
+  // Solo: human seat. Online: locked seat ONLY (never fall back to shared activeSeatId).
   const active = isSolo
     ? human
     : isOnline
       ? Engine.playerById(game, myPlayerId)
-      : Engine.playerById(game, game.activeSeatId);
+      : onlineMissingSeat
+        ? undefined
+        : Engine.playerById(game, game.activeSeatId);
+  if (onlineMissingSeat) {
+    return (
+      <Screen>
+        <Title>Sin asiento</Title>
+        <Subtitle>
+          Esta ventana no tiene jugador propio en la sala. Vuelve a Inicio y usa
+          «Unirse a partida async» (cada invitado necesita su propia unión).
+        </Subtitle>
+        <Button title="Inicio" onPress={() => router.replace('/')} />
+      </Screen>
+    );
+  }
+
   const zar = game.players[game.zarIndex];
+
   const voteMode = (game.judgeMode ?? 'zar') === 'vote';
   const zarSkipsSubmit = !isSolo && !voteMode;
   const submitNeeded = voteMode

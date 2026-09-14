@@ -10,6 +10,57 @@ const ROOM_PREFIX = 'gc:room:';
 const MAX_BODY_CHARS = 900_000;
 const ASYNC_MAX_PLAYERS = 4;
 
+function uid(prefix) {
+  return (
+    prefix +
+    '_' +
+    Math.random().toString(36).slice(2, 10) +
+    Math.random().toString(36).slice(2, 6)
+  );
+}
+
+const JOIN_NICK_POOL = [
+  'TostadaRebelde',
+  'CafeConHielo',
+  'PatataNinja',
+  'ChorizoEspacial',
+  'GatoFiscal',
+  'MochiCaotico',
+  'SillaVoladora',
+  'BizcochoPunk',
+  'CalcetinLibre',
+  'AjoValiente',
+  'YogurSamurai',
+  'TortillaGlitch',
+  'PanIntegral',
+  'SalsaSecreta',
+  'RatonPiloto',
+];
+
+function randomJoinNick() {
+  const base =
+    JOIN_NICK_POOL[Math.floor(Math.random() * JOIN_NICK_POOL.length)] ||
+    'Jugador';
+  return base + Math.floor(10 + Math.random() * 89);
+}
+
+function uniqueNick(desired, players) {
+  const taken = new Set(
+    (players || []).map((p) => String(p.nickname || '').toLowerCase())
+  );
+  let nick = String(desired || '').trim();
+  if (!nick) nick = randomJoinNick();
+  if (!taken.has(nick.toLowerCase())) return nick.slice(0, 42);
+  for (let i = 0; i < 24; i++) {
+    const cand = randomJoinNick();
+    if (!taken.has(cand.toLowerCase())) return cand.slice(0, 42);
+  }
+  let n = 2;
+  const base = nick.slice(0, 36);
+  while (taken.has((base + n).toLowerCase()) && n < 99) n++;
+  return (base + n).slice(0, 42);
+}
+
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -214,6 +265,51 @@ module.exports = async function handler(req, res) {
       }
 
       const action = body.action || 'upsert';
+
+      // Atomic join: server assigns a unique seat + nick
+      if (action === 'join') {
+        const code = normalizeCode(body.code);
+        if (!code || code.length < 3) {
+          return res.status(400).json({ ok: false, error: 'bad_code' });
+        }
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvCommand(['GET', key]);
+        const existing = parseExisting(existingData?.result);
+        if (!existing) {
+          return res.status(404).json({ ok: false, error: 'not_found' });
+        }
+        if (existing.phase !== 'lobby') {
+          return res.status(409).json({ ok: false, error: 'not_lobby' });
+        }
+        const players = Array.isArray(existing.players) ? existing.players : [];
+        if (players.length >= ASYNC_MAX_PLAYERS) {
+          return res.status(409).json({ ok: false, error: 'lobby_full' });
+        }
+        const nickname = uniqueNick(body.nickname, players);
+        const playerId = uid('p');
+        const player = {
+          id: playerId,
+          nickname,
+          isHost: false,
+          score: 0,
+          hand: [],
+          isBot: false,
+        };
+        const state = {
+          ...existing,
+          code,
+          phase: 'lobby',
+          players: [...players, player],
+          updatedAt: Date.now(),
+        };
+        const payload = JSON.stringify(state);
+        if (payload.length > MAX_BODY_CHARS) {
+          return res.status(413).json({ ok: false, error: 'state_too_large' });
+        }
+        await kvCommand(['SET', key, payload]);
+        return res.status(200).json({ ok: true, code, playerId, state });
+      }
+
       if (action !== 'upsert') {
         return res.status(400).json({ ok: false, error: 'unknown_action' });
       }

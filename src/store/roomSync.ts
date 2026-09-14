@@ -180,6 +180,55 @@ export async function pushRoom(
   }
 }
 
+
+export type JoinResult =
+  | { ok: true; state: GameState; playerId: string }
+  | { ok: false; error: string; status?: number };
+
+/** Atomic server join — unique seat + nick. */
+export async function joinRoom(
+  code: string,
+  nickname?: string | null
+): Promise<JoinResult> {
+  const url = roomApiUrl();
+  if (!url) return { ok: false, error: 'not_web' };
+  const normalized = normalizeCode(code);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'join',
+        code: normalized,
+        nickname: nickname?.trim() || undefined,
+      }),
+    });
+    const data = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      error?: string;
+      state?: GameState;
+      playerId?: string;
+    };
+    if (!res.ok || !data.ok || !data.state || !data.playerId) {
+      return {
+        ok: false,
+        error: data.error || `http_${res.status}`,
+        status: res.status,
+      };
+    }
+    return {
+      ok: true,
+      state: coerceGameState(data.state),
+      playerId: data.playerId,
+    };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : 'network_error',
+    };
+  }
+}
+
 export async function pullRoom(code: string): Promise<PullResult> {
   const normalized = code.trim().toUpperCase();
   const url = roomApiUrl(`code=${encodeURIComponent(normalized)}`);

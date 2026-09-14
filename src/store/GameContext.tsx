@@ -100,7 +100,7 @@ interface GameContextValue {
     botCount?: number;
   }) => GameState;
   joinOrOpen: (code: string) => GameState | null;
-  saveGame: (state: GameState) => void;
+  saveGame: (state: GameState, opts?: { sync?: boolean }) => void;
   updateGame: (code: string, updater: (g: GameState) => GameState) => void;
   deleteGame: (code: string) => void;
   getGame: (code: string) => GameState | undefined;
@@ -309,7 +309,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveGame = useCallback(
-    (state: GameState) => {
+    (state: GameState, opts?: { sync?: boolean }) => {
+      const sync = opts?.sync !== false;
       const next = {
         ...coerceGameState(state),
         updatedAt: Date.now(),
@@ -322,7 +323,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ...gamesRef.current,
         [hydrated.code]: hydrated,
       });
-      if (hydrated.mode === 'async') {
+      // Join path uses sync:false — avoid racing a pre-seat push that wipes identity
+      if (sync && hydrated.mode === 'async') {
         void (async () => {
           const seat = await getMySeat(hydrated.code);
           await pushRoom(hydrated, seat);

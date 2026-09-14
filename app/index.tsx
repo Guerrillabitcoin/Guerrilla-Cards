@@ -28,6 +28,7 @@ import {
 import { useGameStore } from '@/src/store/GameContext';
 import {
   getMySeat,
+  joinRoom,
   pullRoom,
   pushRoom,
   setMySeat,
@@ -342,70 +343,110 @@ export default function HomeScreen() {
     }
     void (async () => {
       try {
+        const desiredNick = resolveNick();
+
+        // Preferred path: atomic server join (unique seat + nick per device)
+        const joined = await joinRoom(code, desiredNick);
+        if (joined.ok) {
+          const me = joined.state.players.find((p) => p.id === joined.playerId);
+          if (me?.nickname) setNickname(me.nickname);
+          saveGame(joined.state, { sync: false });
+          await setOnlineFlag(code, true);
+          await setMySeat(code, joined.playerId);
+          openGame(joined.state.code, joined.state.phase);
+          return;
+        }
+
+        if (joined.error === 'kv_not_configured') {
+          Alert.alert(
+            'Sin KV',
+            'El servidor no tiene KV configurado (KV_REST_API_URL/UPSTASH_REDIS_REST_*). No se puede unir entre dispositivos.'
+          );
+          return;
+        }
+        if (joined.error === 'not_found') {
+          Alert.alert(
+            'No encontrada',
+            'No hay sala online con ese código. Pide al anfitrión que cree la partida y espere a que sincronice.'
+          );
+          return;
+        }
+        if (joined.error === 'lobby_full') {
+          Alert.alert('Sala llena', 'Ya hay 4 jugadores en esta partida.');
+          return;
+        }
+        if (joined.error === 'not_lobby') {
+          Alert.alert(
+            'Partida empezada',
+            'La partida ya no está en lobby; no se puede unir ahora.'
+          );
+          return;
+        }
+
+        // Fallback: local / legacy client add (unique nick against room)
         const remote = await pullRoom(code);
         if (remote.ok) {
-          // Save locally without relying on saveGame's fire-and-forget push of
-          // the pre-join snapshot; we push explicitly after adding the seat.
-          saveGame(remote.state);
+          saveGame(remote.state, { sync: false });
           await setOnlineFlag(code, true);
-          let g = remote.state;
+          const g = remote.state;
           const seat = await getMySeat(code);
           if (seat && g.players.some((p) => p.id === seat)) {
             openGame(g.code, g.phase);
             return;
           }
-          if (g.phase === 'lobby') {
-            const nick = resolveNick();
-            const before = new Set(g.players.map((p) => p.id));
-            updateGame(code, (cur) => Engine.addPlayer(cur, nick));
-            const live = getGame(code) ?? joinOrOpen(code);
-            if (!live) {
-              Alert.alert('Unirse', 'No se pudo actualizar la sala local.');
-              return;
-            }
-            const neu = live.players.find((p) => !before.has(p.id));
-            if (neu) await setMySeat(code, neu.id);
-            const pushed = await pushRoom(live, neu?.id ?? (await getMySeat(code)));
-            if (!pushed.ok && pushed.error !== 'kv_not_configured') {
-              Alert.alert(
-                'Unirse',
-                `Sala abierta localmente, pero no se pudo sincronizar: ${pushed.error}`
-              );
-            }
-            openGame(live.code, live.phase);
+          if (g.phase !== 'lobby') {
+            Alert.alert(
+              'Partida empezada',
+              'La partida ya no está en lobby; no se puede unir ahora.'
+            );
             return;
           }
-          // Mid-game spectator / reconnect without seat
-          openGame(g.code, g.phase);
-          return;
-        }
-        if (remote.error === 'kv_not_configured') {
-          Alert.alert(
-            'Sin KV',
-            'El servidor no tiene KV configurado (KV_REST_API_URL/UPSTASH_REDIS_REST_*). No se puede unir entre dispositivos.'
+          const taken = new Set(
+            g.players.map((p) => p.nickname.toLowerCase())
           );
-        } else if (remote.error === 'not_found') {
-          Alert.alert(
-            'No encontrada',
-            'No hay sala online con ese código. Pide al anfitrión que cree la partida (y espera a que termine de sincronizar) con KV en Vercel.'
-          );
-        } else if (remote.error && remote.error !== 'not_web') {
-          Alert.alert(
-            'Error al unirse',
-            `No se pudo cargar la sala (${remote.error}).`
-          );
-        }
-        const game = joinOrOpen(code);
-        if (!game) {
-          if (remote.error !== 'not_found' && remote.error !== 'kv_not_configured') {
+          let nick = desiredNick;
+          let guard = 0;
+          while (taken.has(nick.toLowerCase()) && guard < 24) {
+            nick = randomNickname(nick);
+            guard++;
+          }
+          if (taken.has(nick.toLowerCase())) {
+            nick = `${desiredNick}${Math.floor(Math.random() * 90 + 10)}`;
+          }
+          setNickname(nick);
+          const before = new Set(g.players.map((p) => p.id));
+          updateGame(code, (cur) => Engine.addPlayer(cur, nick));
+          const live = getGame(code) ?? joinOrOpen(code);
+          if (!live) {
+            Alert.alert('Unirse', 'No se pudo actualizar la sala local.');
+            return;
+          }
+          const neu = live.players.find((p) => !before.has(p.id));
+          if (!neu) {
             Alert.alert(
-              'No encontrada',
-              'No hay partida local ni online con ese código.'
+              'Unirse',
+              'No se creó un asiento nuevo (¿apodo repetido?). Prueba otro nombre.'
+            );
+            return;
+          }
+          await setMySeat(code, neu.id);
+          const pushed = await pushRoom(live, neu.id);
+          if (!pushed.ok && pushed.error !== 'kv_not_configured') {
+            Alert.alert(
+              'Unirse',
+              `Asiento local ok, sync falló: ${pushed.error}`
             );
           }
+          openGame(live.code, live.phase);
           return;
         }
-        openGame(game.code, game.phase);
+
+        Alert.alert(
+          'Unirse',
+          joined.error && joined.error !== 'not_web'
+            ? `No se pudo unir (${joined.error}).`
+            : 'No hay partida local ni online con ese código.'
+        );
       } catch (e) {
         Alert.alert(
           'Unirse',
