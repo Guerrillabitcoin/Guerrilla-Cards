@@ -340,14 +340,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
       // Allow equal updatedAt if remote already advanced to judging
+      const phaseRank = (p?: string) => {
+        switch (p) {
+          case 'results':
+            return 50;
+          case 'reveal':
+            return 40;
+          case 'judging':
+            return 30;
+          case 'discarding':
+            return 20;
+          case 'submitting':
+            return 10;
+          default:
+            return 0;
+        }
+      };
+      // Always accept a more advanced phase (reveal/results) even if timestamps tie
+      const remoteAdvanced =
+        phaseRank(remote.phase) > phaseRank(local?.phase);
       if (
         local &&
+        !remoteAdvanced &&
         (local.updatedAt ?? 0) > (remote.updatedAt ?? 0)
       ) {
         return false;
       }
       if (
         local &&
+        !remoteAdvanced &&
         (local.updatedAt ?? 0) === (remote.updatedAt ?? 0) &&
         local.phase === remote.phase &&
         (local.submissions?.length ?? 0) >= (remote.submissions?.length ?? 0)
@@ -366,7 +387,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         }
         remote = { ...remote, submissions: Array.from(byId.values()) };
       }
-      remote = Engine.advanceToJudgingIfReady(remote);
+      if (remote.phase === 'submitting') {
+        remote = Engine.advanceToJudgingIfReady(remote);
+      }
       gamesRef.current = { ...gamesRef.current, [key]: remote };
       setGames((prevMap) => ({
         ...prevMap,

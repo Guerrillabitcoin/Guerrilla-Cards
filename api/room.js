@@ -226,6 +226,26 @@ function shuffleIndices(n) {
 }
 
 /** When all required answers are in, force judging (order-independent). */
+
+function phaseRank(phase) {
+  switch (phase) {
+    case 'results':
+      return 50;
+    case 'reveal':
+      return 40;
+    case 'judging':
+      return 30;
+    case 'discarding':
+      return 20;
+    case 'submitting':
+      return 10;
+    case 'lobby':
+      return 0;
+    default:
+      return 0;
+  }
+}
+
 function promoteJudgingIfReady(state) {
   if (!state || state.phase !== 'submitting') return state;
   if (state.mode === 'solo') return state;
@@ -258,15 +278,42 @@ function applyPrivacyMerges(existing, incoming) {
   if (!existing || typeof existing !== 'object') return incoming;
   const players = mergeHandsByPlayerId(existing.players, incoming.players);
   const submissions = mergeSubmissions(existing, incoming);
-  // Prefer judging if either side already got there
+  // Prefer the more advanced phase (reveal/results > judging > submitting)
   let phase = incoming.phase;
-  if (existing.phase === 'judging' || incoming.phase === 'judging') {
-    phase = 'judging';
+  if (phaseRank(existing.phase) > phaseRank(incoming.phase)) {
+    phase = existing.phase;
+  } else if (
+    existing.phase === 'judging' ||
+    incoming.phase === 'judging'
+  ) {
+    if (phaseRank(phase) < phaseRank('judging')) phase = 'judging';
   }
-  let state = { ...incoming, phase, players, submissions };
-  if (phase === 'judging' && existing.phase === 'judging') {
+  let state = {
+    ...incoming,
+    phase,
+    players,
+    submissions,
+    roundWinnerId:
+      incoming.roundWinnerId || existing.roundWinnerId || null,
+  };
+  if (phase === 'reveal' || phase === 'results') {
+    // Keep scores from the more advanced side
+    if (
+      phaseRank(existing.phase) >= phaseRank('reveal') &&
+      phaseRank(incoming.phase) < phaseRank('reveal')
+    ) {
+      state.players = mergeHandsByPlayerId(incoming.players, existing.players);
+      state.roundWinnerId = existing.roundWinnerId;
+      state.submissions = mergeSubmissionsPreferReal(
+        existing.submissions,
+        incoming.submissions
+      );
+    }
+  }
+  if (phase === 'judging') {
     state.revealOrder =
-      (incoming.revealOrder && incoming.revealOrder.length === submissions.length
+      (incoming.revealOrder &&
+      incoming.revealOrder.length === submissions.length
         ? incoming.revealOrder
         : null) ||
       existing.revealOrder ||
@@ -391,6 +438,19 @@ module.exports = async function handler(req, res) {
           existing.phase === 'lobby' && incoming.phase === 'lobby';
         const remoteNewer =
           (existing.updatedAt ?? 0) > (incoming.updatedAt ?? 0);
+
+        // Never let a stale submitting/judging push wipe reveal/results
+        if (
+          !bothLobby &&
+          phaseRank(existing.phase) > phaseRank(incoming.phase)
+        ) {
+          return res.status(200).json({
+            ok: true,
+            skipped: true,
+            state: existing,
+            code,
+          });
+        }
 
         if (bothLobby) {
           // Concurrent host/joiner pushes: union players by id so neither wipes seats

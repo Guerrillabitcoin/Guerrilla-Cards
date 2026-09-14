@@ -64,6 +64,7 @@ export default function PlayScreen() {
   const [privacy, setPrivacy] = useState(true);
   const lastSeatPrivacyRef = useRef<string | null>(null);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const autoRevealKeyRef = useRef<string | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
   const [lastHistoryId, setLastHistoryId] = useState<string | null>(null);
   /** Show ★ filled briefly before advancing after favoriting */
@@ -854,6 +855,34 @@ export default function PlayScreen() {
     }
   };
 
+  // Online: everyone sees reveal; auto-advance so the match does not stall
+  useEffect(() => {
+    if (!isOnline || !game || phase !== 'reveal') return;
+    if (game.phase !== 'reveal') return;
+    const key = `${game.code}:${game.round}:${game.roundWinnerId}`;
+    if (autoRevealKeyRef.current === key) return;
+    autoRevealKeyRef.current = key;
+    const t = setTimeout(() => {
+      try {
+        updateGame(game.code, (g) => {
+          if (g.phase !== 'reveal') return g;
+          return Engine.nextRound(g);
+        });
+      } catch {
+        autoRevealKeyRef.current = null;
+      }
+    }, 4500);
+    return () => clearTimeout(t);
+  }, [
+    isOnline,
+    phase,
+    game?.code,
+    game?.round,
+    game?.roundWinnerId,
+    game?.phase,
+    updateGame,
+  ]);
+
   const historyEntry = lastHistoryId
     ? winningHistory.find((h) => h.id === lastHistoryId)
     : undefined;
@@ -1556,7 +1585,15 @@ export default function PlayScreen() {
                 {winnerIsRival
                   ? `Gana el bot (${winnerName})`
                   : `Gana: ${winnerName}`}
+                {!isSolo && !winnerIsRival && !voteMode
+                  ? ` · próximo Zar: ${winnerName}`
+                  : ''}
               </Subtitle>
+              <Muted>
+                {isSolo
+                  ? ''
+                  : `Clasificación actualizada (+1). Meta: ${game.targetScore} Puntacos.`}
+              </Muted>
               {winnerSub ? (
                 <CardFace
                   kind="answer"
@@ -1573,7 +1610,11 @@ export default function PlayScreen() {
                   </Muted>
                 ))}
               <Button
-                title="→  Siguiente ronda"
+                title={
+                  isOnline
+                    ? 'Siguiente ronda (o auto en unos segundos)'
+                    : '→  Siguiente ronda'
+                }
                 variant="success"
                 onPress={continueRound}
               />
