@@ -18,6 +18,12 @@ import {
   MIN_PLAYERS,
 } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
+import {
+  getMySeat,
+  getOnlineFlag,
+  pullRoom,
+  setMySeat,
+} from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
 
 export default function LobbyScreen() {
@@ -25,11 +31,47 @@ export default function LobbyScreen() {
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
-  const { getGame, updateGame, ready } = useGameStore();
+  const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
   const [nick, setNick] = useState('');
+  const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
+  const [onlineRoom, setOnlineRoom] = useState(false);
 
   const gameCode = code ? String(code).toUpperCase() : '';
   const game = ready && gameCode ? getGame(gameCode) : undefined;
+
+  useEffect(() => {
+    if (!gameCode) return;
+    let cancelled = false;
+    void (async () => {
+      const [seat, online] = await Promise.all([
+        getMySeat(gameCode),
+        getOnlineFlag(gameCode),
+      ]);
+      if (cancelled) return;
+      setMyPlayerIdState(seat);
+      setOnlineRoom(online);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gameCode]);
+
+  // Poll remote room while in lobby (async online)
+  useEffect(() => {
+    if (!ready || !gameCode || !onlineRoom) return;
+    let cancelled = false;
+    const tick = async () => {
+      const res = await pullRoom(gameCode);
+      if (cancelled || !res.ok) return;
+      applyRemoteGame(res.state);
+    };
+    void tick();
+    const id = setInterval(tick, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   // Solo games should skip lobby (auto-started from Home); if somehow here, start
   useEffect(() => {
@@ -59,13 +101,24 @@ export default function LobbyScreen() {
     updateGame,
   ]);
 
+  // Online: when host starts remotely, jump to play
+  useEffect(() => {
+    if (!ready || !game || !onlineRoom) return;
+    if (game.phase !== 'lobby' && game.phase !== 'results') {
+      router.replace({ pathname: '/play', params: { code: game.code } });
+    }
+  }, [ready, game?.phase, game?.code, onlineRoom, router]);
+
   if (!ready) return <Loading />;
 
   if (!game) {
     return (
       <Screen>
         <Title>Lobby perdido</Title>
-        <Subtitle>No hay partida con ese código en este dispositivo.</Subtitle>
+        <Subtitle>
+          No hay partida con ese código aquí
+          {onlineRoom ? ' ni en el servidor' : ' en este dispositivo'}.
+        </Subtitle>
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>
     );
@@ -75,10 +128,26 @@ export default function LobbyScreen() {
     return <Loading />;
   }
 
+  const isAsync = game.mode === 'async';
+  const isOnline = isAsync && onlineRoom;
+
   const addSeat = () => {
     try {
-      updateGame(game.code, (g) => Engine.addPlayer(g, nick));
+      let addedId: string | null = null;
+      updateGame(game.code, (g) => {
+        const before = new Set(g.players.map((p) => p.id));
+        const next = Engine.addPlayer(g, nick);
+        const neu = next.players.find((p) => !before.has(p.id));
+        addedId = neu?.id ?? null;
+        return next;
+      });
       setNick('');
+      // Local pass-and-play: adding seats on one device disables pure online lock
+      if (isOnline && addedId && !myPlayerId) {
+        void setMySeat(game.code, addedId).then(() =>
+          setMyPlayerIdState(addedId)
+        );
+      }
     } catch (e) {
       Alert.alert('Jugador', e instanceof Error ? e.message : 'Error');
     }
@@ -95,12 +164,13 @@ export default function LobbyScreen() {
 
   const modeLabel =
     game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'async' : 'solo';
-  const isAsync = game.mode === 'async';
   const seatMax = isAsync ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
   const seatMin = isAsync ? ASYNC_TARGET_PLAYERS : MIN_PLAYERS;
-  const judgeLabel =
-    (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
+  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
   const canStart = game.players.length >= seatMin;
+  const iAmHost =
+    !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
+  const canAddLocal = !isOnline || game.players.length < seatMax;
 
   return (
     <Screen>
@@ -111,9 +181,11 @@ export default function LobbyScreen() {
         {game.packIds.join(', ')} · Meta: {game.targetScore} Puntacos
       </Subtitle>
       <Muted>
-        {isAsync
-          ? `Async: exactamente ${ASYNC_TARGET_PLAYERS} jugadores en este dispositivo. Pasa el móvil entre turnos; el código ${game.code} sirve para retomar aquí.`
-          : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil. Pásalo entre personas en cada turno.`}
+        {isOnline
+          ? `Online: comparte el código ${game.code}. Cada jugador se une desde su dispositivo (exactamente ${ASYNC_TARGET_PLAYERS}). Necesita KV en Vercel.`
+          : isAsync
+            ? `Async: exactamente ${ASYNC_TARGET_PLAYERS} jugadores. Pasa el móvil entre turnos; el código ${game.code} sirve para retomar aquí.`
+            : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil. Pásalo entre personas en cada turno.`}
       </Muted>
 
       <Label>
@@ -126,8 +198,9 @@ export default function LobbyScreen() {
             {p.isBot ? '🤖 ' : ''}
             {p.nickname}
             {p.isHost ? ' · anfitrión' : ''}
+            {myPlayerId === p.id ? ' · tú' : ''}
           </Text>
-          {!p.isHost ? (
+          {!p.isHost && (!isOnline || iAmHost) ? (
             <Button
               title="Quitar"
               variant="ghost"
@@ -139,9 +212,10 @@ export default function LobbyScreen() {
         </View>
       ))}
 
-      {game.players.length < seatMax ? (
+      {/* Online: others join from Home; host may still add local seats as fallback */}
+      {game.players.length < seatMax && canAddLocal ? (
         <>
-          <Label>Añadir asiento</Label>
+          <Label>{isOnline ? 'Añadir asiento (mismo dispositivo)' : 'Añadir asiento'}</Label>
           <Input
             value={nick}
             onChangeText={setNick}
@@ -152,15 +226,24 @@ export default function LobbyScreen() {
         </>
       ) : null}
 
-      <Button
-        title={
-          !canStart
-            ? `Faltan ${seatMin - game.players.length} jugadores`
-            : 'Empezar partida'
-        }
-        onPress={start}
-        disabled={!canStart}
-      />
+      {isOnline && !iAmHost ? (
+        <Muted>
+          Esperando a que el anfitrión empiece
+          {game.players.length < seatMin
+            ? ` (faltan ${seatMin - game.players.length})`
+            : '…'}
+        </Muted>
+      ) : (
+        <Button
+          title={
+            !canStart
+              ? `Faltan ${seatMin - game.players.length} jugadores`
+              : 'Empezar partida'
+          }
+          onPress={start}
+          disabled={!canStart}
+        />
+      )}
     </Screen>
   );
 }
@@ -186,4 +269,3 @@ function useLobbyStyles() {
     [colors, fontFamily]
   );
 }
-

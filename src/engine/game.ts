@@ -680,6 +680,26 @@ function applyRoundWinner(
   };
 }
 
+
+/** Ensure revealOrder is a full permutation of submission indices (reshuffle if missing/stale). */
+export function ensureRevealOrder(state: GameState): GameState {
+  const n = state.submissions.length;
+  if (n === 0) {
+    return state.revealOrder?.length ? { ...state, revealOrder: [] } : state;
+  }
+  const order = state.revealOrder ?? [];
+  const valid =
+    order.length === n &&
+    order.every((i) => typeof i === 'number' && i >= 0 && i < n) &&
+    new Set(order).size === n;
+  if (valid) return state;
+  return {
+    ...state,
+    revealOrder: shuffle([...Array(n).keys()]),
+    updatedAt: now(),
+  };
+}
+
 /**
  * Zar picks a winning submission (zar judge mode only).
  * In vote mode, winners are finalized only via castVote auto-tally.
@@ -689,7 +709,8 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
   if (isVoteMode(state) && state.mode !== 'solo') {
     throw new Error('En modo voto el ganador sale del recuento (castVote).');
   }
-  return applyRoundWinner(state, winnerPlayerId);
+  const ready = ensureRevealOrder(state);
+  return applyRoundWinner(ready, winnerPlayerId);
 }
 
 /**
@@ -708,6 +729,7 @@ export function castVote(
   if (!isVoteMode(state)) {
     throw new Error('castVote solo en modo voto.');
   }
+  state = ensureRevealOrder(state);
   const voter = state.players.find((p) => p.id === voterId);
   if (!voter) throw new Error('Votante no encontrado.');
   if (!state.submissions.some((s) => s.playerId === voterId)) {

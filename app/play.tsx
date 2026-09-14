@@ -20,6 +20,11 @@ import * as Engine from '@/src/engine/game';
 import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, type Card } from '@/src/engine/types';
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
+import {
+  getMySeat,
+  getOnlineFlag,
+  pullRoom,
+} from '@/src/store/roomSync';
 import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
@@ -35,7 +40,7 @@ export default function PlayScreen() {
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
-  const { getGame, updateGame, ready } = useGameStore();
+  const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
   const {
     appendWinner,
     toggleFavorite,
@@ -56,6 +61,9 @@ export default function PlayScreen() {
   const [soloSkipMode, setSoloSkipMode] = useState(false);
   const { width: winW, height: winH } = useWindowDimensions();
   const [privacy, setPrivacy] = useState(true);
+  const lastSeatPrivacyRef = useRef<string | null>(null);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const [onlineRoom, setOnlineRoom] = useState(false);
   const [lastHistoryId, setLastHistoryId] = useState<string | null>(null);
   /** Show ★ filled briefly before advancing after favoriting */
   const [favJustSaved, setFavJustSaved] = useState(false);
@@ -85,6 +93,40 @@ export default function PlayScreen() {
     () => (rawGame ? remapGameCards(rawGame, adminPatches) : undefined),
     [rawGame, adminPatches]
   );
+
+  // Online seat lock + room poll (async + KV)
+  useEffect(() => {
+    if (!gameCode) return;
+    let cancelled = false;
+    void (async () => {
+      const [seat, online] = await Promise.all([
+        getMySeat(gameCode),
+        getOnlineFlag(gameCode),
+      ]);
+      if (cancelled) return;
+      setMyPlayerId(seat);
+      setOnlineRoom(online);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gameCode]);
+
+  useEffect(() => {
+    if (!ready || !gameCode || !onlineRoom) return;
+    let cancelled = false;
+    const tick = async () => {
+      const res = await pullRoom(gameCode);
+      if (cancelled || !res.ok) return;
+      applyRemoteGame(res.state);
+    };
+    void tick();
+    const id = setInterval(tick, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   useEffect(() => {
     // En ronda 5 no hay descartar/pasar; en la 6 vuelve.
@@ -286,10 +328,40 @@ export default function PlayScreen() {
     game,
   ]);
 
-  // Solo: skip privacy gate for human
+  // Solo / online: no pass-the-phone. Pass-and-play: re-ask only when seat changes
+  // (never mid pick×2 on the same seat).
   useEffect(() => {
-    if (isSolo) setPrivacy(false);
-  }, [isSolo, game?.activeSeatId, phase, game?.round]);
+    if (isSolo || onlineRoom) {
+      setPrivacy(false);
+      lastSeatPrivacyRef.current = game?.activeSeatId ?? null;
+      return;
+    }
+    const seat = game?.activeSeatId ?? null;
+    if (seat !== lastSeatPrivacyRef.current) {
+      lastSeatPrivacyRef.current = seat;
+      setPrivacy(true);
+      setPicked([]);
+    }
+  }, [isSolo, onlineRoom, game?.activeSeatId]);
+
+  // Persist shuffled revealOrder if somehow missing while judging
+  useEffect(() => {
+    if (!game || game.phase !== 'judging') return;
+    const ensured = Engine.ensureRevealOrder(game);
+    if (
+      JSON.stringify(ensured.revealOrder) !==
+      JSON.stringify(game.revealOrder ?? [])
+    ) {
+      updateGame(game.code, () => ensured);
+    }
+  }, [
+    game?.phase,
+    game?.code,
+    game?.submissions.length,
+    game?.revealOrder,
+    updateGame,
+    game,
+  ]);
 
   // Round-5 discard: auto-preselect DISCARD_MIN random forced cards per seat
   useEffect(() => {
@@ -348,10 +420,13 @@ export default function PlayScreen() {
   }
 
   const human = game.players.find((p) => !p.isBot) ?? game.players[0];
-  // Solo: always human as active seat (no bot seats / pass-the-phone)
+  const isOnline = !isSolo && onlineRoom && !!myPlayerId;
+  // Solo: human seat. Online: locked seat. Else: pass-and-play activeSeatId.
   const active = isSolo
     ? human
-    : Engine.playerById(game, game.activeSeatId);
+    : isOnline
+      ? Engine.playerById(game, myPlayerId)
+      : Engine.playerById(game, game.activeSeatId);
   const zar = game.players[game.zarIndex];
   const voteMode = (game.judgeMode ?? 'zar') === 'vote';
   const zarSkipsSubmit = !isSolo && !voteMode;
@@ -365,6 +440,19 @@ export default function PlayScreen() {
         .map((s) => s.playerId)
         .filter((id) => !votesMap[id])
     : [];
+  const submitPendingPlayers = game.players.filter((p) => {
+    if (zarSkipsSubmit && p.id === zar.id) return false;
+    return !game.submissions.some((s) => s.playerId === p.id && !s.rival);
+  });
+  // Prefer engine revealOrder (set on enter judging). Stable identity fallback only.
+  const revealOrderSafe =
+    game.revealOrder.length === game.submissions.length &&
+    game.revealOrder.every(
+      (i) => i >= 0 && i < game.submissions.length
+    ) &&
+    new Set(game.revealOrder).size === game.submissions.length
+      ? game.revealOrder
+      : game.submissions.map((_, i) => i);
   const handLenForPick = active?.hand.length ?? 0;
   const discardMin = Math.min(DISCARD_MIN, handLenForPick);
   const discardMax = Math.min(DISCARD_MAX, handLenForPick);
@@ -489,7 +577,8 @@ export default function PlayScreen() {
     const pid = active.id;
     const solo = isSolo;
     if (discarding) setForcedDiscardIds([]);
-    if (!solo) setPrivacy(true);
+    // Don't hide the hand here: for pick≥2 it re-asks «¿Eres…?» mid-answer.
+    // Privacy flips after a successful submit when the seat actually changes.
     if (skipMode) setSoloSkipMode(false);
 
     if (discarding) {
@@ -505,6 +594,12 @@ export default function PlayScreen() {
           setPicked([]);
           try {
             updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
+            if (!solo) {
+              const after = getGame(code);
+              if (after?.activeSeatId && after.activeSeatId !== pid) {
+                setPrivacy(true);
+              }
+            }
             setReplacedSlots(slots);
             if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
       if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
@@ -538,6 +633,14 @@ export default function PlayScreen() {
             updateGame(code, (g) => Engine.submitCards(g, pid, ids));
             if (cardRefs.length) {
               recordPlayed(cardRefs, { won: solo });
+            }
+            // Pass-and-play: only re-gate identity when another seat is up
+            if (!solo) {
+              const after = getGame(code);
+              if (after?.activeSeatId && after.activeSeatId !== pid) {
+                setPrivacy(true);
+                setPicked([]);
+              }
             }
           }
         } catch (e) {
@@ -985,7 +1088,7 @@ export default function PlayScreen() {
         keyboardShouldPersistTaps="handled"
       >
 
-      {!isSolo ? (
+      {!isSolo && !isOnline ? (
         <>
           <Label>Asiento activo (pásame el móvil)</Label>
           <View style={styles.seatRow}>
@@ -1005,6 +1108,11 @@ export default function PlayScreen() {
             ))}
           </View>
         </>
+      ) : null}
+      {isOnline ? (
+        <Muted>
+          Tú: {active?.nickname ?? '—'} · online · código {game.code}
+        </Muted>
       ) : null}
 
       {isDiscarding ? (
@@ -1026,7 +1134,7 @@ export default function PlayScreen() {
                 <Muted>Esperando al resto de jugadores…</Muted>
               ) : null}
             </View>
-          ) : privacy && !isSolo ? (
+          ) : privacy && !isSolo && !isOnline ? (
             <>
               <Subtitle>¿Eres {active?.nickname}?</Subtitle>
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
@@ -1101,12 +1209,16 @@ export default function PlayScreen() {
               ) : null}
               {!isSolo ? (
                 <Muted>
-                  Enviados {game.submissions.length}/{submitNeeded}. Esperando al
-                  resto…
+                  Enviados {game.submissions.length}/{submitNeeded}.
+                  {submitPendingPlayers.length
+                    ? ` Esperando a que contesten: ${submitPendingPlayers
+                        .map((p) => p.nickname)
+                        .join(', ')}`
+                    : ' Esperando…'}
                 </Muted>
               ) : null}
             </View>
-          ) : privacy && !isSolo ? (
+          ) : privacy && !isSolo && !isOnline ? (
             <>
               <Subtitle>¿Eres {active?.nickname}?</Subtitle>
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
@@ -1114,8 +1226,11 @@ export default function PlayScreen() {
             </>
           ) : zarSkipsSubmit && active?.id === zar.id ? (
             <Muted>
-              Eres el Zar. Espera a que el resto envíe. Enviados:{' '}
-              {game.submissions.length}/{submitNeeded}
+              Eres el Zar. Esperando a que contesten
+              {submitPendingPlayers.length
+                ? `: ${submitPendingPlayers.map((p) => p.nickname).join(', ')}`
+                : ''}
+              . Enviados: {game.submissions.length}/{submitNeeded}
             </Muted>
           ) : (
             <>
@@ -1187,7 +1302,7 @@ export default function PlayScreen() {
                   }}
                 />
               ) : null}
-              {!isSolo ? (
+              {!isSolo && !isOnline ? (
                 <Button
                   title="Ocultar mano"
                   variant="ghost"
@@ -1220,9 +1335,11 @@ export default function PlayScreen() {
               </Muted>
               {active && votesMap[active.id] ? (
                 <Muted>
-                  {active.nickname} ya votó. Pasa el móvil al siguiente.
+                  {isOnline
+                    ? 'Ya has votado. Esperando votos…'
+                    : `${active.nickname} ya votó. Pasa el móvil al siguiente.`}
                 </Muted>
-              ) : privacy ? (
+              ) : privacy && !isOnline ? (
                 <>
                   <Subtitle>¿Eres {active?.nickname}?</Subtitle>
                   <Muted>Vota tu favorita (no puedes elegir la tuya).</Muted>
@@ -1233,14 +1350,24 @@ export default function PlayScreen() {
                 </>
               ) : (
                 <>
-                  <Label>Voto de {active?.nickname} — elige una (anónimas)</Label>
-                  {game.revealOrder.map((idx) => {
-                    const sub = game.submissions[idx];
-                    if (!sub || sub.rival) return null;
-                    if (active && sub.playerId === active.id) return null;
-                    return (
+                  <Label>
+                    {isOnline
+                      ? 'Elige una opción (anónimas — no la tuya)'
+                      : `Voto de ${active?.nickname} — elige una (anónimas)`}
+                  </Label>
+                  {revealOrderSafe
+                    .map((idx) => game.submissions[idx])
+                    .filter(
+                      (sub): sub is NonNullable<typeof sub> =>
+                        !!sub &&
+                        !sub.rival &&
+                        !(active && sub.playerId === active.id)
+                    )
+                    .map((sub, optNum) => (
                       <View key={sub.playerId} style={styles.judgeCard}>
-                        <Text style={styles.judgeLabel}>Jugada</Text>
+                        <Text style={styles.judgeLabel}>
+                          Opción {optNum + 1}
+                        </Text>
                         <FilledPromptText
                           large
                           promptText={game.currentPrompt?.text ?? ''}
@@ -1251,19 +1378,24 @@ export default function PlayScreen() {
                           onPress={() => castVote(sub.playerId)}
                         />
                       </View>
-                    );
-                  })}
-                  <Button
-                    title="Ocultar"
-                    variant="ghost"
-                    onPress={() => setPrivacy(true)}
-                  />
+                    ))}
+                  {!isOnline ? (
+                    <Button
+                      title="Ocultar"
+                      variant="ghost"
+                      onPress={() => setPrivacy(true)}
+                    />
+                  ) : null}
                 </>
               )}
             </>
           ) : !isSolo && active?.id !== zar.id ? (
-            <Muted>Pasa el móvil al Zar ({zar.nickname}).</Muted>
-          ) : privacy && !isSolo ? (
+            <Muted>
+              {isOnline
+                ? `Esperando al Zar (${zar.nickname})…`
+                : `Pasa el móvil al Zar (${zar.nickname}).`}
+            </Muted>
+          ) : privacy && !isSolo && !isOnline ? (
             <Button
               title="Soy el Zar — revelar jugadas"
               onPress={() => setPrivacy(false)}
@@ -1273,20 +1405,20 @@ export default function PlayScreen() {
               <Label>
                 {isSolo ? '¿Cuál gana? (tú o un rival)' : 'Elige la mejor jugada'}
               </Label>
-              {game.revealOrder.map((idx) => {
+              {revealOrderSafe.map((idx, optNum) => {
                 const sub = game.submissions[idx];
                 if (!sub) return null;
-                const isHumanSub =
-                  !!human && sub.playerId === human.id && !sub.rival;
                 const isRival = !!sub.rival || sub.playerId.startsWith('rival-');
-                const label = isHumanSub
-                  ? 'Tú'
-                  : isRival
-                    ? rivalLabel(sub.playerId)
-                    : game.players.find((p) => p.id === sub.playerId)?.nickname ??
-                      'Jugador';
+                // Solo may label Tú / bots; async/live stay anonymous until reveal
+                const label = isSolo
+                  ? !!human && sub.playerId === human.id && !sub.rival
+                    ? 'Tú'
+                    : isRival
+                      ? rivalLabel(sub.playerId)
+                      : 'Opción'
+                  : `Opción ${optNum + 1}`;
                 return (
-                  <View key={sub.playerId} style={styles.judgeCard}>
+                  <View key={`${sub.playerId}-${idx}`} style={styles.judgeCard}>
                     <Text style={styles.judgeLabel}>{label}</Text>
                     <FilledPromptText
                       large
@@ -1392,6 +1524,15 @@ export default function PlayScreen() {
                   text={Engine.getFilledSubmission(game, winnerSub)}
                 />
               ) : null}
+              <Label>Clasificación</Label>
+              {[...game.players]
+                .sort((a, b) => b.score - a.score)
+                .map((p, i) => (
+                  <Muted key={p.id}>
+                    {i + 1}. {p.nickname} — {p.score}
+                    {p.id === game.roundWinnerId ? ' (+1)' : ''}
+                  </Muted>
+                ))}
               <Button
                 title="→  Siguiente ronda"
                 variant="success"

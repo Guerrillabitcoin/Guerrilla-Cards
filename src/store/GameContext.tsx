@@ -20,6 +20,7 @@ import {
   type GameState,
   type JudgeMode,
 } from '../engine/types';
+import { pushRoom } from './roomSync';
 
 const STORAGE_KEY = 'guerrilla_cards_games_v1';
 const RECENT_PROMPTS_KEY = 'guerrilla_cards_recent_prompts_v1';
@@ -100,6 +101,8 @@ interface GameContextValue {
   getGame: (code: string) => GameState | undefined;
   /** Restart with same packs/mode/nick/targetScore; deletes old game. Solo auto-starts. */
   restartSameSetup: (fromCode: string) => GameState | null;
+  /** Replace local game if remote.updatedAt is newer (online poll). */
+  applyRemoteGame: (state: GameState) => boolean;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -256,6 +259,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         avoidAnswerIds: recentAnswersRef.current,
       });
       commit({ ...gamesRef.current, [state.code]: state });
+      if (state.mode === 'async') {
+        void pushRoom(state);
+      }
       return state;
     },
     [commit]
@@ -301,12 +307,42 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const saveGame = useCallback(
     (state: GameState) => {
+      const next = {
+        ...coerceGameState(state),
+        updatedAt: Date.now(),
+      };
+      // Keep decks from incoming state when present
+      if (state.promptDeck?.length) next.promptDeck = state.promptDeck;
+      if (state.answerDeck?.length) next.answerDeck = state.answerDeck;
+      const hydrated = hydrateDecks(next);
       commit({
         ...gamesRef.current,
-        [state.code]: { ...coerceGameState(state), updatedAt: Date.now() },
+        [hydrated.code]: hydrated,
       });
+      if (hydrated.mode === 'async') {
+        void pushRoom(hydrated);
+      }
     },
     [commit]
+  );
+
+  const applyRemoteGame = useCallback(
+    (state: GameState) => {
+      const key = state.code.trim().toUpperCase();
+      const remote = hydrateDecks(coerceGameState({ ...state, code: key }));
+      const local = gamesRef.current[key];
+      if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
+        return false;
+      }
+      gamesRef.current = { ...gamesRef.current, [key]: remote };
+      setGames((prevMap) => ({
+        ...prevMap,
+        [key]: toUiGame(remote),
+      }));
+      void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
+      return true;
+    },
+    [toUiGame]
   );
 
   const updateGame = useCallback(
@@ -323,6 +359,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         [code]: toUiGame(next),
       }));
       void persist({ ...gamesRef.current, [code]: toUiGame(next) });
+
+      if (next.mode === 'async') {
+        void pushRoom(next);
+      }
 
       // Recents off the tap path — never block the frame
       setTimeout(() => {
@@ -435,6 +475,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       });
       nextMap[state.code] = state;
       commit(nextMap);
+      if (state.mode === 'async') {
+        void pushRoom(state);
+      }
       return state;
     },
     [commit]
@@ -452,6 +495,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       deleteGame,
       getGame,
       restartSameSetup,
+      applyRemoteGame,
     }),
     [
       games,
@@ -464,6 +508,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       deleteGame,
       getGame,
       restartSameSetup,
+      applyRemoteGame,
     ]
   );
 

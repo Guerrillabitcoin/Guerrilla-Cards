@@ -26,7 +26,15 @@ import {
   type JudgeMode,
 } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
+import {
+  getMySeat,
+  pullRoom,
+  pushRoom,
+  setMySeat,
+  setOnlineFlag,
+} from '@/src/store/roomSync';
 import { randomNickname } from '@/src/engine/nicknames';
+import * as Engine from '@/src/engine/game';
 import { useTheme } from '@/src/store/ThemeContext';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { APP_VERSION_LABEL } from '@/src/version';
@@ -58,8 +66,15 @@ export default function HomeScreen() {
   const styles = useHomeStyles();
 
   const router = useRouter();
-  const { createGame, createAndStartSolo, joinOrOpen, games, ready } =
-    useGameStore();
+  const {
+    createGame,
+    createAndStartSolo,
+    joinOrOpen,
+    saveGame,
+    updateGame,
+    games,
+    ready,
+  } = useGameStore();
   const packs = useMemo(
     () => getPlayablePackMeta().filter((p) => p.id !== '_banned'),
     []
@@ -283,6 +298,23 @@ export default function HomeScreen() {
         targetScore: target,
         judgeMode,
       });
+      const hostId = game.players[0]?.id;
+      if (hostId) void setMySeat(game.code, hostId);
+      void (async () => {
+        const pushed = await pushRoom(game);
+        if (pushed.ok) {
+          await setOnlineFlag(game.code, true);
+        } else if (pushed.error === 'kv_not_configured') {
+          Alert.alert(
+            'Sin KV',
+            'No hay KV_REST_API_URL/TOKEN en Vercel. La partida queda en este dispositivo (pass-and-play). Configura KV para jugar entre ordenadores.'
+          );
+          await setOnlineFlag(game.code, false);
+        } else {
+          // Network / other — still local; online flag off
+          await setOnlineFlag(game.code, false);
+        }
+      })();
       openGame(game.code, game.phase);
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
@@ -306,15 +338,59 @@ export default function HomeScreen() {
       Alert.alert('Código', 'Introduce el código de la partida.');
       return;
     }
-    const game = joinOrOpen(code);
-    if (!game) {
-      Alert.alert(
-        'No encontrada',
-        'En este MVP las partidas viven solo en este dispositivo. Crea una partida o usa un código guardado aquí.'
-      );
-      return;
-    }
-    openGame(game.code, game.phase);
+    void (async () => {
+      const remote = await pullRoom(code);
+      if (remote.ok) {
+        saveGame(remote.state);
+        await setOnlineFlag(code, true);
+        const g = remote.state;
+        const seat = await getMySeat(code);
+        if (seat && g.players.some((p) => p.id === seat)) {
+          openGame(g.code, g.phase);
+          return;
+        }
+        if (g.phase === 'lobby') {
+          const nick = nickname.trim() || 'Jugador';
+          try {
+            const before = new Set(g.players.map((p) => p.id));
+            updateGame(code, (cur) => Engine.addPlayer(cur, nick));
+            const live = joinOrOpen(code);
+            if (live) {
+              const neu = live.players.find((p) => !before.has(p.id));
+              if (neu) await setMySeat(code, neu.id);
+              openGame(live.code, live.phase);
+              return;
+            }
+          } catch (e) {
+            Alert.alert(
+              'Unirse',
+              e instanceof Error ? e.message : 'No se pudo unir'
+            );
+            return;
+          }
+        }
+        // Mid-game spectator / reconnect without seat: open read-only-ish
+        openGame(g.code, g.phase);
+        return;
+      }
+      if (remote.error === 'kv_not_configured') {
+        Alert.alert(
+          'Sin KV',
+          'El servidor no tiene KV configurado (KV_REST_API_URL + KV_REST_API_TOKEN). No se puede unir entre dispositivos.'
+        );
+      }
+      const game = joinOrOpen(code);
+      if (!game) {
+        Alert.alert(
+          'No encontrada',
+          remote.error === 'not_found'
+            ? 'No hay sala online con ese código. Pide al anfitrión que cree la partida con KV en Vercel.'
+            : 'No hay partida local ni online con ese código.'
+        );
+        return;
+      }
+      openGame(game.code, game.phase);
+    })();
   };
 
   const recent = Object.values(games)
@@ -325,7 +401,7 @@ export default function HomeScreen() {
     mode === 'live'
       ? 'En vivo = rondas rápidas pass-and-play.'
       : mode === 'async'
-        ? 'Async beta = pass-and-play en este navegador/dispositivo. Comparte el código para retomar aquí (aún no hay servidor entre móviles). 4 jugadores · Voto o Zar · meta configurable.'
+        ? 'Async beta: código entre dispositivos (necesita KV en Vercel) o pass-and-play en el mismo navegador. 4 jugadores · Voto o Zar · meta configurable.'
         : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo (sin asientos bot).';
 
   return (
@@ -498,7 +574,7 @@ export default function HomeScreen() {
 
       {mode !== 'solo' ? (
         <>
-          <Label>Unirse por código (mismo dispositivo)</Label>
+          <Label>Unirse por código (online o local)</Label>
           <Input
             value={joinCode}
             onChangeText={setJoinCode}
@@ -526,7 +602,7 @@ export default function HomeScreen() {
 
       <Muted>
         {mode === 'async'
-          ? 'Async beta local · mismo dispositivo/navegador · código para retomar aquí · sin servidor entre móviles aún.'
+          ? 'Async: online con KV_REST_API_URL + KV_REST_API_TOKEN en Vercel · o local pass-and-play.'
           : 'Modo Solo local · sin cuenta ni servidor.'}{' '}
         Cartas banneadas nunca se reparte. Packs +18 piden confirmación de edad
         la primera vez.
