@@ -3,12 +3,20 @@
  * Bump this when shipping a visible change to Vercel / stores.
  * UI always prefixes with "v" via APP_VERSION_LABEL.
  */
-export const APP_VERSION = '0.98';
+export const APP_VERSION = '0.99';
 
 /** Display form, e.g. `v0.69` — use this in UI next to Partida / home. */
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99',
+    date: '2026-09-14',
+    notes: [
+      'Puntaco solo para el ganador; el resto ve quién ganó',
+      'Siguiente ronda: el Zar puede empezar o auto a los 10 s (sin quedarse pillado)',
+    ],
+  },
   {
     version: '0.98',
     date: '2026-09-14',

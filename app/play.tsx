@@ -65,6 +65,7 @@ export default function PlayScreen() {
   const lastSeatPrivacyRef = useRef<string | null>(null);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const autoRevealKeyRef = useRef<string | null>(null);
+  const autoRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
   const [lastHistoryId, setLastHistoryId] = useState<string | null>(null);
   /** Show ★ filled briefly before advancing after favoriting */
@@ -832,6 +833,10 @@ export default function PlayScreen() {
       clearTimeout(favAdvanceTimerRef.current);
       favAdvanceTimerRef.current = null;
     }
+    if (autoRevealTimerRef.current) {
+      clearTimeout(autoRevealTimerRef.current);
+      autoRevealTimerRef.current = null;
+    }
     if (advancingLockRef.current) return;
     advancingLockRef.current = true;
     setFavJustSaved(false);
@@ -841,12 +846,15 @@ export default function PlayScreen() {
     if (!isSolo) setPrivacy(true);
     setPaintPhase(null);
     setAdvancingRound(false);
-    // Sync next round so the NEW question is on screen in the same update
     try {
       updateGame(game.code, (g) => {
         if (g.phase !== 'reveal') return g;
         return Engine.nextRound(g);
       });
+      if (onlineRoom) {
+        const after = getGame(game.code);
+        if (after) void pushRoom(after, myPlayerId);
+      }
     } catch (e) {
       advancingLockRef.current = false;
       const msg = e instanceof Error ? e.message : 'Error';
@@ -855,14 +863,23 @@ export default function PlayScreen() {
     }
   };
 
-  // Online: everyone sees reveal; auto-advance so the match does not stall
+  // Async reveal: 10s auto next round. Timer kept in a ref so poll re-renders
+  // do not cancel it (that was leaving everyone stuck on «Puntaco»).
   useEffect(() => {
-    if (!isOnline || !game || phase !== 'reveal') return;
-    if (game.phase !== 'reveal') return;
+    if (!game || game.mode === 'solo') return;
+    if (game.phase !== 'reveal' || !game.roundWinnerId) {
+      if (autoRevealTimerRef.current) {
+        clearTimeout(autoRevealTimerRef.current);
+        autoRevealTimerRef.current = null;
+      }
+      return;
+    }
     const key = `${game.code}:${game.round}:${game.roundWinnerId}`;
     if (autoRevealKeyRef.current === key) return;
     autoRevealKeyRef.current = key;
-    const t = setTimeout(() => {
+    if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
+    autoRevealTimerRef.current = setTimeout(() => {
+      autoRevealTimerRef.current = null;
       try {
         updateGame(game.code, (g) => {
           if (g.phase !== 'reveal') return g;
@@ -871,15 +888,14 @@ export default function PlayScreen() {
       } catch {
         autoRevealKeyRef.current = null;
       }
-    }, 4500);
-    return () => clearTimeout(t);
+    }, 10000);
+    // No cleanup clearTimeout here — intentional, survives dependency churn
   }, [
-    isOnline,
-    phase,
+    game?.mode,
+    game?.phase,
     game?.code,
     game?.round,
     game?.roundWinnerId,
-    game?.phase,
     updateGame,
   ]);
 
@@ -1567,63 +1583,93 @@ export default function PlayScreen() {
             </>
           ) : (
             <>
-              <View style={styles.revealTitleRow}>
-                <Title>¡Puntaco!</Title>
-                <Pressable
-                  onPress={toggleMyAnswerFav}
-                  hitSlop={12}
-                  accessibilityLabel={
-                    starFilled ? 'Respuesta guardada' : 'Marcar favorita'
-                  }
-                >
-                  <Text style={styles.revealFavStar}>
-                    {starFilled ? '★' : '☆'}
-                  </Text>
-                </Pressable>
-              </View>
-              <Subtitle>
-                {winnerIsRival
-                  ? `Gana el bot (${winnerName})`
-                  : `Gana: ${winnerName}`}
-                {!isSolo && !winnerIsRival && !voteMode
-                  ? ` · próximo Zar: ${winnerName}`
-                  : ''}
-              </Subtitle>
-              <Muted>
-                {isSolo
-                  ? ''
-                  : `Clasificación actualizada (+1). Meta: ${game.targetScore} Puntacos.`}
-              </Muted>
-              {winnerSub ? (
-                <CardFace
-                  kind="answer"
-                  text={Engine.getFilledSubmission(game, winnerSub)}
-                />
-              ) : null}
-              <Label>Clasificación</Label>
-              {[...game.players]
-                .sort((a, b) => b.score - a.score)
-                .map((p, i) => (
-                  <Muted key={p.id}>
-                    {i + 1}. {p.nickname} — {p.score}
-                    {p.id === game.roundWinnerId ? ' (+1)' : ''}
-                  </Muted>
-                ))}
-              <Button
-                title={
-                  isOnline
-                    ? 'Siguiente ronda (o auto en unos segundos)'
-                    : '→  Siguiente ronda'
-                }
-                variant="success"
-                onPress={continueRound}
-              />
-              {revealShareSaveRow}
-              <Button
-                title="Respuestas favoritas"
-                variant="ghost"
-                onPress={() => router.push('/historial')}
-              />
+              {(() => {
+                const iWon =
+                  !!game.roundWinnerId &&
+                  (isOnline
+                    ? myPlayerId === game.roundWinnerId
+                    : active?.id === game.roundWinnerId || isSolo);
+                const iAmNextZar =
+                  !voteMode &&
+                  !winnerIsRival &&
+                  !!game.roundWinnerId &&
+                  (isOnline
+                    ? myPlayerId === game.roundWinnerId
+                    : true);
+                return (
+                  <>
+                    <View style={styles.revealTitleRow}>
+                      <Title>{iWon ? '¡Puntaco!' : 'Fin de ronda'}</Title>
+                      {iWon ? (
+                        <Pressable
+                          onPress={toggleMyAnswerFav}
+                          hitSlop={12}
+                          accessibilityLabel={
+                            starFilled ? 'Respuesta guardada' : 'Marcar favorita'
+                          }
+                        >
+                          <Text style={styles.revealFavStar}>
+                            {starFilled ? '★' : '☆'}
+                          </Text>
+                        </Pressable>
+                      ) : null}
+                    </View>
+                    <Subtitle>
+                      {winnerIsRival
+                        ? `Gana el bot (${winnerName})`
+                        : iWon
+                          ? `Has ganado esta ronda`
+                          : `Gana: ${winnerName}`}
+                      {!isSolo && !winnerIsRival && !voteMode
+                        ? ` · próximo Zar: ${winnerName}`
+                        : ''}
+                    </Subtitle>
+                    <Muted>
+                      {`+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
+                    </Muted>
+                    {winnerSub ? (
+                      <CardFace
+                        kind="answer"
+                        text={Engine.getFilledSubmission(game, winnerSub)}
+                      />
+                    ) : null}
+                    <Label>Clasificación</Label>
+                    {[...game.players]
+                      .sort((a, b) => b.score - a.score)
+                      .map((p, i) => (
+                        <Muted key={p.id}>
+                          {i + 1}. {p.nickname} — {p.score}
+                          {p.id === game.roundWinnerId ? ' (+1)' : ''}
+                          {myPlayerId === p.id || active?.id === p.id
+                            ? ' · tú'
+                            : ''}
+                        </Muted>
+                      ))}
+                    {!isSolo ? (
+                      <Muted>
+                        Siguiente ronda en 10 s, o el Zar puede empezar ya.
+                      </Muted>
+                    ) : null}
+                    <Button
+                      title={
+                        isSolo
+                          ? '→  Siguiente ronda'
+                          : iAmNextZar
+                            ? 'Empezar siguiente ronda (eres el Zar)'
+                            : 'Siguiente ronda'
+                      }
+                      variant="success"
+                      onPress={continueRound}
+                    />
+                    {iWon ? revealShareSaveRow : null}
+                    <Button
+                      title="Respuestas favoritas"
+                      variant="ghost"
+                      onPress={() => router.push('/historial')}
+                    />
+                  </>
+                );
+              })()}
             </>
           )}
         </>
