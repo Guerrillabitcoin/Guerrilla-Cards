@@ -14,7 +14,12 @@ import {
   buildVariedPromptDeck,
   loadCombinedDeck,
 } from '../engine/deck';
-import { coerceGameState, type GameMode, type GameState } from '../engine/types';
+import {
+  coerceGameState,
+  type GameMode,
+  type GameState,
+  type JudgeMode,
+} from '../engine/types';
 
 const STORAGE_KEY = 'guerrilla_cards_games_v1';
 const RECENT_PROMPTS_KEY = 'guerrilla_cards_recent_prompts_v1';
@@ -79,6 +84,7 @@ interface GameContextValue {
     mode: GameMode;
     packIds: string[];
     targetScore?: number;
+    judgeMode?: JudgeMode;
   }) => GameState;
   /** Solo: create host-only + start (rivals injected after submit) */
   createAndStartSolo: (opts: {
@@ -237,6 +243,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       mode: GameMode;
       packIds: string[];
       targetScore?: number;
+      judgeMode?: JudgeMode;
     }) => {
       // Sync-ish: start without avoid, then we still push recents on play.
       // Prefer reading cached recents from refs filled on boot.
@@ -382,6 +389,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const packIds = [...old.packIds];
       const mode = old.mode;
       const targetScore = old.targetScore;
+      const judgeMode = old.judgeMode ?? 'zar';
 
       const nextMap = { ...gamesRef.current };
       delete nextMap[key];
@@ -418,6 +426,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         mode,
         packIds,
         targetScore,
+        judgeMode,
         avoidPromptIds: collectAvoidPromptIds(
           recentPromptsRef.current,
           nextMap

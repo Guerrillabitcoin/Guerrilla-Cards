@@ -21,9 +21,9 @@ import {
 } from '@/src/components/ui';
 import { countCombinedDeck, getBannedCount, getPlayablePackMeta } from '@/src/engine/deck';
 import {
-  DEFAULT_TARGET_SCORE,
   SOLO_DEFAULT_TARGET,
   type GameMode,
+  type JudgeMode,
 } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import { randomNickname } from '@/src/engine/nicknames';
@@ -96,7 +96,7 @@ export default function HomeScreen() {
   const [nickname, setNickname] = useState(() => randomNickname());
   const [joinCode, setJoinCode] = useState('');
   const [mode, setMode] = useState<GameMode>('solo');
-  // Multi / async paused — always Solo for now
+  const [judgeMode, setJudgeMode] = useState<JudgeMode>('zar');
   // Por defecto: todas las de Temas Core (nada de +18, nunca banneadas)
   const [selected, setSelected] = useState<string[]>([]);
   const [targetScore, setTargetScore] = useState(String(SOLO_DEFAULT_TARGET));
@@ -265,14 +265,39 @@ export default function HomeScreen() {
     }
   };
 
+  const startAsyncNow = () => {
+    try {
+      if (!ready) {
+        Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+        return;
+      }
+      if (!nickname.trim()) {
+        Alert.alert('Apodo', 'Escribe un apodo para el anfitrión.');
+        return;
+      }
+      const target = parseTarget();
+      const game = createGame({
+        hostNickname: nickname.trim(),
+        mode: 'async',
+        packIds: selectedPlayable,
+        targetScore: target,
+        judgeMode,
+      });
+      openGame(game.code, game.phase);
+    } catch (e) {
+      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
+    }
+  };
+
   const onCreate = () => {
-    setMode('solo');
+    const run = mode === 'async' ? startAsyncNow : startSoloNow;
+    if (mode !== 'async') setMode('solo');
     const needsAdult = selectedPlayable.some((id) => ADULT_IDS.has(id));
     if (needsAdult && !adultOk) {
-      confirmAdult(() => startSoloNow());
+      confirmAdult(() => run());
       return;
     }
-    startSoloNow();
+    run();
   };
 
   const onJoin = () => {
@@ -300,7 +325,7 @@ export default function HomeScreen() {
     mode === 'live'
       ? 'En vivo = rondas rápidas pass-and-play.'
       : mode === 'async'
-        ? 'Async = misma lógica pero la partida se guarda en el teléfono para retomar después.'
+        ? 'Async beta = pass-and-play en este navegador/dispositivo. Comparte el código para retomar aquí (aún no hay servidor entre móviles). 4 jugadores · Voto o Zar · meta configurable.'
         : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo (sin asientos bot).';
 
   return (
@@ -362,21 +387,49 @@ export default function HomeScreen() {
         />
         <Chip
           label="Async"
-          selected={false}
-          disabled
-          badge="próximamente"
-          onPress={() => {}}
+          selected={mode === 'async'}
+          muted={mode !== 'async'}
+          badge={mode === 'async' ? 'beta' : 'próximamente'}
+          onPress={() => {
+            setMode('async');
+            setTargetScore(String(SOLO_DEFAULT_TARGET));
+          }}
         />
       </View>
-      {!mobileCompact ? (
-        <Muted>Solo está disponible. En vivo y Async: próximamente.</Muted>
+      <Muted>{modeHint}</Muted>
+
+      {mode === 'async' ? (
+        <>
+          <Label>Juez de la ronda</Label>
+          <View style={[styles.row, styles.modeRow]}>
+            <Chip
+              label="Zar"
+              selected={judgeMode === 'zar'}
+              onPress={() => setJudgeMode('zar')}
+            />
+            <Chip
+              label="Voto"
+              selected={judgeMode === 'vote'}
+              onPress={() => setJudgeMode('vote')}
+            />
+          </View>
+          <Muted>
+            {judgeMode === 'zar'
+              ? 'Un Zar elige la mejor jugada; el ganador será el próximo Zar.'
+              : 'Todos votan su favorita (sin votar la propia). Empate: orden de revelado.'}
+          </Muted>
+        </>
       ) : null}
 
-      <Label>Meta (Puntacos · máx. 10 rondas)</Label>
+      <Label>
+        {mode === 'solo'
+          ? 'Meta (Puntacos · máx. 10 rondas)'
+          : 'Meta (Puntacos)'}
+      </Label>
       <Input
         value={targetScore}
         onChangeText={setTargetScore}
-        placeholder="5"
+        placeholder="10"
         keyboardType="number-pad"
         maxLength={2}
       />
@@ -429,7 +482,11 @@ export default function HomeScreen() {
       </View>
 
       <Button
-        title="Jugar solo (rivales aleatorios)"
+        title={
+          mode === 'async'
+            ? 'Crear partida async'
+            : 'Jugar solo (rivales aleatorios)'
+        }
         onPress={onCreate}
       />
 
@@ -468,8 +525,11 @@ export default function HomeScreen() {
       ) : null}
 
       <Muted>
-        Modo Solo local · sin cuenta ni servidor. Cartas banneadas nunca se reparte.
-        Packs +18 piden confirmación de edad la primera vez.
+        {mode === 'async'
+          ? 'Async beta local · mismo dispositivo/navegador · código para retomar aquí · sin servidor entre móviles aún.'
+          : 'Modo Solo local · sin cuenta ni servidor.'}{' '}
+        Cartas banneadas nunca se reparte. Packs +18 piden confirmación de edad
+        la primera vez.
       </Muted>
     </Screen>
   );

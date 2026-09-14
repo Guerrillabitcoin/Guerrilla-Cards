@@ -162,14 +162,18 @@ export function Chip({
   onPress,
   badge,
   disabled,
+  /** Greyed look without blocking presses (soft-unlock). */
+  muted,
 }: {
   label: string;
   selected?: boolean;
   onPress?: () => void;
   badge?: string;
   disabled?: boolean;
+  muted?: boolean;
 }) {
   const styles = useUiStyles();
+  const lookMuted = !!muted && !selected;
 
   return (
     <Pressable
@@ -178,20 +182,25 @@ export function Chip({
       style={[
         styles.chip,
         selected && styles.chipSelected,
-        disabled && styles.chipDisabled,
+        (disabled || lookMuted) && styles.chipDisabled,
       ]}
     >
       <Text
         style={[
           styles.chipText,
           selected && styles.chipTextSelected,
-          disabled && styles.chipTextDisabled,
+          (disabled || lookMuted) && styles.chipTextDisabled,
         ]}
       >
         {label}
       </Text>
       {badge ? (
-        <Text style={[styles.chipBadge, disabled && styles.chipBadgeDisabled]}>
+        <Text
+          style={[
+            styles.chipBadge,
+            (disabled || lookMuted) && styles.chipBadgeDisabled,
+          ]}
+        >
           {badge}
         </Text>
       ) : null}

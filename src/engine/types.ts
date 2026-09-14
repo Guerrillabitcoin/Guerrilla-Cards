@@ -36,6 +36,8 @@ export interface PackFile {
 
 export type GameMode = 'async' | 'live' | 'solo';
 
+export type JudgeMode = 'zar' | 'vote';
+
 export type Phase =
   | 'lobby'
   | 'submitting'
@@ -68,6 +70,10 @@ export interface GameState {
   players: Player[];
   phase: Phase;
   zarIndex: number;
+  /** How the round winner is chosen: Zar picks, or everyone votes (no self). */
+  judgeMode: JudgeMode;
+  /** Vote mode: voterPlayerId → submissionPlayerId */
+  votes?: Record<string, string>;
   currentPrompt: Card | null;
   submissions: Submission[];
   /** Shuffled order of submission indices for anonymous reveal */
@@ -128,6 +134,8 @@ export interface DiscardStat {
 export const HAND_SIZE = 12;
 export const MIN_PLAYERS = 3;
 export const MAX_PLAYERS = 8;
+/** Async lobby: exactly 4 seats to start (pass-and-play MVP). */
+export const ASYNC_TARGET_PLAYERS = 4;
 export const DEFAULT_TARGET_SCORE = 5;
 /** Solo: máximo de rondas (luego results). */
 export const SOLO_MAX_ROUNDS = 10;
@@ -158,6 +166,8 @@ export const BOT_NICKNAMES = [
 export function coerceGameState(g: GameState): GameState {
   return {
     ...g,
+    judgeMode: g.judgeMode ?? 'zar',
+    votes: g.votes ?? {},
     discardRoundCompleted: g.discardRoundCompleted ?? false,
     discardDonePlayerIds: g.discardDonePlayerIds ?? [],
     lastDiscarded: g.lastDiscarded ?? [],

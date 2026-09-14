@@ -353,6 +353,18 @@ export default function PlayScreen() {
     ? human
     : Engine.playerById(game, game.activeSeatId);
   const zar = game.players[game.zarIndex];
+  const voteMode = (game.judgeMode ?? 'zar') === 'vote';
+  const zarSkipsSubmit = !isSolo && !voteMode;
+  const submitNeeded = voteMode
+    ? game.players.length
+    : Math.max(0, game.players.length - 1);
+  const votesMap = game.votes ?? {};
+  const votersPending = voteMode
+    ? game.submissions
+        .filter((s) => !s.rival)
+        .map((s) => s.playerId)
+        .filter((id) => !votesMap[id])
+    : [];
   const handLenForPick = active?.hand.length ?? 0;
   const discardMin = Math.min(DISCARD_MIN, handLenForPick);
   const discardMax = Math.min(DISCARD_MAX, handLenForPick);
@@ -634,6 +646,45 @@ export default function PlayScreen() {
     }
   };
 
+  const castVote = (submissionPlayerId: string) => {
+    if (!active) return;
+    try {
+      updateGame(game.code, (g) => {
+        const next = Engine.castVote(g, active.id, submissionPlayerId);
+        recordIfNeeded(next);
+        if (next.phase === 'results') {
+          setTimeout(() => {
+            router.replace({ pathname: '/results', params: { code: g.code } });
+          }, 0);
+        }
+        return next;
+      });
+      if (!isSolo) setPrivacy(true);
+      const after = getGame(game.code);
+      if (
+        after &&
+        (after.phase === 'reveal' || after.phase === 'results') &&
+        after.roundWinnerId
+      ) {
+        const winningSub = after.submissions.find(
+          (s) => s.playerId === after.roundWinnerId && !s.rival
+        );
+        if (winningSub) {
+          recordPlayed(
+            winningSub.cards.map((c) => ({
+              id: c.id,
+              text: c.text,
+              kind: 'answer' as const,
+            })),
+            { won: true }
+          );
+        }
+      }
+    } catch (e) {
+      Alert.alert('Voto', e instanceof Error ? e.message : 'Error');
+    }
+  };
+
   const continueRound = () => {
     // Instant path (green) — cancel any ★ delay
     if (favAdvanceTimerRef.current) {
@@ -835,7 +886,9 @@ export default function PlayScreen() {
       }`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
-    : `Zar ${zar?.nickname} · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
+    : voteMode
+      ? `Voto · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`
+      : `Zar ${zar?.nickname} · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
 
   return (
     <View style={styles.root}>
@@ -1048,7 +1101,8 @@ export default function PlayScreen() {
               ) : null}
               {!isSolo ? (
                 <Muted>
-                  Enviados {game.submissions.length}/{game.players.length - 1}. Esperando al resto…
+                  Enviados {game.submissions.length}/{submitNeeded}. Esperando al
+                  resto…
                 </Muted>
               ) : null}
             </View>
@@ -1058,10 +1112,10 @@ export default function PlayScreen() {
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
               <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
             </>
-          ) : active?.id === zar.id && !isSolo ? (
+          ) : zarSkipsSubmit && active?.id === zar.id ? (
             <Muted>
               Eres el Zar. Espera a que el resto envíe. Enviados:{' '}
-              {game.submissions.length}/{game.players.length - 1}
+              {game.submissions.length}/{submitNeeded}
             </Muted>
           ) : (
             <>
@@ -1150,7 +1204,64 @@ export default function PlayScreen() {
 
       {phase === 'judging' ? (
         <>
-          {!isSolo && active?.id !== zar.id ? (
+          {voteMode && !isSolo ? (
+            <>
+              <Muted>
+                Votos {Object.keys(votesMap).length}/
+                {game.submissions.filter((s) => !s.rival).length}
+                {votersPending.length
+                  ? ` · faltan: ${votersPending
+                      .map(
+                        (id) =>
+                          game.players.find((p) => p.id === id)?.nickname ?? '?'
+                      )
+                      .join(', ')}`
+                  : ''}
+              </Muted>
+              {active && votesMap[active.id] ? (
+                <Muted>
+                  {active.nickname} ya votó. Pasa el móvil al siguiente.
+                </Muted>
+              ) : privacy ? (
+                <>
+                  <Subtitle>¿Eres {active?.nickname}?</Subtitle>
+                  <Muted>Vota tu favorita (no puedes elegir la tuya).</Muted>
+                  <Button
+                    title="Sí, mostrar jugadas"
+                    onPress={() => setPrivacy(false)}
+                  />
+                </>
+              ) : (
+                <>
+                  <Label>Voto de {active?.nickname} — elige una (anónimas)</Label>
+                  {game.revealOrder.map((idx) => {
+                    const sub = game.submissions[idx];
+                    if (!sub || sub.rival) return null;
+                    if (active && sub.playerId === active.id) return null;
+                    return (
+                      <View key={sub.playerId} style={styles.judgeCard}>
+                        <Text style={styles.judgeLabel}>Jugada</Text>
+                        <FilledPromptText
+                          large
+                          promptText={game.currentPrompt?.text ?? ''}
+                          answers={sub.cards.map((c) => c.text)}
+                        />
+                        <Button
+                          title="Votar esta"
+                          onPress={() => castVote(sub.playerId)}
+                        />
+                      </View>
+                    );
+                  })}
+                  <Button
+                    title="Ocultar"
+                    variant="ghost"
+                    onPress={() => setPrivacy(true)}
+                  />
+                </>
+              )}
+            </>
+          ) : !isSolo && active?.id !== zar.id ? (
             <Muted>Pasa el móvil al Zar ({zar.nickname}).</Muted>
           ) : privacy && !isSolo ? (
             <Button

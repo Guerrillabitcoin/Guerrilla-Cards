@@ -12,7 +12,11 @@ import {
   Title,
 } from '@/src/components/ui';
 import * as Engine from '@/src/engine/game';
-import { MAX_PLAYERS, MIN_PLAYERS } from '@/src/engine/types';
+import {
+  ASYNC_TARGET_PLAYERS,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+} from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
@@ -91,20 +95,31 @@ export default function LobbyScreen() {
 
   const modeLabel =
     game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'async' : 'solo';
+  const isAsync = game.mode === 'async';
+  const seatMax = isAsync ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
+  const seatMin = isAsync ? ASYNC_TARGET_PLAYERS : MIN_PLAYERS;
+  const judgeLabel =
+    (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
+  const canStart = game.players.length >= seatMin;
 
   return (
     <Screen>
       <Title>Lobby {game.code}</Title>
       <Subtitle>
-        Modo {modeLabel} · Packs: {game.packIds.join(', ')} · Meta:{' '}
-        {game.targetScore} Puntacos
+        Modo {modeLabel}
+        {isAsync ? ` · juez ${judgeLabel}` : ''} · Packs:{' '}
+        {game.packIds.join(', ')} · Meta: {game.targetScore} Puntacos
       </Subtitle>
       <Muted>
-        Añade {MIN_PLAYERS}–{MAX_PLAYERS} asientos en este móvil. Pásalo entre
-        personas en cada turno.
+        {isAsync
+          ? `Async: exactamente ${ASYNC_TARGET_PLAYERS} jugadores en este dispositivo. Pasa el móvil entre turnos; el código ${game.code} sirve para retomar aquí.`
+          : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil. Pásalo entre personas en cada turno.`}
       </Muted>
 
-      <Label>Jugadores ({game.players.length})</Label>
+      <Label>
+        Jugadores ({game.players.length}
+        {isAsync ? `/${ASYNC_TARGET_PLAYERS}` : ''})
+      </Label>
       {game.players.map((p) => (
         <View key={p.id} style={styles.seat}>
           <Text style={styles.seatName}>
@@ -124,7 +139,7 @@ export default function LobbyScreen() {
         </View>
       ))}
 
-      {game.players.length < MAX_PLAYERS ? (
+      {game.players.length < seatMax ? (
         <>
           <Label>Añadir asiento</Label>
           <Input
@@ -139,12 +154,12 @@ export default function LobbyScreen() {
 
       <Button
         title={
-          game.players.length < MIN_PLAYERS
-            ? `Faltan ${MIN_PLAYERS - game.players.length} jugadores`
+          !canStart
+            ? `Faltan ${seatMin - game.players.length} jugadores`
             : 'Empezar partida'
         }
         onPress={start}
-        disabled={game.players.length < MIN_PLAYERS}
+        disabled={!canStart}
       />
     </Screen>
   );

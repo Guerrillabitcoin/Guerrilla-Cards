@@ -6,6 +6,7 @@ import {
   shuffle,
 } from './deck';
 import {
+  ASYNC_TARGET_PLAYERS,
   BOT_NICKNAMES,
   DEFAULT_TARGET_SCORE,
   DISCARD_AT_ROUND,
@@ -23,11 +24,13 @@ import {
   type Card,
   type GameMode,
   type GameState,
+  type JudgeMode,
   type Player,
   type Submission,
 } from './types';
 
 export {
+  ASYNC_TARGET_PLAYERS,
   DISCARD_AT_ROUND,
   DISCARD_COUNT,
   DISCARD_MIN,
@@ -53,12 +56,27 @@ function now(): number {
   return Date.now();
 }
 
+function isVoteMode(state: GameState): boolean {
+  return (state.judgeMode ?? 'zar') === 'vote';
+}
+
+/** Zar mode (async/live): next Zar is the round winner. Solo stays 0. Vote mode: +1. */
+function nextZarIndex(state: GameState): number {
+  if (state.mode === 'solo') return 0;
+  if (!isVoteMode(state) && state.roundWinnerId) {
+    const idx = state.players.findIndex((p) => p.id === state.roundWinnerId);
+    if (idx >= 0) return idx;
+  }
+  return (state.zarIndex + 1) % state.players.length;
+}
+
 export function createGame(opts: {
   hostNickname: string;
   mode: GameMode;
   packIds: string[];
   targetScore?: number;
   code?: string;
+  judgeMode?: JudgeMode;
   /** Prompt ids seen recently (other matches) — put later in the deck */
   avoidPromptIds?: string[];
   avoidAnswerIds?: string[];
@@ -91,11 +109,17 @@ export function createGame(opts: {
     players: [host],
     phase: 'lobby',
     zarIndex: 0,
+    judgeMode: opts.judgeMode ?? 'zar',
+    votes: {},
     currentPrompt: null,
     submissions: [],
     revealOrder: [],
     roundWinnerId: null,
-    targetScore: opts.targetScore ?? DEFAULT_TARGET_SCORE,
+    targetScore:
+      opts.targetScore ??
+      (opts.mode === 'async' || opts.mode === 'solo'
+        ? SOLO_DEFAULT_TARGET
+        : DEFAULT_TARGET_SCORE),
     round: 0,
     activeSeatId: host.id,
     usedPromptIds: [],
@@ -122,8 +146,10 @@ export function addPlayer(
   opts?: { isBot?: boolean }
 ): GameState {
   if (state.phase !== 'lobby') throw new Error('La partida ya empezó.');
-  if (state.players.length >= MAX_PLAYERS) {
-    throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
+  const maxSeats =
+    state.mode === 'async' ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
+  if (state.players.length >= maxSeats) {
+    throw new Error(`Máximo ${maxSeats} jugadores.`);
   }
   const nick = nickname.trim();
   if (!nick) throw new Error('Pon un apodo.');
@@ -426,12 +452,20 @@ function dealHands(state: GameState): GameState {
 }
 
 export function startGame(state: GameState): GameState {
-  const minPlayers = state.mode === 'solo' ? 1 : MIN_PLAYERS;
-  if (state.players.length < minPlayers) {
-    throw new Error(`Haz falta al menos ${minPlayers} jugadores.`);
-  }
-  if (state.players.length > MAX_PLAYERS) {
-    throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
+  if (state.mode === 'async') {
+    if (state.players.length !== ASYNC_TARGET_PLAYERS) {
+      throw new Error(
+        `Async necesita exactamente ${ASYNC_TARGET_PLAYERS} jugadores.`
+      );
+    }
+  } else {
+    const minPlayers = state.mode === 'solo' ? 1 : MIN_PLAYERS;
+    if (state.players.length < minPlayers) {
+      throw new Error(`Haz falta al menos ${minPlayers} jugadores.`);
+    }
+    if (state.players.length > MAX_PLAYERS) {
+      throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
+    }
   }
   let next = dealHands({ ...state, zarIndex: 0, round: 0 });
   next = beginRound(next);
@@ -456,6 +490,11 @@ export function beginRound(state: GameState): GameState {
   let activeSeatId: string;
   if (isSolo) {
     activeSeatId = human?.id ?? zar.id;
+  } else if (isVoteMode(dealt)) {
+    // Vote: everyone submits, including Zar seat
+    const firstSubmitter =
+      players.find((p) => !p.isBot) ?? players[0];
+    activeSeatId = firstSubmitter?.id ?? zar.id;
   } else {
     const firstSubmitter =
       players.find((p, i) => i !== dealt.zarIndex && !p.isBot) ??
@@ -475,6 +514,7 @@ export function beginRound(state: GameState): GameState {
     submissions: [],
     revealOrder: [],
     roundWinnerId: null,
+    votes: {},
     phase: 'submitting',
     round: dealt.round + 1,
     activeSeatId,
@@ -494,7 +534,11 @@ export function submitCards(
   if (state.phase !== 'submitting') throw new Error('No es fase de envío.');
   const zar = state.players[state.zarIndex];
   const isSolo = state.mode === 'solo';
-  if (!isSolo && playerId === zar.id) throw new Error('El Zar no envía cartas.');
+  const voteMode = isVoteMode(state);
+  // Zar skips answers only in zar judge mode (not vote, not solo)
+  if (!isSolo && !voteMode && playerId === zar.id) {
+    throw new Error('El Zar no envía cartas.');
+  }
   if (state.submissions.some((s) => s.playerId === playerId)) {
     throw new Error('Ya enviaste tu jugada.');
   }
@@ -541,11 +585,13 @@ export function submitCards(
     });
   }
 
-  const needed = state.players.length - 1;
+  const needed = voteMode ? state.players.length : state.players.length - 1;
   const allIn = submissions.length >= needed;
 
   if (allIn) {
     const order = shuffle([...submissions.keys()]);
+    const firstVoter =
+      state.players.find((p) => !p.isBot) ?? state.players[0];
     return {
       ...state,
       players,
@@ -553,16 +599,17 @@ export function submitCards(
       answerDeckPos,
       submissions,
       revealOrder: order,
+      votes: {},
       phase: 'judging',
-      activeSeatId: zar.id,
+      activeSeatId: voteMode ? firstVoter?.id ?? zar.id : zar.id,
       updatedAt: now(),
     };
   }
 
-  // Prefer next human non-zar who hasn't submitted; else any pending
+  // Prefer next human who hasn't submitted; zar mode excludes zar
   const pending = state.players.filter(
     (p) =>
-      p.id !== zar.id &&
+      (voteMode || p.id !== zar.id) &&
       p.id !== playerId &&
       !submissions.some((s) => s.playerId === p.id)
   );
@@ -580,8 +627,11 @@ export function submitCards(
   };
 }
 
-export function judgePick(state: GameState, winnerPlayerId: string): GameState {
-  if (state.phase !== 'judging') throw new Error('No es fase de juicio.');
+/** Apply round winner (scoring + reveal/results). Used by judgePick and castVote. */
+function applyRoundWinner(
+  state: GameState,
+  winnerPlayerId: string
+): GameState {
   const zar = state.players[state.zarIndex];
   const submission = state.submissions.find((s) => s.playerId === winnerPlayerId);
   if (!submission) {
@@ -591,9 +641,10 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
   const isRival =
     !!submission.rival || winnerPlayerId.startsWith('rival-');
   const isSolo = state.mode === 'solo';
+  const voteMode = isVoteMode(state);
 
-  // Zar cannot win their own round — except in solo (human is both) or rival win
-  if (!isSolo && !isRival && winnerPlayerId === zar.id) {
+  // Zar cannot win their own round — except solo, rivals, or vote mode (everyone plays)
+  if (!isSolo && !isRival && !voteMode && winnerPlayerId === zar.id) {
     throw new Error('El Zar no puede ganar su ronda.');
   }
 
@@ -627,6 +678,101 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
     phase: 'reveal',
     updatedAt: now(),
   };
+}
+
+/**
+ * Zar picks a winning submission (zar judge mode only).
+ * In vote mode, winners are finalized only via castVote auto-tally.
+ */
+export function judgePick(state: GameState, winnerPlayerId: string): GameState {
+  if (state.phase !== 'judging') throw new Error('No es fase de juicio.');
+  if (isVoteMode(state) && state.mode !== 'solo') {
+    throw new Error('En modo voto el ganador sale del recuento (castVote).');
+  }
+  return applyRoundWinner(state, winnerPlayerId);
+}
+
+/**
+ * Vote mode: cast one vote for a submission (cannot vote own).
+ * When all eligible voters have voted, tallies majority → applyRoundWinner.
+ * Tie-break: among tied submissionPlayerIds, earliest index in revealOrder wins
+ * (stable order from shuffle at end of submitting). If still tied, first in
+ * submissions array order.
+ */
+export function castVote(
+  state: GameState,
+  voterId: string,
+  submissionPlayerId: string
+): GameState {
+  if (state.phase !== 'judging') throw new Error('No es fase de juicio.');
+  if (!isVoteMode(state)) {
+    throw new Error('castVote solo en modo voto.');
+  }
+  const voter = state.players.find((p) => p.id === voterId);
+  if (!voter) throw new Error('Votante no encontrado.');
+  if (!state.submissions.some((s) => s.playerId === voterId)) {
+    throw new Error('Solo quien envió respuesta puede votar.');
+  }
+  if (voterId === submissionPlayerId) {
+    throw new Error('No puedes votar tu propia respuesta.');
+  }
+  if (!state.submissions.some((s) => s.playerId === submissionPlayerId)) {
+    throw new Error('Esa jugada no existe.');
+  }
+  const prevVotes = state.votes ?? {};
+  if (prevVotes[voterId]) {
+    throw new Error('Ya has votado esta ronda.');
+  }
+
+  const votes = { ...prevVotes, [voterId]: submissionPlayerId };
+
+  // Eligible = everyone who submitted (all humans in vote mode)
+  const eligible = state.submissions
+    .filter((s) => !s.rival)
+    .map((s) => s.playerId);
+  const allVoted = eligible.every((id) => !!votes[id]);
+
+  if (!allVoted) {
+    const pending = eligible.filter((id) => !votes[id]);
+    const nextSeat =
+      state.players.find((p) => pending.includes(p.id) && !p.isBot) ??
+      state.players.find((p) => pending.includes(p.id));
+    return {
+      ...state,
+      votes,
+      activeSeatId: nextSeat?.id ?? state.activeSeatId,
+      updatedAt: now(),
+    };
+  }
+
+  // Tally: majority wins; tie → earliest in revealOrder
+  const tallies: Record<string, number> = {};
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] ?? 0) + 1;
+  }
+  let bestCount = -1;
+  for (const n of Object.values(tallies)) {
+    if (n > bestCount) bestCount = n;
+  }
+  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
+  let winnerId = tied[0];
+  if (tied.length > 1) {
+    const order = state.revealOrder.length
+      ? state.revealOrder
+      : state.submissions.map((_, i) => i);
+    let bestPos = Infinity;
+    for (const id of tied) {
+      const subIdx = state.submissions.findIndex((s) => s.playerId === id);
+      const pos = order.indexOf(subIdx);
+      const rank = pos >= 0 ? pos : subIdx >= 0 ? 1000 + subIdx : 9999;
+      if (rank < bestPos) {
+        bestPos = rank;
+        winnerId = id;
+      }
+    }
+  }
+
+  return applyRoundWinner({ ...state, votes }, winnerId);
 }
 
 /** Enter discarding phase before round DISCARD_AT_ROUND (zar not rotated yet). */
@@ -710,8 +856,7 @@ export function submitDiscard(
       updatedAt: now(),
     };
     next = dealHands(next);
-    const zarIndex =
-      next.mode === 'solo' ? 0 : (next.zarIndex + 1) % next.players.length;
+    const zarIndex = nextZarIndex(next);
     return beginRound({ ...next, zarIndex });
   }
 
@@ -855,7 +1000,7 @@ export function nextRound(state: GameState): GameState {
   ) {
     return startDiscardRound(state);
   }
-  const zarIndex = (state.zarIndex + 1) % state.players.length;
+  const zarIndex = nextZarIndex(state);
   return beginRound({ ...state, zarIndex });
 }
 
