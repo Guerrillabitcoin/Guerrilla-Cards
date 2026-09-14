@@ -143,6 +143,7 @@ export default function PlayScreen() {
       handTrackGameRef.current = game.code;
       staleRecordedRef.current = null;
     }
+    const hadCardsBefore = knownHandIdsRef.current.size > 0;
     const newly: { id: string; text: string; kind: 'answer' }[] = [];
     for (const p of game.players) {
       if (p.isBot) continue;
@@ -153,6 +154,20 @@ export default function PlayScreen() {
       }
     }
     if (newly.length) recordDrawn(newly);
+    // Cartas nuevas al reponer (no el deal inicial de 12): flash verde breve
+    if (
+      newly.length &&
+      hadCardsBefore &&
+      (game.phase === 'submitting' || game.phase === 'discarding')
+    ) {
+      const ids = newly.map((c) => c.id);
+      setFlashGreenIds(ids);
+      if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+      greenFlashRef.current = setTimeout(() => {
+        greenFlashRef.current = null;
+        setFlashGreenIds([]);
+      }, 650);
+    }
   }, [game, recordDrawn]);
 
   // Left in hand at match end (once per game)
@@ -309,13 +324,16 @@ export default function PlayScreen() {
   const handCount = Math.max(1, hand.length);
   const handGap = 6;
   const handPad = 32; // scrollInner horizontal padding
-  // 12 cards: mobile 2×6; PC prefer 6×2, fall back to 4×3 if font would shrink too much (e.g. 1080p).
+  // 12 cards: mobile 2x6; PC prefer 6x2. Wide/fullscreen locks 6 cols.
   const isPcHand = winW >= 700;
   const hdPcHand = isPcHand && (winW >= 1600 || winH >= 1000);
+  const lockSixCols = isPcHand && winW >= 1100;
   const fontForCols = (cols: number) => {
+    // Reserve scrollbar so 6 fixed widths don't wrap to 5 after answering.
+    const availW = Math.max(320, winW - handPad - (isPcHand ? 18 : 0));
     const itemW = Math.max(
       72,
-      Math.floor((winW - handPad - handGap * (cols - 1)) / cols)
+      Math.floor((availW - handGap * (cols - 1)) / cols)
     );
     const contentH = Math.max(
       40,
@@ -336,15 +354,19 @@ export default function PlayScreen() {
     return { cols, itemW, size: minSz };
   };
   const handLayout = (() => {
-    if (!isPcHand) return fontForCols(2); // 2×6 mobile
-    const six = fontForCols(6); // 6×2
+    if (!isPcHand) return fontForCols(2);
+    if (lockSixCols) return fontForCols(6);
+    const six = fontForCols(6);
     const minOk = hdPcHand ? 17 : 15;
     if (six.size >= minOk) return six;
-    return fontForCols(4); // 4×3 when 6 cols crush text (typical ~1080p)
+    return fontForCols(4);
   })();
   const handColumns = handLayout.cols;
   const handItemWidth = handLayout.itemW;
   const handFontSize = handLayout.size;
+  const handItemLayoutStyle = {
+    width: `calc((100% - ${handGap * (handColumns - 1)}px) / ${handColumns})` as unknown as number,
+  };
 
   const alreadyAnswered =
     !!active &&
@@ -929,7 +951,7 @@ export default function PlayScreen() {
                 {hand.map((c) => (
                   <View
                     key={c.id}
-                    style={[styles.handItem, { width: handItemWidth }]}
+                    style={[styles.handItem, handItemLayoutStyle]}
                   >
                     <CardFace
                       kind="answer"
@@ -940,6 +962,7 @@ export default function PlayScreen() {
                       forceFontSize={handFontSize}
                       selected={false}
                       discardMarked={picked.includes(c.id)}
+                      flashGreen={flashGreenIds.includes(c.id)}
                       onPress={() => pickCard(c.id)}
                     />
                   </View>
@@ -1019,7 +1042,7 @@ export default function PlayScreen() {
                 {hand.map((c, slotIdx) => (
                   <View
                     key={c.id}
-                    style={[styles.handItem, { width: handItemWidth }]}
+                    style={[styles.handItem, handItemLayoutStyle]}
                   >
                     <CardFace
                       kind="answer"
