@@ -206,10 +206,25 @@ export function loadCombinedDeck(packIds: string[]): {
 /** Alias used by some call sites / docs */
 export const buildDeck = loadCombinedDeck;
 
+/** Uniform [0,1) — prefers crypto when available (web / modern RN). */
+function randomUnit(): number {
+  const c =
+    typeof globalThis !== 'undefined'
+      ? (globalThis as { crypto?: Crypto }).crypto
+      : undefined;
+  if (c?.getRandomValues) {
+    const buf = new Uint32Array(1);
+    c.getRandomValues(buf);
+    return buf[0]! / 0x100000000;
+  }
+  return Math.random();
+}
+
+/** Fisher–Yates with stronger entropy source when possible. */
 export function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(randomUnit() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -266,10 +281,10 @@ export function promptShape(text: string): string {
  * After packs are merged into ONE prompt pile for the match:
  * 1) Fisher–Yates shuffle the WHOLE pile (not pack-by-pack / round-robin)
  * 2) Each create/restart gets a fresh independent shuffle (different order)
- * 3) Recently-seen ids (this browser) sink to the back — still shuffled among
- *    themselves — so we don't replay the same Qs next match until the cycle ends
+ * 3) Only a CAP of recently-seen ids sink to the back (≤28% / ≤120), so the
+ *    bulk of the full multi-pack pile stays high-entropy every match.
  *
- * Do NOT interleave by sourcePack here: that felt like "one from each pack".
+ * Do NOT interleave by sourcePack: that felt like "one theme per round".
  */
 export function buildVariedPromptDeck(
   prompts: Card[],
@@ -278,25 +293,37 @@ export function buildVariedPromptDeck(
   if (!prompts.length) return [];
 
   const inPool = new Set(prompts.map((c) => c.id));
-  const seenSet = new Set<string>();
+  // Cap how many "recent" ids we sink — if avoid ≈ whole deck, entropy dies
+  // and the same tip of the deck repeats. Keep ≥70% of the pile fully random.
+  const maxSink = Math.max(
+    16,
+    Math.min(
+      Math.floor(prompts.length * 0.28),
+      120
+    )
+  );
+  const sinkIds = new Set<string>();
   for (const id of avoidIds) {
-    if (!inPool.has(id) || seenSet.has(id)) continue;
-    seenSet.add(id);
+    if (sinkIds.size >= maxSink) break;
+    if (!inPool.has(id) || sinkIds.has(id)) continue;
+    sinkIds.add(id);
   }
 
-  // One mixed order over the entire combined deck, then partition
-  const mixed = shuffle(prompts);
-  // Extra pass so consecutive creates diverge even more
-  const remixed = shuffle(mixed);
+  // Triple Fisher–Yates over the FULL combined pile (all packs mixed).
+  let mixed = shuffle(prompts);
+  mixed = shuffle(mixed);
+  mixed = shuffle(mixed);
+
+  if (!sinkIds.size) return mixed;
 
   const fresh: Card[] = [];
   const recent: Card[] = [];
-  for (const c of remixed) {
-    if (seenSet.has(c.id)) recent.push(c);
+  for (const c of mixed) {
+    if (sinkIds.has(c.id)) recent.push(c);
     else fresh.push(c);
   }
-  // Fresh already in random relative order; reshuffle recent block too
-  return [...fresh, ...shuffle(recent)];
+  // Fresh (majority) drawn first in random order; sink block after, also shuffled
+  return [...shuffle(fresh), ...shuffle(recent)];
 }
 
 /**

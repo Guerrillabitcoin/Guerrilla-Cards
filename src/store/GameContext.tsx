@@ -19,24 +19,19 @@ import { coerceGameState, type GameMode, type GameState } from '../engine/types'
 const STORAGE_KEY = 'guerrilla_cards_games_v1';
 const RECENT_PROMPTS_KEY = 'guerrilla_cards_recent_prompts_v1';
 const RECENT_ANSWERS_KEY = 'guerrilla_cards_recent_answers_v1';
-const RECENT_MAX = 500;
+const RECENT_MAX = 120;
 const EMPTY_DECK: import('../engine/types').Card[] = [];
 
-/** Cross-match avoid list: persisted recents + prompts already used in any live game. */
+/**
+ * Avoid list for a NEW match: only the newest browser recents.
+ * Do not merge every live game's usedPromptIds — that sank almost the whole
+ * deck after a few sessions and killed full-list entropy.
+ */
 function collectAvoidPromptIds(
   recent: string[],
-  games: GamesMap
+  _games: GamesMap
 ): string[] {
-  const out: string[] = [...recent];
-  const seen = new Set(recent);
-  for (const g of Object.values(games)) {
-    for (const id of g.usedPromptIds ?? []) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      out.push(id);
-    }
-  }
-  return out.slice(0, RECENT_MAX);
+  return recent.slice(0, RECENT_MAX);
 }
 
 async function loadRecentIds(key: string): Promise<string[]> {
