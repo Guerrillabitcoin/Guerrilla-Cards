@@ -5,6 +5,7 @@ import {
   Platform,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import ViewShot, { type ViewShotRef } from 'react-native-view-shot';
@@ -64,6 +65,14 @@ export default function CompartirScreen() {
   );
 
   const canShare = !!(promptText && answers.length) || !!filledText;
+  const { width: winW } = useWindowDimensions();
+  /** Preview mirrors export size; capture forced to 420×420. */
+  const shareSide = Math.min(420, Math.max(260, winW - 48));
+  const shareTextLen =
+    (promptText?.length ?? 0) +
+    answers.reduce((n, a) => n + a.length, 0) +
+    (filledText?.length ?? 0);
+  const shareTextCompact = shareTextLen > 140;
 
   const captureAndSend = useCallback(async () => {
     if (!canShare || busy) return;
@@ -152,23 +161,36 @@ export default function CompartirScreen() {
           format: 'png',
           quality: 1,
           result: Platform.OS === 'web' ? 'data-uri' : 'tmpfile',
+          width: 420,
+          height: 420,
         }}
-        style={styles.shotWrap}
+        style={[styles.shotWrap, { width: shareSide, height: shareSide }]}
       >
-        <View style={styles.card}>
-          <Text style={styles.brand}>GUERRILLA CARDS</Text>
+        <View style={[styles.card, { width: shareSide, height: shareSide }]}>
+          <Text style={styles.brand} numberOfLines={1} adjustsFontSizeToFit>
+            GUERRILLA CARDS
+          </Text>
           <Text style={styles.tag}>
             Humor negro y absurdo en español. Juega en guerrillacards.vercel.app
           </Text>
           <View style={styles.promptBox}>
             {promptText && answers.length ? (
               <FilledPromptText
-                large
                 promptText={promptText}
                 answers={answers}
+                small={shareTextCompact}
               />
             ) : (
-              <Text style={styles.filledFallback}>{filledText}</Text>
+              <Text
+                style={[
+                  styles.filledFallback,
+                  shareTextCompact && styles.filledFallbackCompact,
+                ]}
+                adjustsFontSizeToFit
+                minimumFontScale={0.45}
+              >
+                {filledText}
+              </Text>
             )}
           </View>
         </View>
@@ -195,47 +217,60 @@ function useCompartirStyles() {
     fontWeight: '800',
   },
   shotWrap: {
-    alignSelf: 'stretch',
+    alignSelf: 'center',
     marginVertical: 12,
+    overflow: 'hidden',
   },
   card: {
     backgroundColor: colors.bg,
     borderWidth: 2,
     borderColor: colors.accent,
     borderRadius: radii.md,
-    padding: 20,
-    gap: 12,
-    minHeight: 220,
+    padding: 14,
+    gap: 8,
+    overflow: 'hidden',
+    justifyContent: 'flex-start',
   },
   brand: {
     color: colors.accent,
-    fontSize: 22,
+    fontFamily,
+    fontSize: 18,
     fontWeight: '900',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
     textAlign: 'center',
+    flexShrink: 0,
   },
   tag: {
     color: colors.textMuted,
-    fontSize: 12,
-    lineHeight: 17,
+    fontFamily,
+    fontSize: 10,
+    lineHeight: 14,
     textAlign: 'center',
-    marginTop: -4,
-    paddingHorizontal: 4,
+    marginTop: -2,
+    paddingHorizontal: 2,
+    flexShrink: 0,
   },
   promptBox: {
     backgroundColor: colors.bgElevated,
     borderRadius: radii.sm,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: 16,
-    minHeight: 100,
+    padding: 12,
+    flex: 1,
+    minHeight: 0,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   filledFallback: {
     color: colors.text,
-    fontSize: 18,
+    fontFamily,
+    fontSize: 16,
     fontWeight: '700',
-    lineHeight: 26,
+    lineHeight: 22,
+  },
+  filledFallbackCompact: {
+    fontSize: 13,
+    lineHeight: 18,
   },
   footer: {
     color: colors.textDim,
