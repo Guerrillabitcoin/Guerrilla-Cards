@@ -19,6 +19,7 @@ import {
   patchesAreEmpty,
   type DeckPatches,
 } from './patches';
+import { fillBlankPartsGlued, fillBlankGlued } from './glue';
 
 const PACK_FILES: Record<string, PackFile> = {
   core: corePack as PackFile,
@@ -388,66 +389,13 @@ export function capitalizeAnswer(text: string): string {
   return t.charAt(0).toLocaleUpperCase('es-ES') + t.slice(1);
 }
 
-/**
- * Fill prompt blanks. Answer cards are stored in lowercase;
- * capitalize only when the blank starts the sentence (or follows .?!…).
- */
-export type FillPart = {
-  kind: 'text' | 'answer' | 'blank';
-  text: string;
-};
 
-function formatAnswerForBlank(promptText: string, offset: number, raw: string): string {
-  const before = promptText.slice(0, offset);
-  const trimmedBefore = before.replace(/\s+$/u, '');
-  const atSentenceStart =
-    trimmedBefore.length === 0 || /[.!?…¡¿]\s*$/u.test(trimmedBefore);
-  return atSentenceStart ? capitalizeAnswer(raw) : raw;
+export type { FillPart } from './glue';
+
+export function fillBlankParts(promptText: string, answers: string[]) {
+  return fillBlankPartsGlued(promptText, answers);
+}
+export function fillBlank(promptText: string, answers: string[]) {
+  return fillBlankGlued(promptText, answers);
 }
 
-/** Segmented fill for styled UI (answers orange + underline). */
-export function fillBlankParts(promptText: string, answers: string[]): FillPart[] {
-  const parts: FillPart[] = [];
-  const re = /_+/g;
-  let last = 0;
-  let idx = 0;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(promptText))) {
-    if (m.index > last) {
-      parts.push({ kind: 'text', text: promptText.slice(last, m.index) });
-    }
-    const raw = answers[idx];
-    if (raw === undefined || raw === '______') {
-      parts.push({ kind: 'blank', text: m[0] });
-    } else {
-      parts.push({
-        kind: 'answer',
-        text: formatAnswerForBlank(promptText, m.index, raw),
-      });
-    }
-    idx++;
-    last = m.index + m[0].length;
-  }
-  if (last < promptText.length) {
-    parts.push({ kind: 'text', text: promptText.slice(last) });
-  }
-  if (idx === 0 && answers.length) {
-    return [
-      { kind: 'text', text: `${promptText} ` },
-      {
-        kind: 'answer',
-        text: answers
-          .filter((a) => a && a !== '______')
-          .map((a) => capitalizeAnswer(a))
-          .join(' / '),
-      },
-    ];
-  }
-  return parts;
-}
-
-export function fillBlank(promptText: string, answers: string[]): string {
-  return fillBlankParts(promptText, answers)
-    .map((p) => p.text)
-    .join('');
-}
