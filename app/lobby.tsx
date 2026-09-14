@@ -12,6 +12,7 @@ import {
   Title,
 } from '@/src/components/ui';
 import * as Engine from '@/src/engine/game';
+import { randomNickname } from '@/src/engine/nicknames';
 import {
   ASYNC_TARGET_PLAYERS,
   MAX_PLAYERS,
@@ -32,7 +33,7 @@ export default function LobbyScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
-  const [nick, setNick] = useState('');
+  const [nick, setNick] = useState(() => randomNickname());
   const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
 
@@ -134,14 +135,15 @@ export default function LobbyScreen() {
   const addSeat = () => {
     try {
       let addedId: string | null = null;
+      const seatNick = nick.trim() || randomNickname();
       updateGame(game.code, (g) => {
         const before = new Set(g.players.map((p) => p.id));
-        const next = Engine.addPlayer(g, nick);
+        const next = Engine.addPlayer(g, seatNick);
         const neu = next.players.find((p) => !before.has(p.id));
         addedId = neu?.id ?? null;
         return next;
       });
-      setNick('');
+      setNick(randomNickname());
       // Local pass-and-play: adding seats on one device disables pure online lock
       if (isOnline && addedId && !myPlayerId) {
         void setMySeat(game.code, addedId).then(() =>

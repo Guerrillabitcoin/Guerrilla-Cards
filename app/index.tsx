@@ -72,6 +72,7 @@ export default function HomeScreen() {
     joinOrOpen,
     saveGame,
     updateGame,
+    getGame,
     games,
     ready,
   } = useGameStore();
@@ -258,19 +259,24 @@ export default function HomeScreen() {
     }
   };
 
+  const resolveNick = () => {
+    const n = nickname.trim();
+    if (n) return n;
+    const gen = randomNickname();
+    setNickname(gen);
+    return gen;
+  };
+
   const startSoloNow = () => {
     try {
       if (!ready) {
         Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
         return;
       }
-      if (!nickname.trim()) {
-        Alert.alert('Apodo', 'Escribe un apodo para el anfitrión.');
-        return;
-      }
+      const nick = resolveNick();
       const target = parseTarget();
       const game = createAndStartSolo({
-        hostNickname: nickname.trim(),
+        hostNickname: nick,
         packIds: selectedPlayable,
         targetScore: target,
       });
@@ -281,26 +287,23 @@ export default function HomeScreen() {
   };
 
   const startAsyncNow = () => {
-    try {
-      if (!ready) {
-        Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
-        return;
-      }
-      if (!nickname.trim()) {
-        Alert.alert('Apodo', 'Escribe un apodo para el anfitrión.');
-        return;
-      }
-      const target = parseTarget();
-      const game = createGame({
-        hostNickname: nickname.trim(),
-        mode: 'async',
-        packIds: selectedPlayable,
-        targetScore: target,
-        judgeMode,
-      });
-      const hostId = game.players[0]?.id;
-      if (hostId) void setMySeat(game.code, hostId);
-      void (async () => {
+    if (!ready) {
+      Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+      return;
+    }
+    void (async () => {
+      try {
+        const nick = resolveNick();
+        const target = parseTarget();
+        const game = createGame({
+          hostNickname: nick,
+          mode: 'async',
+          packIds: selectedPlayable,
+          targetScore: target,
+          judgeMode,
+        });
+        const hostId = game.players[0]?.id;
+        if (hostId) await setMySeat(game.code, hostId);
         const pushed = await pushRoom(game);
         if (pushed.ok) {
           await setOnlineFlag(game.code, true);
@@ -311,14 +314,13 @@ export default function HomeScreen() {
           );
           await setOnlineFlag(game.code, false);
         } else {
-          // Network / other — still local; online flag off
           await setOnlineFlag(game.code, false);
         }
-      })();
-      openGame(game.code, game.phase);
-    } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
-    }
+        openGame(game.code, game.phase);
+      } catch (e) {
+        Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
+      }
+    })();
   };
 
   const onCreate = () => {
@@ -339,57 +341,77 @@ export default function HomeScreen() {
       return;
     }
     void (async () => {
-      const remote = await pullRoom(code);
-      if (remote.ok) {
-        saveGame(remote.state);
-        await setOnlineFlag(code, true);
-        const g = remote.state;
-        const seat = await getMySeat(code);
-        if (seat && g.players.some((p) => p.id === seat)) {
+      try {
+        const remote = await pullRoom(code);
+        if (remote.ok) {
+          // Save locally without relying on saveGame's fire-and-forget push of
+          // the pre-join snapshot; we push explicitly after adding the seat.
+          saveGame(remote.state);
+          await setOnlineFlag(code, true);
+          let g = remote.state;
+          const seat = await getMySeat(code);
+          if (seat && g.players.some((p) => p.id === seat)) {
+            openGame(g.code, g.phase);
+            return;
+          }
+          if (g.phase === 'lobby') {
+            const nick = resolveNick();
+            const before = new Set(g.players.map((p) => p.id));
+            updateGame(code, (cur) => Engine.addPlayer(cur, nick));
+            const live = getGame(code) ?? joinOrOpen(code);
+            if (!live) {
+              Alert.alert('Unirse', 'No se pudo actualizar la sala local.');
+              return;
+            }
+            const neu = live.players.find((p) => !before.has(p.id));
+            if (neu) await setMySeat(code, neu.id);
+            const pushed = await pushRoom(live);
+            if (!pushed.ok && pushed.error !== 'kv_not_configured') {
+              Alert.alert(
+                'Unirse',
+                `Sala abierta localmente, pero no se pudo sincronizar: ${pushed.error}`
+              );
+            }
+            openGame(live.code, live.phase);
+            return;
+          }
+          // Mid-game spectator / reconnect without seat
           openGame(g.code, g.phase);
           return;
         }
-        if (g.phase === 'lobby') {
-          const nick = nickname.trim() || 'Jugador';
-          try {
-            const before = new Set(g.players.map((p) => p.id));
-            updateGame(code, (cur) => Engine.addPlayer(cur, nick));
-            const live = joinOrOpen(code);
-            if (live) {
-              const neu = live.players.find((p) => !before.has(p.id));
-              if (neu) await setMySeat(code, neu.id);
-              openGame(live.code, live.phase);
-              return;
-            }
-          } catch (e) {
-            Alert.alert(
-              'Unirse',
-              e instanceof Error ? e.message : 'No se pudo unir'
-            );
-            return;
-          }
+        if (remote.error === 'kv_not_configured') {
+          Alert.alert(
+            'Sin KV',
+            'El servidor no tiene KV configurado (KV_REST_API_URL/UPSTASH_REDIS_REST_*). No se puede unir entre dispositivos.'
+          );
+        } else if (remote.error === 'not_found') {
+          Alert.alert(
+            'No encontrada',
+            'No hay sala online con ese código. Pide al anfitrión que cree la partida (y espera a que termine de sincronizar) con KV en Vercel.'
+          );
+        } else if (remote.error && remote.error !== 'not_web') {
+          Alert.alert(
+            'Error al unirse',
+            `No se pudo cargar la sala (${remote.error}).`
+          );
         }
-        // Mid-game spectator / reconnect without seat: open read-only-ish
-        openGame(g.code, g.phase);
-        return;
-      }
-      if (remote.error === 'kv_not_configured') {
+        const game = joinOrOpen(code);
+        if (!game) {
+          if (remote.error !== 'not_found' && remote.error !== 'kv_not_configured') {
+            Alert.alert(
+              'No encontrada',
+              'No hay partida local ni online con ese código.'
+            );
+          }
+          return;
+        }
+        openGame(game.code, game.phase);
+      } catch (e) {
         Alert.alert(
-          'Sin KV',
-          'El servidor no tiene KV configurado (KV_REST_API_URL + KV_REST_API_TOKEN). No se puede unir entre dispositivos.'
+          'Unirse',
+          e instanceof Error ? e.message : 'No se pudo unir'
         );
       }
-      const game = joinOrOpen(code);
-      if (!game) {
-        Alert.alert(
-          'No encontrada',
-          remote.error === 'not_found'
-            ? 'No hay sala online con ese código. Pide al anfitrión que cree la partida con KV en Vercel.'
-            : 'No hay partida local ni online con ese código.'
-        );
-        return;
-      }
-      openGame(game.code, game.phase);
     })();
   };
 
@@ -566,15 +588,9 @@ export default function HomeScreen() {
         onPress={onCreate}
       />
 
-      <Button
-        title="★ Respuestas favoritas"
-        variant="outline"
-        onPress={() => router.push('/historial')}
-      />
-
-      {mode !== 'solo' ? (
+      {mode === 'async' ? (
         <>
-          <Label>Unirse por código (online o local)</Label>
+          <Label>Unirse a partida async</Label>
           <Input
             value={joinCode}
             onChangeText={setJoinCode}
@@ -582,9 +598,19 @@ export default function HomeScreen() {
             autoCapitalize="characters"
             maxLength={8}
           />
-          <Button title="Abrir partida" onPress={onJoin} variant="outline" />
+          <Button
+            title="Unirse a partida async"
+            onPress={onJoin}
+            variant="outline"
+          />
         </>
       ) : null}
+
+      <Button
+        title="★ Respuestas favoritas"
+        variant="outline"
+        onPress={() => router.push('/historial')}
+      />
 
       {ready && recent.length > 0 ? (
         <>

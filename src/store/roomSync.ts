@@ -26,7 +26,8 @@ export function slimForRoom(state: GameState): GameState {
 }
 
 export type PushResult =
-  | { ok: true }
+  | { ok: true; skipped?: false }
+  | { ok: true; skipped: true; state: GameState }
   | { ok: false; error: string; status?: number };
 
 export type PullResult =
@@ -50,6 +51,8 @@ export async function pushRoom(state: GameState): Promise<PushResult> {
     const data = (await res.json().catch(() => ({}))) as {
       ok?: boolean;
       error?: string;
+      skipped?: boolean;
+      state?: GameState;
     };
     if (!res.ok || !data.ok) {
       return {
@@ -57,6 +60,9 @@ export async function pushRoom(state: GameState): Promise<PushResult> {
         error: data.error || `http_${res.status}`,
         status: res.status,
       };
+    }
+    if (data.skipped && data.state) {
+      return { ok: true, skipped: true, state: coerceGameState(data.state) };
     }
     return { ok: true };
   } catch (e) {

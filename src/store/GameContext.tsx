@@ -259,9 +259,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         avoidAnswerIds: recentAnswersRef.current,
       });
       commit({ ...gamesRef.current, [state.code]: state });
-      if (state.mode === 'async') {
-        void pushRoom(state);
-      }
+      // Async: caller awaits one pushRoom (avoids race with joiners)
       return state;
     },
     [commit]
@@ -361,7 +359,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       void persist({ ...gamesRef.current, [code]: toUiGame(next) });
 
       if (next.mode === 'async') {
-        void pushRoom(next);
+        void pushRoom(next).then((r) => {
+          if (r.ok && r.skipped && r.state) {
+            const key = r.state.code.trim().toUpperCase();
+            const remote = hydrateDecks(coerceGameState({ ...r.state, code: key }));
+            const local = gamesRef.current[key];
+            if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) return;
+            gamesRef.current = { ...gamesRef.current, [key]: remote };
+            setGames((prevMap) => ({
+              ...prevMap,
+              [key]: toUiGame(remote),
+            }));
+            void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
+          }
+        });
       }
 
       // Recents off the tap path — never block the frame
