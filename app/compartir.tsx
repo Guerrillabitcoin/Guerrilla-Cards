@@ -157,6 +157,9 @@ export default function CompartirScreen() {
       >
         <View style={styles.card}>
           <Text style={styles.brand}>GUERRILLA CARDS</Text>
+          <Text style={styles.tag}>
+            Humor negro y absurdo en español. Juega en guerrillacards.vercel.app
+          </Text>
           <View style={styles.promptBox}>
             {promptText && answers.length ? (
               <FilledPromptText
@@ -214,8 +217,10 @@ function useCompartirStyles() {
   tag: {
     color: colors.textMuted,
     fontSize: 12,
+    lineHeight: 17,
     textAlign: 'center',
-    marginTop: -6,
+    marginTop: -4,
+    paddingHorizontal: 4,
   },
   promptBox: {
     backgroundColor: colors.bgElevated,
