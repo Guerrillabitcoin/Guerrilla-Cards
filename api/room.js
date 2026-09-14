@@ -2,8 +2,8 @@
  * Vercel serverless: cross-device async rooms via Vercel KV / Upstash Redis REST.
  * Env: KV_REST_API_URL + KV_REST_API_TOKEN, or UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN.
  *
- * MVP stores full GameState JSON (hands included — not private server-side yet).
- * Prefer Upstash POST array commands so large JSON is not stuffed into URL path.
+ * Upsert merges hands by player id and submissions (prefer real card text while
+ * submitting; prefer full incoming on judging/reveal/results with real-text fallback).
  */
 
 const ROOM_PREFIX = 'gc:room:';
@@ -72,12 +72,103 @@ function mergeLobbyPlayers(existingPlayers, incomingPlayers) {
     if (p && p.id && !byId.has(p.id)) byId.set(p.id, p);
   }
   const merged = Array.from(byId.values());
-  // Cap at ASYNC max when both are async lobbies; otherwise keep union length
-  // but never drop below either side's count preference for hosts already seated.
   if (merged.length > ASYNC_MAX_PLAYERS) {
     return merged.slice(0, ASYNC_MAX_PLAYERS);
   }
   return merged;
+}
+
+function isRedactedCardText(text) {
+  if (text == null) return true;
+  const t = String(text).trim();
+  return t === '' || t === '…' || t === '...';
+}
+
+function hasRealCardText(cards) {
+  return (cards || []).some((c) => c && !isRedactedCardText(c.text));
+}
+
+/**
+ * Merge hands by player id: non-empty incoming wins; else keep existing hand.
+ * Player list follows incoming order/ids; fills hands from existing when blanked.
+ */
+function mergeHandsByPlayerId(existingPlayers, incomingPlayers) {
+  const existingById = new Map();
+  for (const p of existingPlayers || []) {
+    if (p && p.id) existingById.set(p.id, p);
+  }
+  return (incomingPlayers || []).map((p) => {
+    if (!p || !p.id) return p;
+    const ex = existingById.get(p.id);
+    if (p.hand && p.hand.length > 0) return p;
+    if (ex && ex.hand && ex.hand.length > 0) {
+      return { ...p, hand: ex.hand };
+    }
+    return p;
+  });
+}
+
+/**
+ * Merge submissions by playerId preferring real (non-redacted) card text.
+ */
+function mergeSubmissionsPreferReal(existingSubs, incomingSubs) {
+  const byId = new Map();
+  for (const s of existingSubs || []) {
+    if (s && s.playerId) byId.set(s.playerId, s);
+  }
+  for (const s of incomingSubs || []) {
+    if (!s || !s.playerId) continue;
+    const ex = byId.get(s.playerId);
+    if (!ex) {
+      byId.set(s.playerId, s);
+      continue;
+    }
+    if (hasRealCardText(s.cards)) {
+      byId.set(s.playerId, s);
+    } else if (hasRealCardText(ex.cards)) {
+      // keep existing real
+    } else {
+      byId.set(s.playerId, s);
+    }
+  }
+  return Array.from(byId.values());
+}
+
+function mergeSubmissions(existing, incoming) {
+  const incomingPhase = incoming?.phase;
+  const existingPhase = existing?.phase;
+  const revealPhases = ['judging', 'reveal', 'results'];
+
+  if (revealPhases.includes(incomingPhase)) {
+    // Prefer incoming (full) but fall back to existing real text per player
+    // so a last-submitter push with fogged peers does not wipe answers.
+    return mergeSubmissionsPreferReal(
+      existing?.submissions,
+      incoming?.submissions
+    );
+  }
+
+  if (
+    (incomingPhase === 'submitting' || incomingPhase === 'discarding') &&
+    (existingPhase === 'submitting' ||
+      existingPhase === 'discarding' ||
+      existingPhase === 'lobby' ||
+      !existingPhase)
+  ) {
+    return mergeSubmissionsPreferReal(
+      existing?.submissions,
+      incoming?.submissions
+    );
+  }
+
+  return incoming?.submissions ?? existing?.submissions ?? [];
+}
+
+function applyPrivacyMerges(existing, incoming) {
+  if (!existing || typeof existing !== 'object') return incoming;
+  const players = mergeHandsByPlayerId(existing.players, incoming.players);
+  const submissions = mergeSubmissions(existing, incoming);
+  return { ...incoming, players, submissions };
 }
 
 module.exports = async function handler(req, res) {
@@ -156,8 +247,14 @@ module.exports = async function handler(req, res) {
             existing.players,
             incoming.players
           );
+          // Also merge hands on lobby seats (usually empty)
+          const withHands = mergeHandsByPlayerId(
+            existing.players,
+            mergedPlayers
+          );
           const base =
-            remoteNewer || (existing.players?.length ?? 0) > (incoming.players?.length ?? 0)
+            remoteNewer ||
+            (existing.players?.length ?? 0) > (incoming.players?.length ?? 0)
               ? existing
               : incoming;
           const nextUpdated = Math.max(
@@ -170,12 +267,15 @@ module.exports = async function handler(req, res) {
             ...incoming,
             code,
             phase: 'lobby',
-            players: mergedPlayers,
-            // Prefer host/pack/meta from the richer or newer side already in base
+            players: withHands,
             packIds: base.packIds?.length ? base.packIds : incoming.packIds,
             mode: base.mode || incoming.mode,
             judgeMode: base.judgeMode || incoming.judgeMode,
             targetScore: base.targetScore ?? incoming.targetScore,
+            submissions: mergeSubmissions(existing, {
+              ...incoming,
+              phase: 'lobby',
+            }),
             updatedAt: nextUpdated,
           };
         } else if (remoteNewer && existing.phase !== incoming.phase) {
@@ -194,6 +294,9 @@ module.exports = async function handler(req, res) {
             state: existing,
             code,
           });
+        } else {
+          // Accept incoming (newer or equal) but merge hands + submissions
+          state = applyPrivacyMerges(existing, incoming);
         }
       }
 

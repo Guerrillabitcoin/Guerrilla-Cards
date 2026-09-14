@@ -375,7 +375,9 @@ export default function PlayScreen() {
     const seatId =
       game.mode === 'solo'
         ? (game.players.find((p) => !p.isBot) ?? game.players[0])?.id
-        : game.activeSeatId;
+        : onlineRoom && myPlayerId
+          ? myPlayerId
+          : game.activeSeatId;
     if (!seatId) return;
     if (game.discardDonePlayerIds.includes(seatId)) return;
     const player = game.players.find((p) => p.id === seatId);
@@ -402,6 +404,8 @@ export default function PlayScreen() {
     game?.discardDonePlayerIds,
     game?.players,
     game,
+    onlineRoom,
+    myPlayerId,
   ]);
 
   if (!ready) return <Loading />;
@@ -1224,7 +1228,8 @@ export default function PlayScreen() {
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
               <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
             </>
-          ) : zarSkipsSubmit && active?.id === zar.id ? (
+          ) : zarSkipsSubmit &&
+            (isOnline ? myPlayerId === zar.id : active?.id === zar.id) ? (
             <Muted>
               Eres el Zar. Esperando a que contesten
               {submitPendingPlayers.length
@@ -1235,7 +1240,7 @@ export default function PlayScreen() {
           ) : (
             <>
               {!isSolo ? (
-                <Label>Mano de {active?.nickname}</Label>
+                <Label>{isOnline ? 'Tu mano' : `Mano de ${active?.nickname}`}</Label>
               ) : null}
               {soloSkipMode ? (
                 <View style={styles.discardCounterBox}>
@@ -1389,7 +1394,8 @@ export default function PlayScreen() {
                 </>
               )}
             </>
-          ) : !isSolo && active?.id !== zar.id ? (
+          ) : !isSolo &&
+            (isOnline ? myPlayerId !== zar.id : active?.id !== zar.id) ? (
             <Muted>
               {isOnline
                 ? `Esperando al Zar (${zar.nickname})…`

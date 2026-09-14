@@ -428,26 +428,56 @@ function drawPrompt(state: GameState): {
   };
 }
 
+/**
+ * Deal until HAND_SIZE, never giving a card id already present in any hand.
+ * Skips occupied ids while walking the answer deck; refills excluding occupied.
+ */
 function dealHands(state: GameState): GameState {
   let next = state;
   let answerDeck = next.answerDeck;
   let answerDeckPos = next.answerDeckPos ?? 0;
-  const players = next.players.map((p) => {
-    // Always target HAND_SIZE (12); never keep more.
-    if (p.hand.length > HAND_SIZE) {
-      return { ...p, hand: p.hand.slice(0, HAND_SIZE) };
-    }
+
+  const players: Player[] = next.players.map((p) =>
+    p.hand.length > HAND_SIZE ? { ...p, hand: p.hand.slice(0, HAND_SIZE) } : p
+  );
+  const occupied = new Set(players.flatMap((p) => p.hand.map((c) => c.id)));
+
+  for (let i = 0; i < players.length; i++) {
+    const p = players[i];
     const need = HAND_SIZE - p.hand.length;
-    if (need <= 0) return p;
-    if (answerDeck.length - answerDeckPos < need) {
-      next = ensureAnswerDeck({ ...next, answerDeck, answerDeckPos }, need);
-      answerDeck = next.answerDeck;
-      answerDeckPos = next.answerDeckPos ?? answerDeckPos;
+    if (need <= 0) continue;
+
+    const drawn: Card[] = [];
+    let guard = 0;
+    const maxGuard = Math.max(answerDeck.length * 3, need * 40, 128);
+    while (drawn.length < need && guard++ < maxGuard) {
+      if (answerDeckPos >= answerDeck.length) {
+        const partialPlayers = players.map((pl, j) =>
+          j === i ? { ...pl, hand: [...pl.hand, ...drawn] } : pl
+        );
+        const extra = refillAnswerDeck({
+          ...next,
+          answerDeck,
+          answerDeckPos,
+          players: partialPlayers,
+        }).filter((c) => !occupied.has(c.id));
+        if (!extra.length) break;
+        answerDeck = answerDeck.concat(extra);
+        next = { ...next, answerDeck, answerDeckPos };
+      }
+      if (answerDeckPos >= answerDeck.length) break;
+      const c = answerDeck[answerDeckPos++];
+      if (occupied.has(c.id)) continue;
+      occupied.add(c.id);
+      drawn.push(c);
     }
-    const { drawn, pos } = drawAnswers(answerDeck, answerDeckPos, need);
-    answerDeckPos = pos;
-    return { ...p, hand: [...p.hand, ...drawn] };
-  });
+    if (drawn.length < need) {
+      throw new Error(
+        'Se acabaron las cartas de respuesta distintas. Reinicia con más packs.'
+      );
+    }
+    players[i] = { ...p, hand: [...p.hand, ...drawn] };
+  }
   return { ...next, players, answerDeck, answerDeckPos };
 }
 

@@ -20,7 +20,12 @@ import {
   type GameState,
   type JudgeMode,
 } from '../engine/types';
-import { pushRoom } from './roomSync';
+import {
+  getMySeat,
+  getMySeatSync,
+  mergeHandsPreserveLocal,
+  pushRoom,
+} from './roomSync';
 
 const STORAGE_KEY = 'guerrilla_cards_games_v1';
 const RECENT_PROMPTS_KEY = 'guerrilla_cards_recent_prompts_v1';
@@ -318,7 +323,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         [hydrated.code]: hydrated,
       });
       if (hydrated.mode === 'async') {
-        void pushRoom(hydrated);
+        void (async () => {
+          const seat = await getMySeat(hydrated.code);
+          await pushRoom(hydrated, seat);
+        })();
       }
     },
     [commit]
@@ -327,11 +335,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const applyRemoteGame = useCallback(
     (state: GameState) => {
       const key = state.code.trim().toUpperCase();
-      const remote = hydrateDecks(coerceGameState({ ...state, code: key }));
+      let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
       if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
         return false;
       }
+      const seat = getMySeatSync(key);
+      remote = mergeHandsPreserveLocal(remote, local, seat);
       gamesRef.current = { ...gamesRef.current, [key]: remote };
       setGames((prevMap) => ({
         ...prevMap,
@@ -359,12 +369,23 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       void persist({ ...gamesRef.current, [code]: toUiGame(next) });
 
       if (next.mode === 'async') {
-        void pushRoom(next).then((r) => {
+        void (async () => {
+          const seat = await getMySeat(code);
+          const r = await pushRoom(next, seat);
           if (r.ok && r.skipped && r.state) {
             const key = r.state.code.trim().toUpperCase();
-            const remote = hydrateDecks(coerceGameState({ ...r.state, code: key }));
+            let remote = hydrateDecks(
+              coerceGameState({ ...r.state, code: key })
+            );
             const local = gamesRef.current[key];
-            if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) return;
+            if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
+              return;
+            }
+            remote = mergeHandsPreserveLocal(
+              remote,
+              local,
+              seat ?? getMySeatSync(key)
+            );
             gamesRef.current = { ...gamesRef.current, [key]: remote };
             setGames((prevMap) => ({
               ...prevMap,
@@ -372,7 +393,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }));
             void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
           }
-        });
+        })();
       }
 
       // Recents off the tap path — never block the frame
@@ -487,7 +508,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       nextMap[state.code] = state;
       commit(nextMap);
       if (state.mode === 'async') {
-        void pushRoom(state);
+        void (async () => {
+          const seat = await getMySeat(state.code);
+          await pushRoom(state, seat);
+        })();
       }
       return state;
     },

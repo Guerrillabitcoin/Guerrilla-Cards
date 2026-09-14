@@ -304,7 +304,7 @@ export default function HomeScreen() {
         });
         const hostId = game.players[0]?.id;
         if (hostId) await setMySeat(game.code, hostId);
-        const pushed = await pushRoom(game);
+        const pushed = await pushRoom(game, hostId);
         if (pushed.ok) {
           await setOnlineFlag(game.code, true);
         } else if (pushed.error === 'kv_not_configured') {
@@ -365,7 +365,7 @@ export default function HomeScreen() {
             }
             const neu = live.players.find((p) => !before.has(p.id));
             if (neu) await setMySeat(code, neu.id);
-            const pushed = await pushRoom(live);
+            const pushed = await pushRoom(live, neu?.id ?? (await getMySeat(code)));
             if (!pushed.ok && pushed.error !== 'kv_not_configured') {
               Alert.alert(
                 'Unirse',
