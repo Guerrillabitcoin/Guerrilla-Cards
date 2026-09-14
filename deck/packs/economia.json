@@ -461,12 +461,6 @@
       "pick": 1
     },
     {
-      "id": "core-p-0026",
-      "type": "prompt",
-      "text": "Este turno, en lugar de jugar una carta, todos mirarán al César y harán un sonido como de comer algo muy rico",
-      "pick": 1
-    },
-    {
       "id": "core-p-0075",
       "type": "prompt",
       "text": "Conseguí ahorrar dinero en la Declaración de la Renta gracias a ______ y ______.",
@@ -798,8 +792,8 @@
     }
   ],
   "counts": {
-    "total": 132,
-    "prompts": 31,
+    "total": 131,
+    "prompts": 30,
     "answers": 101
   },
   "playable": true

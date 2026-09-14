@@ -157,7 +157,6 @@ export default function CompartirScreen() {
       >
         <View style={styles.card}>
           <Text style={styles.brand}>GUERRILLA CARDS</Text>
-          <Text style={styles.tag}>Humor negro · español</Text>
           <View style={styles.promptBox}>
             {promptText && answers.length ? (
               <FilledPromptText
@@ -169,7 +168,6 @@ export default function CompartirScreen() {
               <Text style={styles.filledFallback}>{filledText}</Text>
             )}
           </View>
-          <Text style={styles.footer}>guerrillacards</Text>
         </View>
       </ViewShot>
 

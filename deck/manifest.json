@@ -50,8 +50,8 @@
       "nsfw": false,
       "file": "packs/economia.json",
       "counts": {
-        "total": 132,
-        "prompts": 31,
+        "total": 131,
+        "prompts": 30,
         "answers": 101
       },
       "playable": true
@@ -190,8 +190,8 @@
     "playable_prompts": 339,
     "playable_answers": 4108,
     "banned": 21,
-    "prompts": 565,
+    "prompts": 564,
     "answers": 5077,
-    "total": 5642
+    "total": 5641
   }
 }
