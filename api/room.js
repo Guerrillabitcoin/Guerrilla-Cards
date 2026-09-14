@@ -312,7 +312,10 @@ function promoteJudgingIfReady(state) {
   const voteMode = (state.judgeMode || 'zar') === 'vote';
   const players = state.players || [];
   const zar = players[state.zarIndex || 0];
-  let subs = (state.submissions || []).filter((s) => s && !s.rival);
+  const round = Number(state.round) || 0;
+  let subs = (state.submissions || []).filter(
+    (s) => s && !s.rival && (s.round == null || s.round === round)
+  );
   if (!voteMode && zar?.id) {
     subs = subs.filter((s) => s.playerId !== zar.id);
   }
@@ -344,13 +347,14 @@ function applyPrivacyMerges(existing, incoming) {
       incoming.players,
       'next-cycle'
     );
+    // Always wipe prior-round answers on cycle advance (ignore incoming leftovers)
     return promoteJudgingIfReady({
       ...incoming,
       players,
-      submissions: incoming.submissions || [],
-      revealOrder: incoming.revealOrder || [],
-      votes: incoming.votes || {},
-      roundWinnerId: incoming.roundWinnerId ?? null,
+      submissions: [],
+      revealOrder: [],
+      votes: {},
+      roundWinnerId: null,
     });
   }
 

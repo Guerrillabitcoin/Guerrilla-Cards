@@ -457,6 +457,8 @@ export default function PlayScreen() {
   const submitNeeded = voteMode
     ? game.players.length
     : Math.max(0, game.players.length - 1);
+
+  const roundSubs = Engine.submissionsForRound(game);
   const votesMap = game.votes ?? {};
   const votersPending = voteMode
     ? game.submissions
@@ -466,7 +468,7 @@ export default function PlayScreen() {
     : [];
   const submitPendingPlayers = game.players.filter((p) => {
     if (zarSkipsSubmit && p.id === zar.id) return false;
-    return !game.submissions.some((s) => s.playerId === p.id && !s.rival);
+    return !roundSubs.some((s) => s.playerId === p.id && !s.rival);
   });
   // Prefer engine revealOrder (set on enter judging). Stable identity fallback only.
   const revealOrderSafe =
@@ -538,7 +540,7 @@ export default function PlayScreen() {
     !!active &&
     (isDiscarding
       ? game.discardDonePlayerIds.includes(active.id)
-      : game.submissions.some((s) => s.playerId === active.id && !s.rival));
+      : roundSubs.some((s) => s.playerId === active.id && !s.rival));
 
   const pickedCards = picked
     .map((id) => hand.find((c) => c.id === id))
@@ -550,7 +552,7 @@ export default function PlayScreen() {
   ];
 
   const mySubmitted = active
-    ? game.submissions.find((s) => s.playerId === active.id && !s.rival)
+    ? roundSubs.find((s) => s.playerId === active.id && !s.rival)
     : undefined;
 
   const submittedAnswerTexts = mySubmitted
@@ -1329,7 +1331,7 @@ export default function PlayScreen() {
               ) : null}
               {!isSolo ? (
                 <Muted>
-                  Enviados {game.submissions.length}/{submitNeeded}.
+                  Enviados {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}.
                   {submitPendingPlayers.length
                     ? ` Esperando a que contesten: ${submitPendingPlayers
                         .map((p) => p.nickname)
@@ -1351,7 +1353,7 @@ export default function PlayScreen() {
               {submitPendingPlayers.length
                 ? `: ${submitPendingPlayers.map((p) => p.nickname).join(', ')}`
                 : ''}
-              . Enviados: {game.submissions.length}/{submitNeeded}
+              . Enviados: {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}
             </Muted>
           ) : (
             <>

@@ -61,6 +61,8 @@ export interface Submission {
   cards: Card[];
   /** Solo mode: random rival fill (not a real seat). */
   rival?: boolean;
+  /** Round this answer belongs to — ignore if mismatched after nextRound sync. */
+  round?: number;
 }
 
 export interface GameState {

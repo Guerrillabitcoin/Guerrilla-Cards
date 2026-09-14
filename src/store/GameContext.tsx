@@ -20,6 +20,7 @@ import {
   type GameState,
   type JudgeMode,
 } from '../engine/types';
+import { gameProgress } from '../engine/syncProgress';
 import {
   getMySeat,
   getMySeatSync,
@@ -339,26 +340,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const key = state.code.trim().toUpperCase();
       let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
-      // Allow equal updatedAt if remote already advanced to judging
-      const phaseRank = (p?: string) => {
-        switch (p) {
-          case 'results':
-            return 50;
-          case 'reveal':
-            return 40;
-          case 'judging':
-            return 30;
-          case 'discarding':
-            return 20;
-          case 'submitting':
-            return 10;
-          default:
-            return 0;
-        }
-      };
-      // Always accept a more advanced phase (reveal/results) even if timestamps tie
-      const remoteAdvanced =
-        phaseRank(remote.phase) > phaseRank(local?.phase);
+      const localProg = gameProgress(local);
+      const remoteProg = gameProgress(remote);
+      // Progress is round-aware: reveal → next submitting is forward, not a downgrade
+      const remoteAdvanced = remoteProg > localProg;
+      // Keep local if we already moved to the next cycle and remote is stale reveal
+      if (local && localProg > remoteProg) {
+        return false;
+      }
       if (
         local &&
         !remoteAdvanced &&
@@ -377,15 +366,44 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
       const seat = getMySeatSync(key);
       remote = mergeHandsPreserveLocal(remote, local, seat);
-      // Merge local submissions the remote may not have yet (race)
-      if (local?.submissions?.length && remote.phase === 'submitting') {
-        const byId = new Map(
-          remote.submissions.map((s) => [s.playerId, s] as const)
+      // Only re-attach OUR in-progress answer for THIS submitting round+prompt.
+      // Never re-inject peers' (or prior-round) answers — that left 2/3 stuck
+      // as «ya contestaste» after Zar advanced.
+      if (
+        local?.submissions?.length &&
+        remote.phase === 'submitting' &&
+        local.phase === 'submitting' &&
+        (local.round ?? 0) === (remote.round ?? 0) &&
+        (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null) &&
+        seat
+      ) {
+        const localMine = local.submissions.find(
+          (s) => s.playerId === seat && !s.rival
         );
-        for (const s of local.submissions) {
-          if (!s.rival && !byId.has(s.playerId)) byId.set(s.playerId, s);
+        const remoteRound = remote.round;
+        const remoteSubs = (remote.submissions ?? []).filter(
+          (s) => s.round == null || s.round === remoteRound
+        );
+        if (
+          localMine &&
+          (localMine.round == null || localMine.round === remoteRound) &&
+          !remoteSubs.some((s) => s.playerId === seat)
+        ) {
+          remote = {
+            ...remote,
+            submissions: [...remoteSubs, { ...localMine, round: remoteRound }],
+          };
+        } else {
+          remote = { ...remote, submissions: remoteSubs };
         }
-        remote = { ...remote, submissions: Array.from(byId.values()) };
+      } else if (remote.phase === 'submitting') {
+        const remoteRound = remote.round;
+        remote = {
+          ...remote,
+          submissions: (remote.submissions ?? []).filter(
+            (s) => s.round == null || s.round === remoteRound
+          ),
+        };
       }
       if (remote.phase === 'submitting') {
         remote = Engine.advanceToJudgingIfReady(remote);
@@ -435,6 +453,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
               coerceGameState({ ...r.state, code: key })
             );
             const local = gamesRef.current[key];
+            if (local && gameProgress(local) > gameProgress(remote)) {
+              return;
+            }
             if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
               return;
             }

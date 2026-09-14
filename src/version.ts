@@ -16,6 +16,7 @@ export const APP_VERSION_NOTES = [
       'Puntaco solo para el ganador; el resto ve quién ganó',
       'Siguiente ronda: solo el nuevo Zar avanza (o auto 10 s); pregunta nueva + manos',
       'Sync: no machaca manos al pasar de revelado a enviar',
+      'Fix: tras el Zar, no se quedan «ya contestaste» por respuestas de la ronda anterior',
     ],
   },
   {

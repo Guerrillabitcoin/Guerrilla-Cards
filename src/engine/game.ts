@@ -293,6 +293,7 @@ export function injectSoloRivals(
       playerId: `rival-${i + 1}`,
       cards,
       rival: true,
+      round: state.round,
     });
   }
 
@@ -631,8 +632,8 @@ export function submitCards(
     p.id === playerId ? { ...p, hand: newHand } : p
   );
   const submissions: Submission[] = [
-    ...state.submissions,
-    { playerId, cards },
+    ...submissionsForRound(state).filter((s) => !s.rival || state.mode === 'solo'),
+    { playerId, cards, round: state.round },
   ];
 
   // Solo: after human submits, inject random rival answers and go to judging
@@ -748,12 +749,25 @@ function applyRoundWinner(
  * Online sync helper: if enough players have submitted, enter judging
  * regardless of who submitted in which order / on which device.
  */
+
+/** Keep only submissions that belong to this round (drop leaked prior-round answers). */
+export function submissionsForRound(
+  state: GameState,
+  submissions: Submission[] = state.submissions
+): Submission[] {
+  const r = state.round;
+  return (submissions ?? []).filter((s) => {
+    if (s.round == null) return true; // legacy mid-match
+    return s.round === r;
+  });
+}
+
 export function advanceToJudgingIfReady(state: GameState): GameState {
   if (state.phase !== 'submitting') return state;
   if (state.mode === 'solo') return state;
   const voteMode = isVoteMode(state);
   const zar = state.players[state.zarIndex];
-  const realSubs = (state.submissions ?? []).filter((s) => !s.rival);
+  const realSubs = submissionsForRound(state).filter((s) => !s.rival);
   const needed = voteMode
     ? state.players.length
     : Math.max(0, state.players.length - 1);

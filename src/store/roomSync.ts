@@ -110,28 +110,38 @@ export function mergeHandsPreserveLocal(
   });
 
   // Preserve own submission real text when remote fog redacted it (early phase).
-  // Only same round — never re-inject prior-round answers into a fresh submitting.
-  let submissions = remote.submissions;
+  // Same round + same prompt only; never pull prior-round answers forward.
+  let submissions = remote.submissions ?? [];
+  const remoteRound = remote.round;
+  submissions = submissions.filter(
+    (s) => s.round == null || s.round === remoteRound
+  );
   if (
     myPlayerId &&
     shouldRedactSubmissionTexts(remote.phase) &&
+    local.phase === remote.phase &&
+    local.phase === 'submitting' &&
     local.submissions?.length &&
-    (local.round ?? 0) === (remote.round ?? 0)
+    (local.round ?? 0) === (remote.round ?? 0) &&
+    (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null)
   ) {
     const localSub = local.submissions.find(
-      (s) => s.playerId === myPlayerId && !s.rival
+      (s) =>
+        s.playerId === myPlayerId &&
+        !s.rival &&
+        (s.round == null || s.round === remoteRound)
     );
     if (
       localSub &&
       localSub.cards.some((c) => !isRedactedCardText(c.text))
     ) {
-      submissions = remote.submissions.map((s) => {
+      submissions = submissions.map((s) => {
         if (s.playerId !== myPlayerId) return s;
         const remoteRedacted = s.cards.every((c) => isRedactedCardText(c.text));
-        return remoteRedacted ? localSub : s;
+        return remoteRedacted ? { ...localSub, round: remoteRound } : s;
       });
       if (!submissions.some((s) => s.playerId === myPlayerId)) {
-        submissions = [...submissions, localSub];
+        submissions = [...submissions, { ...localSub, round: remoteRound }];
       }
     }
   }
