@@ -743,6 +743,42 @@ function applyRoundWinner(
 }
 
 
+
+/**
+ * Online sync helper: if enough players have submitted, enter judging
+ * regardless of who submitted in which order / on which device.
+ */
+export function advanceToJudgingIfReady(state: GameState): GameState {
+  if (state.phase !== 'submitting') return state;
+  if (state.mode === 'solo') return state;
+  const voteMode = isVoteMode(state);
+  const zar = state.players[state.zarIndex];
+  const realSubs = (state.submissions ?? []).filter((s) => !s.rival);
+  const needed = voteMode
+    ? state.players.length
+    : Math.max(0, state.players.length - 1);
+  if (realSubs.length < needed) return state;
+
+  // Drop accidental zar submission in zar mode
+  const submissions = voteMode
+    ? realSubs
+    : realSubs.filter((s) => s.playerId !== zar?.id);
+  if (submissions.length < needed) return state;
+
+  const order = shuffle([...submissions.keys()]);
+  const firstVoter =
+    state.players.find((p) => !p.isBot) ?? state.players[0];
+  return {
+    ...state,
+    submissions,
+    revealOrder: order,
+    votes: {},
+    phase: 'judging',
+    activeSeatId: voteMode ? firstVoter?.id ?? zar?.id ?? null : zar?.id ?? null,
+    updatedAt: now(),
+  };
+}
+
 /** Ensure revealOrder is a full permutation of submission indices (reshuffle if missing/stale). */
 export function ensureRevealOrder(state: GameState): GameState {
   const n = state.submissions.length;

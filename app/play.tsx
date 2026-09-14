@@ -24,6 +24,7 @@ import {
   getMySeat,
   getOnlineFlag,
   pullRoom,
+  pushRoom,
 } from '@/src/store/roomSync';
 import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
@@ -642,34 +643,49 @@ export default function PlayScreen() {
       if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
       engineTimerRef.current = setTimeout(() => {
         engineTimerRef.current = null;
-        try {
-          if (skipMode) {
-            updateGame(code, (g) => Engine.soloSkipRoundDiscard(g, pid, ids));
-            if (cardRefs.length) {
-              recordDiscards(cardRefs);
-              recordDiscarded(cardRefs);
-            }
-            setPicked([]);
-          } else {
-            updateGame(code, (g) => Engine.submitCards(g, pid, ids));
-            if (cardRefs.length) {
-              recordPlayed(cardRefs, { won: solo });
-            }
-            // Pass-and-play: only re-gate identity when another seat is up
-            if (!solo) {
-              const after = getGame(code);
-              if (after?.activeSeatId && after.activeSeatId !== pid) {
-                setPrivacy(true);
-                setPicked([]);
+        void (async () => {
+          try {
+            if (skipMode) {
+              updateGame(code, (g) => Engine.soloSkipRoundDiscard(g, pid, ids));
+              if (cardRefs.length) {
+                recordDiscards(cardRefs);
+                recordDiscarded(cardRefs);
+              }
+              setPicked([]);
+            } else {
+              if (onlineRoom) {
+                try {
+                  const remote = await pullRoom(code);
+                  if (remote.ok) applyRemoteGame(remote.state);
+                } catch {
+                  // keep local
+                }
+              }
+              updateGame(code, (g) => Engine.submitCards(g, pid, ids));
+              if (cardRefs.length) {
+                recordPlayed(cardRefs, { won: solo });
+              }
+              if (onlineRoom) {
+                const afterPush = getGame(code);
+                if (afterPush) {
+                  void pushRoom(afterPush, myPlayerId || pid);
+                }
+              }
+              if (!solo) {
+                const after = getGame(code);
+                if (after?.activeSeatId && after.activeSeatId !== pid) {
+                  setPrivacy(true);
+                  setPicked([]);
+                }
               }
             }
+          } catch (e) {
+            Alert.alert(
+              skipMode ? 'Descarte' : 'Enviar',
+              e instanceof Error ? e.message : 'Error'
+            );
           }
-        } catch (e) {
-          Alert.alert(
-            skipMode ? 'Descarte' : 'Enviar',
-            e instanceof Error ? e.message : 'Error'
-          );
-        }
+        })();
       }, 140);
     });
   };

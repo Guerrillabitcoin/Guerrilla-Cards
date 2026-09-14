@@ -339,17 +339,48 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const key = state.code.trim().toUpperCase();
       let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
-      if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
+      // Allow equal updatedAt if remote already advanced to judging
+      if (
+        local &&
+        (local.updatedAt ?? 0) > (remote.updatedAt ?? 0)
+      ) {
+        return false;
+      }
+      if (
+        local &&
+        (local.updatedAt ?? 0) === (remote.updatedAt ?? 0) &&
+        local.phase === remote.phase &&
+        (local.submissions?.length ?? 0) >= (remote.submissions?.length ?? 0)
+      ) {
         return false;
       }
       const seat = getMySeatSync(key);
       remote = mergeHandsPreserveLocal(remote, local, seat);
+      // Merge local submissions the remote may not have yet (race)
+      if (local?.submissions?.length && remote.phase === 'submitting') {
+        const byId = new Map(
+          remote.submissions.map((s) => [s.playerId, s] as const)
+        );
+        for (const s of local.submissions) {
+          if (!s.rival && !byId.has(s.playerId)) byId.set(s.playerId, s);
+        }
+        remote = { ...remote, submissions: Array.from(byId.values()) };
+      }
+      remote = Engine.advanceToJudgingIfReady(remote);
       gamesRef.current = { ...gamesRef.current, [key]: remote };
       setGames((prevMap) => ({
         ...prevMap,
         [key]: toUiGame(remote),
       }));
       void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
+      // If we just promoted, push so Zar / others see judging
+      if (
+        remote.mode === 'async' &&
+        remote.phase === 'judging' &&
+        local?.phase === 'submitting'
+      ) {
+        void pushRoom(remote, seat);
+      }
       return true;
     },
     [toUiGame]
@@ -361,7 +392,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (!cur) return;
       // Skip double coerce — ref state is already live
       const prev = cur;
-      const next = { ...updater(prev), updatedAt: Date.now() };
+      let next = { ...updater(prev), updatedAt: Date.now() };
+      next = Engine.advanceToJudgingIfReady(next);
       gamesRef.current = { ...gamesRef.current, [code]: next };
       // Single-key React update (not rebuilding every game)
       setGames((prevMap) => ({

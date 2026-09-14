@@ -215,11 +215,66 @@ function mergeSubmissions(existing, incoming) {
   return incoming?.submissions ?? existing?.submissions ?? [];
 }
 
+
+function shuffleIndices(n) {
+  const a = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/** When all required answers are in, force judging (order-independent). */
+function promoteJudgingIfReady(state) {
+  if (!state || state.phase !== 'submitting') return state;
+  if (state.mode === 'solo') return state;
+  const voteMode = (state.judgeMode || 'zar') === 'vote';
+  const players = state.players || [];
+  const zar = players[state.zarIndex || 0];
+  let subs = (state.submissions || []).filter((s) => s && !s.rival);
+  if (!voteMode && zar?.id) {
+    subs = subs.filter((s) => s.playerId !== zar.id);
+  }
+  const needed = voteMode
+    ? players.length
+    : Math.max(0, players.length - 1);
+  if (subs.length < needed) return state;
+  const firstVoter = players.find((p) => !p.isBot) || players[0];
+  return {
+    ...state,
+    submissions: subs,
+    revealOrder: shuffleIndices(subs.length),
+    votes: {},
+    phase: 'judging',
+    activeSeatId: voteMode
+      ? firstVoter?.id || zar?.id || null
+      : zar?.id || null,
+    updatedAt: Date.now(),
+  };
+}
+
 function applyPrivacyMerges(existing, incoming) {
   if (!existing || typeof existing !== 'object') return incoming;
   const players = mergeHandsByPlayerId(existing.players, incoming.players);
   const submissions = mergeSubmissions(existing, incoming);
-  return { ...incoming, players, submissions };
+  // Prefer judging if either side already got there
+  let phase = incoming.phase;
+  if (existing.phase === 'judging' || incoming.phase === 'judging') {
+    phase = 'judging';
+  }
+  let state = { ...incoming, phase, players, submissions };
+  if (phase === 'judging' && existing.phase === 'judging') {
+    state.revealOrder =
+      (incoming.revealOrder && incoming.revealOrder.length === submissions.length
+        ? incoming.revealOrder
+        : null) ||
+      existing.revealOrder ||
+      shuffleIndices(submissions.length);
+    state.activeSeatId =
+      incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;
+  }
+  return promoteJudgingIfReady(state);
 }
 
 module.exports = async function handler(req, res) {
@@ -396,13 +451,15 @@ module.exports = async function handler(req, res) {
         }
       }
 
+      state = promoteJudgingIfReady(state);
+
       const payload = JSON.stringify(state);
       if (payload.length > MAX_BODY_CHARS) {
         return res.status(413).json({ ok: false, error: 'state_too_large' });
       }
 
       await kvCommand(['SET', key, payload]);
-      return res.status(200).json({ ok: true, code });
+      return res.status(200).json({ ok: true, code, state });
     }
 
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });
