@@ -424,7 +424,7 @@ function CardFaceInner({
   discardMarked?: boolean;
   /** Slot just refilled after discard — brief “new card” cue. */
   justReplaced?: boolean;
-  /** Brief green flash when marking an answer. */
+  /** Brief green letter flash (new draws / mark). */
   flashGreen?: boolean;
   onPress?: () => void;
   compact?: boolean;
@@ -526,6 +526,7 @@ function CardFaceInner({
             },
             styles.cardTextWrap,
             longWord && styles.cardTextLongWord,
+            flashGreen && styles.cardTextFlashGreen,
           ]}
           numberOfLines={lineCap}
           {...autoFitProps}
@@ -857,6 +858,12 @@ function useUiStyles() {
   },
   cardPromptText: {
     color: colors.promptText,
+  },
+  cardTextFlashGreen: {
+    color: '#4CAF50',
+    textShadowColor: 'rgba(76, 175, 80, 0.55)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
   },
   cardAnswerText: {
     color: colors.answerText,

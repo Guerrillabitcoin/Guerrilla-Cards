@@ -74,6 +74,8 @@ export default function PlayScreen() {
   const discardSeedKeyRef = useRef<string | null>(null);
   const prevPhaseRef = useRef<string | null>(null);
   const knownHandIdsRef = useRef<Set<string>>(new Set());
+  /** New draws often land while judging — flash when mano is visible again. */
+  const pendingNewCardIdsRef = useRef<string[]>([]);
   const handTrackGameRef = useRef<string>('');
   const staleRecordedRef = useRef<string | null>(null);
 
@@ -154,21 +156,61 @@ export default function PlayScreen() {
       }
     }
     if (newly.length) recordDrawn(newly);
-    // Cartas nuevas al reponer (no el deal inicial de 12): flash verde breve
-    if (
-      newly.length &&
-      hadCardsBefore &&
-      (game.phase === 'submitting' || game.phase === 'discarding')
-    ) {
+    // Cartas nuevas (mismo hueco vía replaceInHand). Si la mano no se ve aún
+    // (judging/reveal), guardamos ids y flasheamos al volver a submitting.
+    if (newly.length && hadCardsBefore) {
       const ids = newly.map((c) => c.id);
-      setFlashGreenIds(ids);
-      if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
-      greenFlashRef.current = setTimeout(() => {
-        greenFlashRef.current = null;
-        setFlashGreenIds([]);
-      }, 650);
+      if (game.phase === 'submitting' || game.phase === 'discarding') {
+        pendingNewCardIdsRef.current = [];
+        const slots: number[] = [];
+        const human = game.players.find((pl) => !pl.isBot) ?? game.players[0];
+        const h = human?.hand ?? [];
+        ids.forEach((id) => {
+          const i = h.findIndex((c) => c.id === id);
+          if (i >= 0) slots.push(i);
+        });
+        if (slots.length) {
+          setReplacedSlots(slots);
+          if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
+          replaceFlashRef.current = setTimeout(() => setReplacedSlots([]), 1000);
+        }
+        setFlashGreenIds(ids);
+        if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+        greenFlashRef.current = setTimeout(() => {
+          greenFlashRef.current = null;
+          setFlashGreenIds([]);
+        }, 1000);
+      } else {
+        pendingNewCardIdsRef.current = ids;
+      }
     }
   }, [game, recordDrawn]);
+
+  // Flash letras verdes 1s al empezar ronda si hubo robos en judging
+  useEffect(() => {
+    if (!game || game.phase !== 'submitting') return;
+    const ids = pendingNewCardIdsRef.current;
+    if (!ids.length) return;
+    pendingNewCardIdsRef.current = [];
+    const human = game.players.find((pl) => !pl.isBot) ?? game.players[0];
+    const h = human?.hand ?? [];
+    const slots: number[] = [];
+    ids.forEach((id) => {
+      const i = h.findIndex((c) => c.id === id);
+      if (i >= 0) slots.push(i);
+    });
+    if (slots.length) {
+      setReplacedSlots(slots);
+      if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
+      replaceFlashRef.current = setTimeout(() => setReplacedSlots([]), 1000);
+    }
+    setFlashGreenIds(ids);
+    if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+    greenFlashRef.current = setTimeout(() => {
+      greenFlashRef.current = null;
+      setFlashGreenIds([]);
+    }, 1000);
+  }, [game?.phase, game?.round, game?.code]);
 
   // Left in hand at match end (once per game)
   useEffect(() => {
@@ -416,7 +458,7 @@ export default function PlayScreen() {
     greenFlashRef.current = setTimeout(() => {
       greenFlashRef.current = null;
       setFlashGreenIds([]);
-    }, 420);
+    }, 1000);
   };
 
   const autoSend = (ids: string[]) => {
@@ -948,9 +990,9 @@ export default function PlayScreen() {
                 </Text>
               </View>
               <View style={styles.hand}>
-                {hand.map((c) => (
+                {hand.map((c, slotIdx) => (
                   <View
-                    key={c.id}
+                    key={`discard-slot-${slotIdx}`}
                     style={[styles.handItem, handItemLayoutStyle]}
                   >
                     <CardFace
@@ -1041,7 +1083,7 @@ export default function PlayScreen() {
               <View style={styles.hand}>
                 {hand.map((c, slotIdx) => (
                   <View
-                    key={c.id}
+                    key={`hand-slot-${slotIdx}`}
                     style={[styles.handItem, handItemLayoutStyle]}
                   >
                     <CardFace
@@ -1057,16 +1099,8 @@ export default function PlayScreen() {
                       discardMarked={
                         soloSkipMode ? picked.includes(c.id) : false
                       }
-                      justReplaced={
-                        soloSkipMode
-                          ? false
-                          : replacedSlots.includes(slotIdx)
-                      }
-                      flashGreen={
-                        soloSkipMode
-                          ? false
-                          : flashGreenIds.includes(c.id)
-                      }
+                      justReplaced={replacedSlots.includes(slotIdx)}
+                      flashGreen={flashGreenIds.includes(c.id)}
                       selectionIndex={
                         soloSkipMode
                           ? undefined
