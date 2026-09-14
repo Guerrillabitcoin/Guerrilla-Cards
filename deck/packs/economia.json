@@ -741,11 +741,65 @@
       "type": "answer",
       "text": "unas cosas cuestan más que otras",
       "pick": 1
+    },
+    {
+      "id": "economia-p-0239",
+      "type": "prompt",
+      "text": "La economía de África se basa en ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "economia-p-0240",
+      "type": "prompt",
+      "text": "¿Cómo pagué todas mis deudas? ______",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0241",
+      "type": "prompt",
+      "text": "Mi vida laboral incluye: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "economia-p-0242",
+      "type": "prompt",
+      "text": "______ mejoraría mucho la economía de EEUU.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0243",
+      "type": "prompt",
+      "text": "En el CV puse «habilidades especiales» y puse ______. Me contrataron al momento.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0244",
+      "type": "prompt",
+      "text": "El verdadero motor de la economía española no es el turismo. Es ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0245",
+      "type": "prompt",
+      "text": "Me echaron del trabajo por intentar explicar ______ en la reunión.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0246",
+      "type": "prompt",
+      "text": "Lo primero que haría si ganara la lotería no es jubilarme. Es ______.",
+      "pick": 1
+    },
+    {
+      "id": "economia-p-0247",
+      "type": "prompt",
+      "text": "El nuevo impuesto de Hacienda gravará ______ en el extranjero.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 123,
-    "prompts": 22,
+    "total": 132,
+    "prompts": 31,
     "answers": 101
   },
   "playable": true

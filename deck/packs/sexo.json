@@ -2139,11 +2139,29 @@
       "type": "answer",
       "text": "¡Aquí manda mi polla!",
       "pick": 1
+    },
+    {
+      "id": "sexo-p-0025",
+      "type": "prompt",
+      "text": "El mayor error de mi vida sexual fue introducir ______ en la ecuación.",
+      "pick": 1
+    },
+    {
+      "id": "sexo-p-0026",
+      "type": "prompt",
+      "text": "La última tendencia en OnlyFans es ______.",
+      "pick": 1
+    },
+    {
+      "id": "sexo-p-0027",
+      "type": "prompt",
+      "text": "¿Cómo llamo cariñosamente a las partes íntimas de mi pareja? ______",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 356,
-    "prompts": 16,
+    "total": 359,
+    "prompts": 19,
     "answers": 340
   },
   "playable": true

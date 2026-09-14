@@ -1545,11 +1545,47 @@
       "type": "answer",
       "text": "dar con el fuelle a mi prima",
       "pick": 1
+    },
+    {
+      "id": "familia-p-0273",
+      "type": "prompt",
+      "text": "Mi abuela no entiende Internet, pero entiende perfectamente ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0274",
+      "type": "prompt",
+      "text": "Si quiero arruinar una cena familiar, saco el tema de ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0275",
+      "type": "prompt",
+      "text": "¿Cuál es el verdadero motivo por el que la gente tiene hijos? ______",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0276",
+      "type": "prompt",
+      "text": "El último mensaje que envié por error al grupo de la familia fue ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0277",
+      "type": "prompt",
+      "text": "El truco para aguantar una comida de Navidad es ______.",
+      "pick": 1
+    },
+    {
+      "id": "familia-p-0278",
+      "type": "prompt",
+      "text": "El apodo de mi mujer entre mi grupo de amigos: ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 257,
-    "prompts": 52,
+    "total": 263,
+    "prompts": 58,
     "answers": 205
   },
   "playable": true

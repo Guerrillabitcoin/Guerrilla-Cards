@@ -27,9 +27,7 @@ import {
 } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import { randomNickname } from '@/src/engine/nicknames';
-import { useAdmin } from '@/src/store/AdminContext';
 import { useTheme } from '@/src/store/ThemeContext';
-import { AdminEntryButton, AdminPanel } from '@/src/components/AdminPanel';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { APP_VERSION_LABEL } from '@/src/version';
 
@@ -58,8 +56,6 @@ const ADULT_OK_KEY = 'guerrilla_adult_ok_v1';
 
 export default function HomeScreen() {
   const styles = useHomeStyles();
-  const { unlocked: adminUnlocked } = useAdmin();
-  const [adminOpen, setAdminOpen] = useState(false);
 
   const router = useRouter();
   const { createGame, createAndStartSolo, joinOrOpen, games, ready } =
@@ -310,7 +306,6 @@ export default function HomeScreen() {
   return (
     <Screen style={denseMenu ? styles.screenDense : undefined} contentDense={denseMenu}>
       <View style={styles.brandTop}>
-        <AdminEntryButton onPress={() => setAdminOpen(true)} />
         <ThemeToggle />
       </View>
       <View style={styles.brandRow}>
@@ -322,20 +317,8 @@ export default function HomeScreen() {
         >
           GUERRILLA CARDS
         </Text>
-        <Text
-          style={styles.brandVersion}
-          onLongPress={() => setAdminOpen(true)}
-          accessibilityHint="Mantén pulsado para Admin"
-        >
-          {APP_VERSION_LABEL}
-        </Text>
+        <Text style={styles.brandVersion}>{APP_VERSION_LABEL}</Text>
       </View>
-      {adminUnlocked ? (
-        <Muted style={styles.localNotice}>
-          Modo Admin activo — los cambios son parches locales hasta que exportes y hagas commit.
-        </Muted>
-      ) : null}
-      <AdminPanel visible={adminOpen} onClose={() => setAdminOpen(false)} />
       <Subtitle style={denseMenu ? styles.subDense : undefined}>
         Juego de humor negro en español. Rellena los huecos de las preguntas con
         disparatadas e ingeniosas respuestas.

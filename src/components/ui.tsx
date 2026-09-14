@@ -253,6 +253,7 @@ export function PackTile({
             styles.packTitle,
             compact && styles.packTitleCompact,
             pcPack && styles.packTitlePc,
+            selected && styles.packTitleSelected,
           ]}
           numberOfLines={2}
           adjustsFontSizeToFit
@@ -268,6 +269,7 @@ export function PackTile({
               styles.packSub,
               compact && styles.packSubCompact,
               pcPack && styles.packSubPc,
+              selected && styles.packSubSelected,
             ]}
             numberOfLines={1}
           >
@@ -282,6 +284,7 @@ export function PackTile({
               styles.packGroup,
               compact && styles.packGroupCompact,
               pcPack && styles.packGroupPc,
+              selected && styles.packGroupSelected,
             ]}
             numberOfLines={1}
           >
@@ -740,7 +743,7 @@ function useUiStyles() {
   },
   chipSelected: {
     borderColor: colors.accent,
-    backgroundColor: '#3B2060',
+    backgroundColor: classic ? colors.accent : '#3B2060',
   },
   chipText: {
     color: colors.textMuted,
@@ -748,7 +751,7 @@ function useUiStyles() {
     fontSize: 13,
   },
   chipTextSelected: {
-    color: colors.text,
+    color: classic ? '#FFF8F0' : colors.text,
   },
   chipDisabled: {
     opacity: 0.55,
@@ -1000,7 +1003,7 @@ function useUiStyles() {
   },
   packTileSelected: {
     borderColor: colors.accent,
-    backgroundColor: '#3B2060',
+    backgroundColor: classic ? colors.accent : '#3B2060',
   },
   packTick: {
     position: 'absolute',
@@ -1037,6 +1040,15 @@ function useUiStyles() {
     textAlign: 'center',
     alignSelf: 'center',
     maxWidth: '100%',
+  },
+  packTitleSelected: {
+    color: '#FFF8F0',
+  },
+  packSubSelected: {
+    color: 'rgba(255,248,240,0.85)',
+  },
+  packGroupSelected: {
+    color: 'rgba(255,248,240,0.75)',
   },
   packGroup: {
     color: colors.textDim,

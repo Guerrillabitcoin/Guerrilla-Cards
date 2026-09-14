@@ -3261,11 +3261,17 @@
       "type": "answer",
       "text": "¡Aquí manda mi polla!",
       "pick": 1
+    },
+    {
+      "id": "plus18-p-0026",
+      "type": "prompt",
+      "text": "Cada vez que escucho ______ me entran ganas de asesinar",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 543,
-    "prompts": 22,
+    "total": 544,
+    "prompts": 23,
     "answers": 521
   },
   "playable": true

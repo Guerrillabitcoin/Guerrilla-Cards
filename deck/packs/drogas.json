@@ -597,11 +597,29 @@
       "type": "answer",
       "text": "un bolso de hombre Gucci donde todo el mundo sabe que llevo droga",
       "pick": 1
+    },
+    {
+      "id": "drogas-p-0019",
+      "type": "prompt",
+      "text": "Consumo habitualmente ______ aunque no me guste.",
+      "pick": 1
+    },
+    {
+      "id": "drogas-p-0020",
+      "type": "prompt",
+      "text": "______ y ______. La mente de un adicto.",
+      "pick": 2
+    },
+    {
+      "id": "drogas-p-0021",
+      "type": "prompt",
+      "text": "He dejado de fumar. Ahora mi vicio es ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 99,
-    "prompts": 3,
+    "total": 102,
+    "prompts": 6,
     "answers": 96
   },
   "playable": true

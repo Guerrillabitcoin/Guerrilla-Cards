@@ -849,11 +849,53 @@
       "type": "answer",
       "text": "dejar de ser facha",
       "pick": 1
+    },
+    {
+      "id": "politica-p-0039",
+      "type": "prompt",
+      "text": "China: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "politica-p-0040",
+      "type": "prompt",
+      "text": "No somos ______ en manos de políticos mediocres.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0041",
+      "type": "prompt",
+      "text": "El nuevo plan de vivienda del Gobierno consiste básicamente en ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0042",
+      "type": "prompt",
+      "text": "Lo único que frena una tercera Guerra Mundial es ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0043",
+      "type": "prompt",
+      "text": "El último deseo de Franco no fue lo que todos creen. Fue ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0044",
+      "type": "prompt",
+      "text": "El motivo real por el que no voy a votar nunca más es ______.",
+      "pick": 1
+    },
+    {
+      "id": "politica-p-0045",
+      "type": "prompt",
+      "text": "Lo que realmente se cuece en las reuniones de la UE es ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 141,
-    "prompts": 32,
+    "total": 148,
+    "prompts": 39,
     "answers": 109
   },
   "playable": true

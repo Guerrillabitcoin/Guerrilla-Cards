@@ -531,11 +531,23 @@
       "type": "answer",
       "text": "masajes craneales contra la cefalea",
       "pick": 1
+    },
+    {
+      "id": "salud-p-0274",
+      "type": "prompt",
+      "text": "La próxima pandemia no será un virus. Será ______.",
+      "pick": 1
+    },
+    {
+      "id": "salud-p-0275",
+      "type": "prompt",
+      "text": "He sustituido el café de la mañana por ______ y ahora soy otra persona.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 88,
-    "prompts": 17,
+    "total": 90,
+    "prompts": 19,
     "answers": 71
   },
   "playable": true

@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { getPlayablePackMeta } from '../engine/deck';
 import type { Card, CardType } from '../engine/types';
-import { useAdmin } from '../store/AdminContext';
+import { ADMIN_ENABLED, useAdmin } from '../store/AdminContext';
 import { useTheme } from '../store/ThemeContext';
 
 type Mode =
@@ -83,6 +83,7 @@ export function AdminPanel({
   const [packId, setPackId] = useState(defaultPack);
 
   React.useEffect(() => {
+    if (!ADMIN_ENABLED) return;
     if (!visible) return;
     setMode(startMode ?? (unlocked ? (editTarget ? 'edit' : 'menu') : 'unlock'));
     setText(editTarget?.text ?? '');
@@ -226,6 +227,8 @@ export function AdminPanel({
       Alert.alert('No se pudo exportar', String(e));
     }
   };
+
+  if (!ADMIN_ENABLED) return null;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -474,6 +477,7 @@ export function AdminEntryButton({
 }) {
   const { colors, fontFamily } = useTheme();
   const { unlocked, patchCount } = useAdmin();
+  if (!ADMIN_ENABLED) return null;
   return (
     <Pressable
       onPress={onPress}

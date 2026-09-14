@@ -471,11 +471,77 @@
       "type": "answer",
       "text": "desastre educativo en España",
       "pick": 1
+    },
+    {
+      "id": "espana-p-0252",
+      "type": "prompt",
+      "text": "Lo que realmente une a este país no es la Constitución, es ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0253",
+      "type": "prompt",
+      "text": "El secreto del éxito de Ibiza no es la música, es ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0254",
+      "type": "prompt",
+      "text": "El INE ha confirmado que el 73% de los españoles practica ______ en secreto.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0255",
+      "type": "prompt",
+      "text": "El nuevo eslogan de Turismo de España es: «Ven por el sol, quédate por ______».",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0256",
+      "type": "prompt",
+      "text": "El metro de Madrid a las 8 de la mañana huele a ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0257",
+      "type": "prompt",
+      "text": "El himno nacional mejoraría mucho si hablara de ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0258",
+      "type": "prompt",
+      "text": "He pedido un deseo a la fuente de la Plaza Mayor y me ha tocado ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0259",
+      "type": "prompt",
+      "text": "El último tabú que queda en este país es ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0260",
+      "type": "prompt",
+      "text": "El próximo fenómeno de masas en España será ______.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0261",
+      "type": "prompt",
+      "text": "Nada dice clase media española como ______ en un chalé adosado.",
+      "pick": 1
+    },
+    {
+      "id": "espana-p-0262",
+      "type": "prompt",
+      "text": "El problema de este país no es la política. Es ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 78,
-    "prompts": 24,
+    "total": 89,
+    "prompts": 35,
     "answers": 54
   },
   "playable": true

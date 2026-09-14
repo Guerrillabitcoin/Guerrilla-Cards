@@ -21087,11 +21087,173 @@
       "type": "answer",
       "text": "dejar de preguntarte si las cosas pueden ir mal",
       "pick": 1
+    },
+    {
+      "id": "core-p-0311",
+      "type": "prompt",
+      "text": "¿Qué falló en nuestra relación? ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0312",
+      "type": "prompt",
+      "text": "Quedamos el viernes a las 22h para ______ y después ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0313",
+      "type": "prompt",
+      "text": "Me echaron de la biblioteca por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0314",
+      "type": "prompt",
+      "text": "______ estaba bien hace 20 años. Ahora ______ es lo que está de moda.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0315",
+      "type": "prompt",
+      "text": "¿Quieres ______, o prefieres ______?",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0316",
+      "type": "prompt",
+      "text": "En mi barrio han abierto un local donde cocinan ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0317",
+      "type": "prompt",
+      "text": "En Tinder el primer mensaje ya no es «hola», es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0318",
+      "type": "prompt",
+      "text": "Nada dice «te quiero» como ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0319",
+      "type": "prompt",
+      "text": "Antes de morir, quiero probar ______ aunque sea una sola vez.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0320",
+      "type": "prompt",
+      "text": "Nadie te prepara para ______ hasta que te pasa.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0321",
+      "type": "prompt",
+      "text": "¿Qué es lo primero que haría si fuera invisible durante 24 horas? ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0322",
+      "type": "prompt",
+      "text": "¿Por qué mi vecino del quinto no me saluda? ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0323",
+      "type": "prompt",
+      "text": "¿Qué encontraría la policía si registrara mi bolso ahora mismo? ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0324",
+      "type": "prompt",
+      "text": "¿Qué debería ser obligatorio en todos los colegios y no lo es? ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0325",
+      "type": "prompt",
+      "text": "¿Cuál es mi plan B si esto de ser persona no funciona? ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0326",
+      "type": "prompt",
+      "text": "He descubierto que el amor verdadero es compatible con ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0327",
+      "type": "prompt",
+      "text": "Si pudiera volver a los 16 años, lo único que cambiaría sería ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0328",
+      "type": "prompt",
+      "text": "Mi superpoder inútil pero honesto es ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0329",
+      "type": "prompt",
+      "text": "Cuando me pregunten qué he hecho por la humanidad, diré: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0330",
+      "type": "prompt",
+      "text": "Nada destruye más una amistad que compartir ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0331",
+      "type": "prompt",
+      "text": "En mi funeral quiero que suene ______ y que nadie haga preguntas.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0332",
+      "type": "prompt",
+      "text": "Si este juego acaba mal, será por culpa de ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0333",
+      "type": "prompt",
+      "text": "El mayor logro de mi generación ha sido normalizar ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0334",
+      "type": "prompt",
+      "text": "Cuando digo «estoy bien» en realidad estoy pensando en ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0335",
+      "type": "prompt",
+      "text": "He perdido la fe en la humanidad después de ver ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0336",
+      "type": "prompt",
+      "text": "______: no recomiendo nada meterse en esa \"madriguera\".",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0337",
+      "type": "prompt",
+      "text": "Vaya vaya, ¿qué tenemos aquí? ______",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 3514,
-    "prompts": 249,
+    "total": 3541,
+    "prompts": 276,
     "answers": 3265
   },
   "playable": true

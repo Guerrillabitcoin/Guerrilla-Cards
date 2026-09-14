@@ -519,11 +519,23 @@
       "type": "answer",
       "text": "Greta Thunberg",
       "pick": 1
+    },
+    {
+      "id": "celebridades-p-0015",
+      "type": "prompt",
+      "text": "El próximo documental de Netflix se titulará: «______: la vergüenza de una generación».",
+      "pick": 1
+    },
+    {
+      "id": "celebridades-p-0016",
+      "type": "prompt",
+      "text": "El nuevo plato estrella de Dabiz Muñoz se llama ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 86,
-    "prompts": 10,
+    "total": 88,
+    "prompts": 12,
     "answers": 76
   },
   "playable": true

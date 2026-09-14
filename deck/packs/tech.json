@@ -669,11 +669,59 @@
       "type": "answer",
       "text": "El Algorrino",
       "pick": 1
+    },
+    {
+      "id": "tech-p-0072",
+      "type": "prompt",
+      "text": "Se coló una foto de ______ en mi presentación sobre ______.",
+      "pick": 2
+    },
+    {
+      "id": "tech-p-0073",
+      "type": "prompt",
+      "text": "Tengo un agente de IA dedicado a ______ en la deepweb.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0074",
+      "type": "prompt",
+      "text": "La Inteligencia Artificial ha aprendido a hacer ______ y ahora no hay marcha atrás.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0075",
+      "type": "prompt",
+      "text": "El algoritmo de Instagram me ha convertido en un experto en ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0076",
+      "type": "prompt",
+      "text": "La NASA ha detectado ______ en Marte y ha decidido no aterrizar.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0077",
+      "type": "prompt",
+      "text": "El nuevo pack de Amazon Prime incluye envío en 24 h de ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0078",
+      "type": "prompt",
+      "text": "Mi crush me ha dejado en visto después de enviarle ______.",
+      "pick": 1
+    },
+    {
+      "id": "tech-p-0079",
+      "type": "prompt",
+      "text": "La ciencia ya puede clonar personas, pero todavía no puede clonar ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 111,
-    "prompts": 17,
+    "total": 119,
+    "prompts": 25,
     "answers": 94
   },
   "playable": true

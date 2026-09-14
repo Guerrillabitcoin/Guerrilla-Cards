@@ -83,9 +83,10 @@ export const classicTheme: AppTheme = {
     bgElevated: '#FFFFFF',
     bgCard: '#FFFFFF',
     border: '#111111',
-    accent: '#111111',
-    accentDim: '#333333',
-    accentSoft: '#222222',
+    // Resaltes home (packs/opciones): naranja oscuro + texto claro
+    accent: '#C45A12',
+    accentDim: '#8C3F0C',
+    accentSoft: '#E07A30',
     text: '#111111',
     textMuted: '#333333',
     textDim: '#666666',

@@ -11,8 +11,8 @@
       "nsfw": false,
       "file": "packs/core.json",
       "counts": {
-        "total": 3514,
-        "prompts": 249,
+        "total": 3541,
+        "prompts": 276,
         "answers": 3265
       },
       "playable": true
@@ -24,8 +24,8 @@
       "nsfw": false,
       "file": "packs/politica.json",
       "counts": {
-        "total": 141,
-        "prompts": 32,
+        "total": 148,
+        "prompts": 39,
         "answers": 109
       },
       "playable": true
@@ -37,8 +37,8 @@
       "nsfw": false,
       "file": "packs/celebridades.json",
       "counts": {
-        "total": 86,
-        "prompts": 10,
+        "total": 88,
+        "prompts": 12,
         "answers": 76
       },
       "playable": true
@@ -50,8 +50,8 @@
       "nsfw": false,
       "file": "packs/economia.json",
       "counts": {
-        "total": 123,
-        "prompts": 22,
+        "total": 132,
+        "prompts": 31,
         "answers": 101
       },
       "playable": true
@@ -63,8 +63,8 @@
       "nsfw": false,
       "file": "packs/animales.json",
       "counts": {
-        "total": 78,
-        "prompts": 6,
+        "total": 79,
+        "prompts": 7,
         "answers": 72
       },
       "playable": true
@@ -76,8 +76,8 @@
       "nsfw": true,
       "file": "packs/sexo.json",
       "counts": {
-        "total": 356,
-        "prompts": 16,
+        "total": 359,
+        "prompts": 19,
         "answers": 340
       },
       "playable": true
@@ -89,8 +89,8 @@
       "nsfw": true,
       "file": "packs/drogas.json",
       "counts": {
-        "total": 99,
-        "prompts": 3,
+        "total": 102,
+        "prompts": 6,
         "answers": 96
       },
       "playable": true
@@ -102,8 +102,8 @@
       "nsfw": false,
       "file": "packs/familia.json",
       "counts": {
-        "total": 257,
-        "prompts": 52,
+        "total": 263,
+        "prompts": 58,
         "answers": 205
       },
       "playable": true
@@ -115,8 +115,8 @@
       "nsfw": false,
       "file": "packs/religion.json",
       "counts": {
-        "total": 83,
-        "prompts": 10,
+        "total": 88,
+        "prompts": 15,
         "answers": 73
       },
       "playable": true
@@ -128,8 +128,8 @@
       "nsfw": false,
       "file": "packs/tech.json",
       "counts": {
-        "total": 111,
-        "prompts": 17,
+        "total": 119,
+        "prompts": 25,
         "answers": 94
       },
       "playable": true
@@ -141,8 +141,8 @@
       "nsfw": false,
       "file": "packs/salud.json",
       "counts": {
-        "total": 88,
-        "prompts": 17,
+        "total": 90,
+        "prompts": 19,
         "answers": 71
       },
       "playable": true
@@ -154,8 +154,8 @@
       "nsfw": false,
       "file": "packs/espana.json",
       "counts": {
-        "total": 78,
-        "prompts": 24,
+        "total": 89,
+        "prompts": 35,
         "answers": 54
       },
       "playable": true
@@ -167,8 +167,8 @@
       "nsfw": true,
       "file": "packs/plus18.json",
       "counts": {
-        "total": 543,
-        "prompts": 22,
+        "total": 544,
+        "prompts": 23,
         "answers": 521
       },
       "playable": true
@@ -189,6 +189,9 @@
     "playable_cards": 4447,
     "playable_prompts": 339,
     "playable_answers": 4108,
-    "banned": 21
+    "banned": 21,
+    "prompts": 565,
+    "answers": 5077,
+    "total": 5642
   }
 }

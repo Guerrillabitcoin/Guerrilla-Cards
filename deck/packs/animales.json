@@ -471,11 +471,17 @@
       "type": "answer",
       "text": "ojitos de perrito",
       "pick": 1
+    },
+    {
+      "id": "animales-p-0248",
+      "type": "prompt",
+      "text": "¿Qué es ese animal? ______",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 78,
-    "prompts": 6,
+    "total": 79,
+    "prompts": 7,
     "answers": 72
   },
   "playable": true

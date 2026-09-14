@@ -24,6 +24,9 @@ import type { Card, CardType } from '../engine/types';
 const UNLOCKED_KEY = 'guerrilla_admin_unlocked_v1';
 const PATCHES_KEY = 'guerrilla_deck_patches_v1';
 
+/** Kill-switch: Admin UI/unlock off while false. Code kept for later. */
+export const ADMIN_ENABLED = false;
+
 /** Simple shared PIN — change here if you want. Not shown in public UI. */
 export const ADMIN_PIN = 'guerrilla';
 
@@ -78,10 +81,13 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(PATCHES_KEY),
         ]);
         if (cancelled) return;
-        let nextUnlocked = u === '1';
-        if (readAdminQuery()) nextUnlocked = true;
+        let nextUnlocked = false;
+        if (ADMIN_ENABLED) {
+          nextUnlocked = u === '1';
+          if (readAdminQuery()) nextUnlocked = true;
+          if (nextUnlocked) void AsyncStorage.setItem(UNLOCKED_KEY, '1');
+        }
         setUnlocked(nextUnlocked);
-        if (nextUnlocked) void AsyncStorage.setItem(UNLOCKED_KEY, '1');
         const parsed = normalizePatches(raw ? JSON.parse(raw) : null);
         setPatches(parsed);
         setActiveDeckPatches(parsed);
@@ -105,6 +111,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const unlock = useCallback((pin: string) => {
+    if (!ADMIN_ENABLED) return false;
     if (pin.trim() !== ADMIN_PIN) return false;
     setUnlocked(true);
     void AsyncStorage.setItem(UNLOCKED_KEY, '1');

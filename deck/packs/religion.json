@@ -501,11 +501,41 @@
       "type": "answer",
       "text": "agua bendita",
       "pick": 1
+    },
+    {
+      "id": "religion-p-0242",
+      "type": "prompt",
+      "text": "El Papa ha pedido perdón públicamente por ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0243",
+      "type": "prompt",
+      "text": "En el juicio final, Dios me va a preguntar sobre ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0244",
+      "type": "prompt",
+      "text": "En el cielo no hay wifi, pero hay ______ ilimitado.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0245",
+      "type": "prompt",
+      "text": "El próximo santo de la Iglesia será el patrón de ______.",
+      "pick": 1
+    },
+    {
+      "id": "religion-p-0246",
+      "type": "prompt",
+      "text": "Si hay vida después de la muerte, espero que no haya ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 83,
-    "prompts": 10,
+    "total": 88,
+    "prompts": 15,
     "answers": 73
   },
   "playable": true
