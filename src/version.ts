@@ -14,7 +14,8 @@ export const APP_VERSION_NOTES = [
     date: '2026-09-14',
     notes: [
       'Puntaco solo para el ganador; el resto ve quién ganó',
-      'Siguiente ronda: el Zar puede empezar o auto a los 10 s (sin quedarse pillado)',
+      'Siguiente ronda: solo el nuevo Zar avanza (o auto 10 s); pregunta nueva + manos',
+      'Sync: no machaca manos al pasar de revelado a enviar',
     ],
   },
   {

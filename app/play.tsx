@@ -827,8 +827,8 @@ export default function PlayScreen() {
     }
   };
 
-  const continueRound = () => {
-    // Instant path (green) — cancel any ★ delay
+  /** Online: only next Zar advances (pull first). Offline pass-and-play: anyone. */
+  const continueRound = (opts?: { hostFallback?: boolean }) => {
     if (favAdvanceTimerRef.current) {
       clearTimeout(favAdvanceTimerRef.current);
       favAdvanceTimerRef.current = null;
@@ -846,25 +846,49 @@ export default function PlayScreen() {
     if (!isSolo) setPrivacy(true);
     setPaintPhase(null);
     setAdvancingRound(false);
-    try {
-      updateGame(game.code, (g) => {
-        if (g.phase !== 'reveal') return g;
-        return Engine.nextRound(g);
-      });
-      if (onlineRoom) {
-        const after = getGame(game.code);
-        if (after) void pushRoom(after, myPlayerId);
+
+    const run = async () => {
+      try {
+        if (onlineRoom && myPlayerId) {
+          const pulled = await pullRoom(game.code);
+          if (pulled.ok) applyRemoteGame(pulled.state);
+          const cur = getGame(game.code);
+          if (!cur || cur.phase !== 'reveal') {
+            advancingLockRef.current = false;
+            return;
+          }
+          const vote = (cur.judgeMode ?? 'zar') === 'vote';
+          const iAmNextZar =
+            !!cur.roundWinnerId && myPlayerId === cur.roundWinnerId;
+          const iAmHost = !!cur.players.find(
+            (p) => p.id === myPlayerId && p.isHost
+          );
+          const mayAdvance =
+            iAmNextZar ||
+            (vote && iAmHost) ||
+            (opts?.hostFallback && iAmHost);
+          if (!mayAdvance) {
+            advancingLockRef.current = false;
+            return;
+          }
+        }
+        updateGame(game.code, (g) => {
+          if (g.phase !== 'reveal') return g;
+          return Engine.nextRound(g);
+        });
+      } catch (e) {
+        advancingLockRef.current = false;
+        autoRevealKeyRef.current = null;
+        const msg = e instanceof Error ? e.message : 'Error';
+        if (/revelado/i.test(msg)) return;
+        Alert.alert('Siguiente', msg);
       }
-    } catch (e) {
-      advancingLockRef.current = false;
-      const msg = e instanceof Error ? e.message : 'Error';
-      if (/revelado/i.test(msg)) return;
-      Alert.alert('Siguiente', msg);
-    }
+    };
+    void run();
   };
 
-  // Async reveal: 10s auto next round. Timer kept in a ref so poll re-renders
-  // do not cancel it (that was leaving everyone stuck on «Puntaco»).
+  // Online reveal: only the next Zar (winner) auto-advances at 10s.
+  // Others wait for poll. Host fallback at 12s if still stuck on reveal.
   useEffect(() => {
     if (!game || game.mode === 'solo') return;
     if (game.phase !== 'reveal' || !game.roundWinnerId) {
@@ -872,31 +896,45 @@ export default function PlayScreen() {
         clearTimeout(autoRevealTimerRef.current);
         autoRevealTimerRef.current = null;
       }
+      if (game?.phase !== 'reveal') autoRevealKeyRef.current = null;
       return;
     }
-    const key = `${game.code}:${game.round}:${game.roundWinnerId}`;
+    const online = onlineRoom && !!myPlayerId;
+    const iAmNextZar = online && myPlayerId === game.roundWinnerId;
+    const iAmHost =
+      online &&
+      !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+    // Pass-and-play (one device): anyone may auto-advance
+    const mayAuto = !online || iAmNextZar;
+    const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
+      mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
+    }`;
     if (autoRevealKeyRef.current === key) return;
     autoRevealKeyRef.current = key;
     if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
-    autoRevealTimerRef.current = setTimeout(() => {
-      autoRevealTimerRef.current = null;
-      try {
-        updateGame(game.code, (g) => {
-          if (g.phase !== 'reveal') return g;
-          return Engine.nextRound(g);
-        });
-      } catch {
-        autoRevealKeyRef.current = null;
-      }
-    }, 10000);
-    // No cleanup clearTimeout here — intentional, survives dependency churn
+
+    if (mayAuto) {
+      autoRevealTimerRef.current = setTimeout(() => {
+        autoRevealTimerRef.current = null;
+        continueRound();
+      }, 10000);
+      return;
+    }
+    if (iAmHost) {
+      autoRevealTimerRef.current = setTimeout(() => {
+        autoRevealTimerRef.current = null;
+        continueRound({ hostFallback: true });
+      }, 12000);
+    }
   }, [
     game?.mode,
     game?.phase,
     game?.code,
     game?.round,
     game?.roundWinnerId,
-    updateGame,
+    game?.players,
+    onlineRoom,
+    myPlayerId,
   ]);
 
   const historyEntry = lastHistoryId
@@ -1647,20 +1685,24 @@ export default function PlayScreen() {
                       ))}
                     {!isSolo ? (
                       <Muted>
-                        Siguiente ronda en 10 s, o el Zar puede empezar ya.
+                        {iAmNextZar
+                          ? 'Eres el próximo Zar: empieza ya o en 10 s pasa sola.'
+                          : `Esperando a que ${winnerName} (Zar) empiece la siguiente ronda…`}
                       </Muted>
                     ) : null}
-                    <Button
-                      title={
-                        isSolo
-                          ? '→  Siguiente ronda'
-                          : iAmNextZar
-                            ? 'Empezar siguiente ronda (eres el Zar)'
-                            : 'Siguiente ronda'
-                      }
-                      variant="success"
-                      onPress={continueRound}
-                    />
+                    {isSolo || iAmNextZar || !isOnline ? (
+                      <Button
+                        title={
+                          isSolo
+                            ? '→  Siguiente ronda'
+                            : iAmNextZar
+                              ? 'Empezar siguiente ronda (eres el Zar)'
+                              : '→  Siguiente ronda'
+                        }
+                        variant="success"
+                        onPress={() => continueRound()}
+                      />
+                    ) : null}
                     {iWon ? revealShareSaveRow : null}
                     <Button
                       title="Respuestas favoritas"

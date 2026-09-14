@@ -5,6 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { coerceGameState, type GameState, type Submission } from '../engine/types';
+export { gameProgress } from '../engine/syncProgress';
 
 const SEAT_KEY = (code: string) => `guerrilla_seat_${code.trim().toUpperCase()}`;
 const ONLINE_KEY = (code: string) =>
@@ -21,6 +22,7 @@ function roomApiUrl(query?: string): string | null {
 function normalizeCode(code: string): string {
   return code.trim().toUpperCase();
 }
+
 
 /** True when card text looks redacted for early-phase fog. */
 export function isRedactedCardText(text: string | undefined | null): boolean {
@@ -59,9 +61,23 @@ export function slimForRoom(
     });
   }
 
+  // Fresh submitting (no answers yet) or lobby: publish all hands (deals).
+  // Mid-round: only own hand so we do not clobber peers with a stale snapshot.
+  const publishAllHands =
+    state.phase === 'lobby' ||
+    ((state.phase === 'submitting' || state.phase === 'discarding') &&
+      (state.submissions?.length ?? 0) === 0);
+
+  const players =
+    !myPlayerId || publishAllHands
+      ? state.players
+      : state.players.map((p) =>
+          p.id === myPlayerId ? p : { ...p, hand: [] }
+        );
+
   return {
     ...state,
-    players: state.players,
+    players,
     submissions,
     promptDeck: [],
     answerDeck: [],
@@ -94,11 +110,13 @@ export function mergeHandsPreserveLocal(
   });
 
   // Preserve own submission real text when remote fog redacted it (early phase).
+  // Only same round — never re-inject prior-round answers into a fresh submitting.
   let submissions = remote.submissions;
   if (
     myPlayerId &&
     shouldRedactSubmissionTexts(remote.phase) &&
-    local.submissions?.length
+    local.submissions?.length &&
+    (local.round ?? 0) === (remote.round ?? 0)
   ) {
     const localSub = local.submissions.find(
       (s) => s.playerId === myPlayerId && !s.rival

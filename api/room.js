@@ -139,11 +139,19 @@ function hasRealCardText(cards) {
   return (cards || []).some((c) => c && !isRedactedCardText(c.text));
 }
 
+const HAND_SIZE_MERGE = 12;
+
 /**
- * Merge hands by player id: non-empty incoming wins; else keep existing hand.
- * Player list follows incoming order/ids; fills hands from existing when blanked.
+ * Merge hands by player id.
+ * mode 'prefer-incoming' (default / normal upserts): non-empty incoming wins.
+ * mode 'next-cycle' (reveal/judging → submitting): preserve post-submit hands —
+ *   empty incoming → keep existing
+ *   empty existing → take incoming
+ *   incoming longer → take incoming (refill)
+ *   both >= HAND_SIZE or equal non-empty → KEEP EXISTING (don't clobber with Zar snapshot)
  */
-function mergeHandsByPlayerId(existingPlayers, incomingPlayers) {
+function mergeHandsByPlayerId(existingPlayers, incomingPlayers, mode) {
+  const nextCycle = mode === 'next-cycle';
   const existingById = new Map();
   for (const p of existingPlayers || []) {
     if (p && p.id) existingById.set(p.id, p);
@@ -151,10 +159,28 @@ function mergeHandsByPlayerId(existingPlayers, incomingPlayers) {
   return (incomingPlayers || []).map((p) => {
     if (!p || !p.id) return p;
     const ex = existingById.get(p.id);
-    if (p.hand && p.hand.length > 0) return p;
-    if (ex && ex.hand && ex.hand.length > 0) {
-      return { ...p, hand: ex.hand };
+    const inHand = Array.isArray(p.hand) ? p.hand : [];
+    const exHand = ex && Array.isArray(ex.hand) ? ex.hand : [];
+
+    if (nextCycle) {
+      if (inHand.length === 0) {
+        if (exHand.length > 0) return { ...p, hand: exHand };
+        return p;
+      }
+      if (exHand.length === 0) return p;
+      if (inHand.length > exHand.length) return p;
+      if (
+        (inHand.length >= HAND_SIZE_MERGE && exHand.length >= HAND_SIZE_MERGE) ||
+        inHand.length === exHand.length
+      ) {
+        return { ...p, hand: exHand };
+      }
+      // Prefer existing over a shorter/partial Zar snapshot
+      return { ...p, hand: exHand };
     }
+
+    if (inHand.length > 0) return p;
+    if (exHand.length > 0) return { ...p, hand: exHand };
     return p;
   });
 }
@@ -246,6 +272,40 @@ function phaseRank(phase) {
   }
 }
 
+/**
+ * Monotonic progress across rounds. reveal(r) < discarding(r) < submitting(r+1).
+ * Prevents treating a legitimate next-round push as a phase "downgrade".
+ */
+function gameProgress(state) {
+  if (!state || typeof state !== 'object') return 0;
+  const round = Number(state.round) || 0;
+  switch (state.phase) {
+    case 'lobby':
+      return round * 10 + 0;
+    case 'submitting':
+      return round * 10 + 1;
+    case 'judging':
+      return round * 10 + 2;
+    case 'reveal':
+      return round * 10 + 3;
+    case 'discarding':
+      return round * 10 + 4;
+    case 'results':
+      return round * 10 + 9;
+    default:
+      return round * 10;
+  }
+}
+
+function isNextCycleAdvance(existing, incoming) {
+  if (!existing || !incoming) return false;
+  const ip = incoming.phase;
+  const ep = existing.phase;
+  if (ip !== 'submitting' && ip !== 'discarding') return false;
+  if (ep !== 'reveal' && ep !== 'judging' && ep !== 'results') return false;
+  return gameProgress(incoming) > gameProgress(existing);
+}
+
 function promoteJudgingIfReady(state) {
   if (!state || state.phase !== 'submitting') return state;
   if (state.mode === 'solo') return state;
@@ -276,11 +336,29 @@ function promoteJudgingIfReady(state) {
 
 function applyPrivacyMerges(existing, incoming) {
   if (!existing || typeof existing !== 'object') return incoming;
+
+  // reveal/judging → next submitting/discarding: accept new cycle wholesale
+  if (isNextCycleAdvance(existing, incoming)) {
+    const players = mergeHandsByPlayerId(
+      existing.players,
+      incoming.players,
+      'next-cycle'
+    );
+    return promoteJudgingIfReady({
+      ...incoming,
+      players,
+      submissions: incoming.submissions || [],
+      revealOrder: incoming.revealOrder || [],
+      votes: incoming.votes || {},
+      roundWinnerId: incoming.roundWinnerId ?? null,
+    });
+  }
+
   const players = mergeHandsByPlayerId(existing.players, incoming.players);
   const submissions = mergeSubmissions(existing, incoming);
-  // Prefer the more advanced phase (reveal/results > judging > submitting)
+  // Prefer higher gameProgress (not raw phaseRank — submitting after reveal is forward)
   let phase = incoming.phase;
-  if (phaseRank(existing.phase) > phaseRank(incoming.phase)) {
+  if (gameProgress(existing) > gameProgress(incoming)) {
     phase = existing.phase;
   } else if (
     existing.phase === 'judging' ||
@@ -288,13 +366,16 @@ function applyPrivacyMerges(existing, incoming) {
   ) {
     if (phaseRank(phase) < phaseRank('judging')) phase = 'judging';
   }
+  const clearWinner =
+    phase === 'submitting' || phase === 'discarding' || phase === 'lobby';
   let state = {
     ...incoming,
     phase,
     players,
     submissions,
-    roundWinnerId:
-      incoming.roundWinnerId || existing.roundWinnerId || null,
+    roundWinnerId: clearWinner
+      ? incoming.roundWinnerId ?? null
+      : incoming.roundWinnerId || existing.roundWinnerId || null,
   };
   if (phase === 'reveal' || phase === 'results') {
     // Keep scores from the more advanced side
@@ -324,7 +405,7 @@ function applyPrivacyMerges(existing, incoming) {
   return promoteJudgingIfReady(state);
 }
 
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
@@ -438,12 +519,12 @@ module.exports = async function handler(req, res) {
           existing.phase === 'lobby' && incoming.phase === 'lobby';
         const remoteNewer =
           (existing.updatedAt ?? 0) > (incoming.updatedAt ?? 0);
+        const existingProg = gameProgress(existing);
+        const incomingProg = gameProgress(incoming);
 
-        // Never let a stale submitting/judging push wipe reveal/results
-        if (
-          !bothLobby &&
-          phaseRank(existing.phase) > phaseRank(incoming.phase)
-        ) {
+        // Stale only when remote is strictly ahead in round/phase progress.
+        // reveal → next submitting/discarding is FORWARD (higher gameProgress).
+        if (!bothLobby && existingProg > incomingProg) {
           return res.status(200).json({
             ok: true,
             skipped: true,
@@ -489,16 +570,24 @@ module.exports = async function handler(req, res) {
             }),
             updatedAt: nextUpdated,
           };
-        } else if (remoteNewer && existing.phase !== incoming.phase) {
-          // Remote already progressed (game in progress) — don't clobber
+        } else if (remoteNewer && existingProg > incomingProg) {
+          // Remote strictly ahead — don't clobber
           return res.status(200).json({
             ok: true,
             skipped: true,
             state: existing,
             code,
           });
-        } else if (remoteNewer && !bothLobby) {
-          // Same phase but remote newer and not a simple lobby merge
+        } else if (
+          remoteNewer &&
+          existingProg === incomingProg &&
+          existing.phase === incoming.phase &&
+          existing.phase === 'submitting'
+        ) {
+          // Same submitting tick, remote newer: still merge peer answers
+          state = applyPrivacyMerges(existing, incoming);
+        } else if (remoteNewer && existingProg >= incomingProg) {
+          // Same-or-equal progress, remote newer — keep remote
           return res.status(200).json({
             ok: true,
             skipped: true,
@@ -506,7 +595,7 @@ module.exports = async function handler(req, res) {
             code,
           });
         } else {
-          // Accept incoming (newer or equal) but merge hands + submissions
+          // Accept incoming (newer, equal, or next-cycle advance)
           state = applyPrivacyMerges(existing, incoming);
         }
       }
@@ -528,3 +617,9 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ ok: false, error: 'kv_error' });
   }
 };
+
+handler.mergeHandsByPlayerId = mergeHandsByPlayerId;
+handler.isNextCycleAdvance = isNextCycleAdvance;
+handler.applyPrivacyMerges = applyPrivacyMerges;
+module.exports = handler;
+
