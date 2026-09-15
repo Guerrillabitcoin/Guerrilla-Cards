@@ -14,6 +14,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { fillBlank } from '@/src/engine/deck';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
+import {
+  getOnlineFlag,
+  pullRoom,
+} from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
 
 
@@ -22,7 +26,8 @@ export default function ResultsScreen() {
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
-  const { getGame, restartSameSetup, ready } = useGameStore();
+  const { getGame, restartSameSetup, ready, applyRemoteGame } = useGameStore();
+  const [onlineRoom, setOnlineRoom] = useState(false);
   const {
     recordLeftInHand,
     winningHistory,
@@ -35,6 +40,42 @@ export default function ResultsScreen() {
 
   const gameCode = code ? String(code).toUpperCase() : '';
   const game = ready && gameCode ? getGame(gameCode) : undefined;
+
+  useEffect(() => {
+    if (!gameCode) return;
+    let cancelled = false;
+    void getOnlineFlag(gameCode).then((online) => {
+      if (!cancelled) setOnlineRoom(online);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [gameCode]);
+
+  // Poll remote room while on results (async online rematch)
+  useEffect(() => {
+    if (!ready || !gameCode || !onlineRoom) return;
+    let cancelled = false;
+    const tick = async () => {
+      const res = await pullRoom(gameCode);
+      if (cancelled || !res.ok) return;
+      applyRemoteGame(res.state);
+    };
+    void tick();
+    const id = setInterval(tick, 2500);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
+
+  // Guest: when host (or anyone) restarts, leave results → play
+  useEffect(() => {
+    if (!ready || !game || !onlineRoom) return;
+    if (game.phase !== 'results' && game.phase !== 'lobby') {
+      router.replace({ pathname: '/play', params: { code: game.code } });
+    }
+  }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
   useEffect(() => {
     if (!game || game.phase !== 'results') return;
@@ -200,24 +241,10 @@ export default function ResultsScreen() {
         </View>
       </View>
 
-      {/* 1) Menu first */}
-      <View style={styles.menuBlock}>
-        <Label>Menú</Label>
-        <Button title="Reiniciar partida" onPress={onRestart} />
-        <Button
-          title="★ Ver respuestas favoritas"
-          variant="outline"
-          onPress={() => router.push('/historial')}
-        />
-        <Button
-          title="Menu inicio"
-          variant="ghost"
-          onPress={() => router.replace('/')}
-        />
-      </View>
-
-      {ranked.length > 1 ? (
+      {/* Ranking first (always show for multiplayer async, even 1+ players) */}
+      {ranked.length >= 1 ? (
         <View style={styles.list}>
+          <Label>Clasificación final</Label>
           {ranked.map((p, i) => (
             <View
               key={p.id}
@@ -237,6 +264,20 @@ export default function ResultsScreen() {
           ))}
         </View>
       ) : null}
+
+      <View style={styles.menuBlock}>
+        <Button title="Reiniciar partida" onPress={onRestart} />
+        <Button
+          title="★ Ver respuestas favoritas"
+          variant="outline"
+          onPress={() => router.push('/historial')}
+        />
+        <Button
+          title="Menu inicio"
+          variant="ghost"
+          onPress={() => router.replace('/')}
+        />
+      </View>
 
       {/* Tus respuestas: un solo recuadro, de la última a la primera */}
       <View style={styles.answersBox}>

@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
   Button,
@@ -23,6 +23,7 @@ import {
   getMySeat,
   getOnlineFlag,
   pullRoom,
+  pushRoom,
   setMySeat,
 } from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
@@ -36,6 +37,7 @@ export default function LobbyScreen() {
   const [nick, setNick] = useState(() => randomNickname());
   const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
+  const nickDirtyRef = useRef(false);
 
   const gameCode = code ? String(code).toUpperCase() : '';
   const game = ready && gameCode ? getGame(gameCode) : undefined;
@@ -57,9 +59,10 @@ export default function LobbyScreen() {
     };
   }, [gameCode]);
 
-  // Seed / refresh local name field from my seat
+  // Seed nick from seat once; do not overwrite while user is typing
   useEffect(() => {
     if (!game || !myPlayerId) return;
+    if (nickDirtyRef.current) return;
     const me = game.players.find((p) => p.id === myPlayerId);
     if (me?.nickname) setNick(me.nickname);
   }, [game?.code, myPlayerId, game?.players]);
@@ -227,14 +230,20 @@ export default function LobbyScreen() {
           <Label>Tu nombre</Label>
           <Input
             value={nick}
-            onChangeText={setNick}
+            onChangeText={(t) => {
+              nickDirtyRef.current = true;
+              setNick(t);
+            }}
             placeholder="Tu apodo"
             maxLength={42}
           />
           <Button
             title="Otro nombre raro"
             variant="ghost"
-            onPress={() => setNick(randomNickname(nick))}
+            onPress={() => {
+              nickDirtyRef.current = true;
+              setNick(randomNickname(nick));
+            }}
           />
           <Button
             title="Guardar nombre"
@@ -246,6 +255,14 @@ export default function LobbyScreen() {
                   Engine.renamePlayer(g, myPlayerId, nextNick)
                 );
                 setNick(nextNick);
+                nickDirtyRef.current = false;
+                // Belt-and-suspenders push so rename wins the lobby merge
+                void (async () => {
+                  const g = getGame(game.code);
+                  if (!g || g.mode !== 'async') return;
+                  const seat = await getMySeat(game.code);
+                  await pushRoom(g, seat);
+                })();
               } catch (e) {
                 Alert.alert(
                   'Nombre',

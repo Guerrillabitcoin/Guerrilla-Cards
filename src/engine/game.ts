@@ -9,10 +9,10 @@ import {
   ASYNC_TARGET_PLAYERS,
   BOT_NICKNAMES,
   DEFAULT_TARGET_SCORE,
-  DISCARD_AT_ROUND,
   DISCARD_COUNT,
   DISCARD_MIN,
   DISCARD_MAX,
+  shouldDiscardBeforeRound,
   SOLO_MAX_ROUNDS,
   SOLO_DEFAULT_TARGET,
   HAND_SIZE,
@@ -35,6 +35,7 @@ export {
   DISCARD_COUNT,
   DISCARD_MIN,
   DISCARD_MAX,
+  shouldDiscardBeforeRound,
   SOLO_MAX_ROUNDS,
   SOLO_DEFAULT_TARGET,
 } from './types';
@@ -115,6 +116,7 @@ export function createGame(opts: {
     submissions: [],
     revealOrder: [],
     roundWinnerId: null,
+    roundWinnerIds: [],
     targetScore:
       opts.targetScore ??
       (opts.mode === 'async' || opts.mode === 'solo'
@@ -577,6 +579,7 @@ export function beginRound(state: GameState): GameState {
     submissions: [],
     revealOrder: [],
     roundWinnerId: null,
+    roundWinnerIds: [],
     votes: {},
     phase: 'submitting',
     round: dealt.round + 1,
@@ -728,6 +731,7 @@ function applyRoundWinner(
       ...state,
       players,
       roundWinnerId: winnerPlayerId,
+      roundWinnerIds: [],
       phase: 'results',
       activeSeatId: null,
       updatedAt: now(),
@@ -738,7 +742,53 @@ function applyRoundWinner(
     ...state,
     players,
     roundWinnerId: winnerPlayerId,
+    roundWinnerIds: [],
     phase: 'reveal',
+    updatedAt: now(),
+  };
+}
+
+/**
+ * Vote ties (2+): +1 each real player, roundWinnerIds=tied, roundWinnerId=tied[0].
+ * No revealOrder tiebreak. Results if any hits targetScore.
+ */
+export function applyRoundWinners(
+  state: GameState,
+  winnerIds: string[]
+): GameState {
+  const ids = [...new Set(winnerIds)];
+  if (ids.length < 2) {
+    throw new Error('applyRoundWinners requiere al menos 2 ganadores.');
+  }
+  for (const id of ids) {
+    if (!state.submissions.some((s) => s.playerId === id)) {
+      throw new Error('Esa jugada no existe.');
+    }
+  }
+
+  let players = state.players;
+  for (const id of ids) {
+    const sub = state.submissions.find((s) => s.playerId === id);
+    const isRival = !!sub?.rival || id.startsWith('rival-');
+    if (isRival) continue;
+    if (!players.some((p) => p.id === id)) continue;
+    players = players.map((p) =>
+      p.id === id ? { ...p, score: p.score + 1 } : p
+    );
+  }
+
+  const anyHitTarget = ids.some((id) => {
+    const p = players.find((x) => x.id === id);
+    return !!p && p.score >= state.targetScore;
+  });
+
+  return {
+    ...state,
+    players,
+    roundWinnerIds: ids,
+    roundWinnerId: ids[0] ?? null,
+    phase: anyHitTarget ? 'results' : 'reveal',
+    activeSeatId: anyHitTarget ? null : state.activeSeatId,
     updatedAt: now(),
   };
 }
@@ -828,9 +878,7 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
 /**
  * Vote mode: cast one vote for a submission (cannot vote own).
  * When all eligible voters have voted, tallies majority → applyRoundWinner.
- * Tie-break: among tied submissionPlayerIds, earliest index in revealOrder wins
- * (stable order from shuffle at end of submitting). If still tied, first in
- * submissions array order.
+ * Ties (2+): applyRoundWinners — +1 each, no revealOrder tiebreak.
  */
 export function castVote(
   state: GameState,
@@ -879,7 +927,7 @@ export function castVote(
     };
   }
 
-  // Tally: majority wins; tie → earliest in revealOrder
+  // Tally: majority wins; 2+ tie → applyRoundWinners (no revealOrder tiebreak)
   const tallies: Record<string, number> = {};
   for (const target of Object.values(votes)) {
     tallies[target] = (tallies[target] ?? 0) + 1;
@@ -889,27 +937,14 @@ export function castVote(
     if (n > bestCount) bestCount = n;
   }
   const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
-  let winnerId = tied[0];
-  if (tied.length > 1) {
-    const order = state.revealOrder.length
-      ? state.revealOrder
-      : state.submissions.map((_, i) => i);
-    let bestPos = Infinity;
-    for (const id of tied) {
-      const subIdx = state.submissions.findIndex((s) => s.playerId === id);
-      const pos = order.indexOf(subIdx);
-      const rank = pos >= 0 ? pos : subIdx >= 0 ? 1000 + subIdx : 9999;
-      if (rank < bestPos) {
-        bestPos = rank;
-        winnerId = id;
-      }
-    }
+  const withVotes = { ...state, votes };
+  if (tied.length >= 2) {
+    return applyRoundWinners(withVotes, tied);
   }
-
-  return applyRoundWinner({ ...state, votes }, winnerId);
+  return applyRoundWinner(withVotes, tied[0]);
 }
 
-/** Enter discarding phase before round DISCARD_AT_ROUND (zar not rotated yet). */
+/** Enter discarding phase before a multiple-of-DISCARD_AT_ROUND round (zar not rotated yet). */
 export function startDiscardRound(state: GameState): GameState {
   const firstHuman =
     state.players.find((p) => !p.isBot) ?? state.players[0];
@@ -918,6 +953,7 @@ export function startDiscardRound(state: GameState): GameState {
     phase: 'discarding',
     discardDonePlayerIds: [],
     lastDiscarded: [],
+    discardRoundCompleted: false,
     activeSeatId: firstHuman?.id ?? null,
     updatedAt: now(),
   };
@@ -1083,6 +1119,7 @@ export function soloSkipRoundDiscard(
     submissions: [],
     revealOrder: [],
     roundWinnerId: null,
+    roundWinnerIds: [],
     lastDiscarded: [...(state.lastDiscarded ?? []), { playerId, cards }],
     updatedAt: now(),
   };
@@ -1095,12 +1132,9 @@ export function soloSkipRoundDiscard(
       updatedAt: now(),
     };
   }
-  // If skip would start round 5, force the discard phase first
+  // If skip would start a discard-gated round (5, 10, 15…), force discard first
   const aboutToStart = next.round + 1;
-  if (
-    aboutToStart === DISCARD_AT_ROUND &&
-    !(next.discardRoundCompleted ?? false)
-  ) {
+  if (shouldDiscardBeforeRound(aboutToStart)) {
     return startDiscardRound(next);
   }
   return beginRound(next);
@@ -1108,6 +1142,7 @@ export function soloSkipRoundDiscard(
 
 export function nextRound(state: GameState): GameState {
   if (state.phase !== 'reveal') throw new Error('Termina el revelado primero.');
+  state = { ...state, roundWinnerIds: [] };
   if (state.mode === 'solo') {
     if (state.round >= SOLO_MAX_ROUNDS) {
       return {
@@ -1117,25 +1152,65 @@ export function nextRound(state: GameState): GameState {
         updatedAt: now(),
       };
     }
-    // Same as multi: discard phase before round 5
+    // Same as multi: discard phase before rounds 5, 10, 15…
     const aboutToStart = state.round + 1;
-    if (
-      aboutToStart === DISCARD_AT_ROUND &&
-      !(state.discardRoundCompleted ?? false)
-    ) {
+    if (shouldDiscardBeforeRound(aboutToStart)) {
       return startDiscardRound(state);
     }
     return beginRound({ ...state, zarIndex: 0 });
   }
   const aboutToStart = state.round + 1;
-  if (
-    aboutToStart === DISCARD_AT_ROUND &&
-    !(state.discardRoundCompleted ?? false)
-  ) {
+  if (shouldDiscardBeforeRound(aboutToStart)) {
     return startDiscardRound(state);
   }
   const zarIndex = nextZarIndex(state);
   return beginRound({ ...state, zarIndex });
+}
+
+/**
+ * In-place rematch: same code + seats (ids/nicknames/host), scores 0, reshuffled
+ * decks, round 0 → startGame (phase submitting). Does not permanently rely on
+ * discardRoundCompleted — that flag resets here.
+ */
+export function restartMatch(
+  state: GameState,
+  opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
+): GameState {
+  const packs = state.packIds.length ? state.packIds : ['core'];
+  const { prompts, answers } = loadCombinedDeck(packs);
+  const players = state.players.map((p) => ({
+    ...p,
+    score: 0,
+    hand: [] as Card[],
+  }));
+  const reset: GameState = {
+    ...state,
+    players,
+    phase: 'lobby',
+    zarIndex: 0,
+    votes: {},
+    currentPrompt: null,
+    submissions: [],
+    revealOrder: [],
+    roundWinnerId: null,
+    roundWinnerIds: [],
+    round: 0,
+    activeSeatId: players.find((p) => p.isHost)?.id ?? players[0]?.id ?? null,
+    usedPromptIds: [],
+    promptDeck: buildVariedPromptDeck(prompts, opts?.avoidPromptIds ?? []),
+    promptDeckPos: 0,
+    answerDeck: buildPreShuffledAnswerDeck(
+      answers,
+      opts?.avoidAnswerIds ?? [],
+      3
+    ),
+    answerDeckPos: 0,
+    discardRoundCompleted: false,
+    discardDonePlayerIds: [],
+    lastDiscarded: [],
+    updatedAt: now(),
+  };
+  return startGame(reset);
 }
 
 export function getFilledSubmission(

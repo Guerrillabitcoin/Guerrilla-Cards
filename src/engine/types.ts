@@ -81,6 +81,8 @@ export interface GameState {
   /** Shuffled order of submission indices for anonymous reveal */
   revealOrder: number[];
   roundWinnerId: string | null;
+  /** Vote ties: all submission player ids that share the win (+1 each). */
+  roundWinnerIds?: string[];
   targetScore: number;
   round: number;
   /** Whose phone seat is active (pass-and-play) */
@@ -148,11 +150,15 @@ export const SOLO_BOT_COUNT_MAX = 3;
 /** Random rival answers injected after you submit in solo. */
 export const SOLO_RIVAL_COUNT = 3;
 
-/** Insert discarding phase before this round number starts */
+/** Discard phase before every round that is a multiple of this (5, 10, 15…). */
 export const DISCARD_AT_ROUND = 5;
-/** Min answer cards to discard in round-5 discard phase */
+/** True when round N should be preceded by a discard phase. */
+export function shouldDiscardBeforeRound(n: number): boolean {
+  return n > 0 && n % DISCARD_AT_ROUND === 0;
+}
+/** Min answer cards to discard in the discard phase */
 export const DISCARD_MIN = 2;
-/** Max answer cards to discard in round-5 discard phase */
+/** Max answer cards to discard in the discard phase */
 export const DISCARD_MAX = 5;
 /** Alias of DISCARD_MIN (back-compat for solo skip / older call sites) */
 export const DISCARD_COUNT = DISCARD_MIN;
@@ -170,6 +176,7 @@ export function coerceGameState(g: GameState): GameState {
     ...g,
     judgeMode: g.judgeMode ?? 'zar',
     votes: g.votes ?? {},
+    roundWinnerIds: g.roundWinnerIds ?? [],
     discardRoundCompleted: g.discardRoundCompleted ?? false,
     discardDonePlayerIds: g.discardDonePlayerIds ?? [],
     lastDiscarded: g.lastDiscarded ?? [],

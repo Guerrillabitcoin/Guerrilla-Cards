@@ -105,7 +105,7 @@ interface GameContextValue {
   updateGame: (code: string, updater: (g: GameState) => GameState) => void;
   deleteGame: (code: string) => void;
   getGame: (code: string) => GameState | undefined;
-  /** Restart with same packs/mode/nick/targetScore; deletes old game. Solo auto-starts. */
+  /** Rematch in-place: same code + seats, scores 0, reshuffled decks, started. */
   restartSameSetup: (fromCode: string) => GameState | null;
   /** Replace local game if remote.updatedAt is newer (online poll). */
   applyRemoteGame: (state: GameState) => boolean;
@@ -344,8 +344,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const remoteProg = gameProgress(remote);
       // Progress is round-aware: reveal → next submitting is forward, not a downgrade
       const remoteAdvanced = remoteProg > localProg;
+      // Rematch from results drops progress; trust newer updatedAt
+      const isMatchRestart =
+        !!local &&
+        local.phase === 'results' &&
+        remote.phase !== 'results' &&
+        (remote.updatedAt ?? 0) >= (local.updatedAt ?? 0);
       // Keep local if we already moved to the next cycle and remote is stale reveal
-      if (local && localProg > remoteProg) {
+      if (local && localProg > remoteProg && !isMatchRestart) {
         return false;
       }
       if (
@@ -529,20 +535,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const raw = gamesRef.current[key];
       if (!raw) return null;
       const old = coerceGameState(raw);
-      const human =
-        old.players.find((p) => !p.isBot) ??
-        old.players.find((p) => p.isHost) ??
-        old.players[0];
-      if (!human) return null;
-
-      const hostNickname = human.nickname;
-      const packIds = [...old.packIds];
-      const mode = old.mode;
-      const targetScore = old.targetScore;
-      const judgeMode = old.judgeMode ?? 'zar';
-
-      const nextMap = { ...gamesRef.current };
-      delete nextMap[key];
+      if (!old.players.length) return null;
 
       // Fold this match's used prompts into recents before reshuffling
       const oldUsed = old.usedPromptIds ?? [];
@@ -554,44 +547,26 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         void pushRecentIds(RECENT_PROMPTS_KEY, oldUsed);
       }
 
-      if (mode === 'solo') {
-        let state = Engine.createSoloGame({
-          hostNickname,
-          packIds,
-          targetScore,
-          avoidPromptIds: collectAvoidPromptIds(
-            recentPromptsRef.current,
-            nextMap
-          ),
-          avoidAnswerIds: recentAnswersRef.current,
-        });
-        state = Engine.startGame(state);
-        nextMap[state.code] = state;
-        commit(nextMap);
-        return state;
-      }
-
-      const state = Engine.createGame({
-        hostNickname,
-        mode,
-        packIds,
-        targetScore,
-        judgeMode,
+      const others = { ...gamesRef.current };
+      delete others[key];
+      const state = Engine.restartMatch(old, {
         avoidPromptIds: collectAvoidPromptIds(
           recentPromptsRef.current,
-          nextMap
+          others
         ),
         avoidAnswerIds: recentAnswersRef.current,
       });
-      nextMap[state.code] = state;
+      // Keep same code/key; bump updatedAt so online peers accept rematch
+      const stamped = { ...state, code: key, updatedAt: Date.now() };
+      const nextMap = { ...gamesRef.current, [key]: stamped };
       commit(nextMap);
-      if (state.mode === 'async') {
+      if (stamped.mode === 'async') {
         void (async () => {
-          const seat = await getMySeat(state.code);
-          await pushRoom(state, seat);
+          const seat = await getMySeat(key);
+          await pushRoom(stamped, seat);
         })();
       }
-      return state;
+      return stamped;
     },
     [commit]
   );

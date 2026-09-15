@@ -464,7 +464,7 @@ export default function HomeScreen() {
     mode === 'live'
       ? 'En vivo = rondas rápidas pass-and-play.'
       : mode === 'async'
-        ? 'Async beta: código entre dispositivos (necesita KV en Vercel) o pass-and-play en el mismo navegador. 4 jugadores · Voto o Zar · meta configurable.'
+        ? 'Multijugador beta: código entre dispositivos (necesita KV en Vercel) o pass-and-play en el mismo navegador. 4 jugadores · Voto o Zar · meta configurable.'
         : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo (sin asientos bot).';
 
   return (
@@ -525,10 +525,9 @@ export default function HomeScreen() {
           onPress={() => {}}
         />
         <Chip
-          label="Async"
+          label="Multijugador"
           selected={mode === 'async'}
-          muted={mode !== 'async'}
-          badge={mode === 'async' ? 'beta' : 'próximamente'}
+          badge="beta"
           onPress={() => {
             setMode('async');
             setTargetScore(String(SOLO_DEFAULT_TARGET));
@@ -536,6 +535,24 @@ export default function HomeScreen() {
         />
       </View>
       <Muted>{modeHint}</Muted>
+
+      {mode === 'async' ? (
+        <>
+          <Label>Código de partida</Label>
+          <Input
+            value={joinCode}
+            onChangeText={setJoinCode}
+            placeholder="ABC12"
+            autoCapitalize="characters"
+            maxLength={8}
+          />
+          <Button
+            title="Unirse"
+            onPress={onJoin}
+            variant="outline"
+          />
+        </>
+      ) : null}
 
       {mode === 'async' ? (
         <>
@@ -555,7 +572,7 @@ export default function HomeScreen() {
           <Muted>
             {judgeMode === 'zar'
               ? 'Un Zar elige la mejor jugada; el ganador será el próximo Zar.'
-              : 'Todos votan su favorita (sin votar la propia). Empate: orden de revelado.'}
+              : 'Todos votan su favorita (sin votar la propia). Empate: ambas suman punto.'}
           </Muted>
         </>
       ) : null}
@@ -623,29 +640,11 @@ export default function HomeScreen() {
       <Button
         title={
           mode === 'async'
-            ? 'Crear partida async'
+            ? 'Crear partida Multijugador'
             : 'Jugar solo (rivales aleatorios)'
         }
         onPress={onCreate}
       />
-
-      {mode === 'async' ? (
-        <>
-          <Label>Unirse a partida async</Label>
-          <Input
-            value={joinCode}
-            onChangeText={setJoinCode}
-            placeholder="ABC12"
-            autoCapitalize="characters"
-            maxLength={8}
-          />
-          <Button
-            title="Unirse a partida async"
-            onPress={onJoin}
-            variant="outline"
-          />
-        </>
-      ) : null}
 
       <Button
         title="★ Respuestas favoritas"
@@ -669,7 +668,7 @@ export default function HomeScreen() {
 
       <Muted>
         {mode === 'async'
-          ? 'Async: online con KV_REST_API_URL + KV_REST_API_TOKEN en Vercel · o local pass-and-play.'
+          ? 'Multijugador: online con KV_REST_API_URL + KV_REST_API_TOKEN en Vercel · o local pass-and-play.'
           : 'Modo Solo local · sin cuenta ni servidor.'}{' '}
         Cartas banneadas nunca se reparte. Packs +18 piden confirmación de edad
         la primera vez.

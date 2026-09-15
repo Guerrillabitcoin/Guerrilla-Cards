@@ -17,7 +17,7 @@ import {
 } from '@/src/components/ui';
 import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
-import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, type Card } from '@/src/engine/types';
+import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, type Card } from '@/src/engine/types';
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
 import {
@@ -132,8 +132,8 @@ export default function PlayScreen() {
   }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   useEffect(() => {
-    // En ronda 5 no hay descartar/pasar; en la 6 vuelve.
-    if (game?.round === 5 && soloSkipMode) {
+    // En rondas múltiplo de 5 no hay descartar/pasar (fase de descarte aparte).
+    if (game?.round != null && shouldDiscardBeforeRound(game.round) && soloSkipMode) {
       setSoloSkipMode(false);
       setPicked([]);
     }
@@ -284,7 +284,7 @@ export default function PlayScreen() {
       game.phase === 'submitting' &&
       game.discardRoundCompleted
     ) {
-      const key = `${game.code}:discard`;
+      const key = `${game.code}:discard:r${game.round}`;
       if (discardRecordedRef.current === key) return;
       discardRecordedRef.current = key;
       const cards = Engine.flushDiscardedCards(game).map((c) => ({
@@ -1240,7 +1240,7 @@ export default function PlayScreen() {
       {isDiscarding ? (
         <>
           <Subtitle>
-            Ronda de descarte (antes de la 5) — 2 obligatorias (aleatorias), hasta 5
+            Ronda de descarte (cada 5 rondas) — 2 obligatorias (aleatorias), hasta 5
           </Subtitle>
           <Muted>
             Marcadas en rojo se descartan. Mínimo {discardMin}; al llegar a {discardMax} se envía solo.
@@ -1322,7 +1322,24 @@ export default function PlayScreen() {
         <>
           {alreadyAnswered ? (
             <View style={styles.doneBox}>
-              <Text style={styles.doneBadge}>✓ Respuesta enviada</Text>
+              <View style={styles.soloRivalHead}>
+                <Text style={styles.doneBadge}>✓ Respuesta enviada</Text>
+                {mySubmitted ? (
+                  <Text
+                    style={styles.soloStar}
+                    onPress={() =>
+                      toggleFavFilled(
+                        Engine.getFilledSubmission(game, mySubmitted),
+                        mySubmitted.cards
+                      )
+                    }
+                  >
+                    {isFavFilled(Engine.getFilledSubmission(game, mySubmitted))
+                      ? '★'
+                      : '☆'}
+                  </Text>
+                ) : null}
+              </View>
               {game.currentPrompt && submittedAnswerTexts.length ? (
                 <FilledPromptText
                   promptText={game.currentPrompt.text}
@@ -1405,7 +1422,7 @@ export default function PlayScreen() {
               </View>
               {isSolo &&
               !soloSkipMode &&
-              game.round !== 5 ? (
+              !shouldDiscardBeforeRound(game.round) ? (
                 <Button
                   title="Descartar (tirar 2 y saltar ronda)"
                   variant="discard"
@@ -1415,7 +1432,7 @@ export default function PlayScreen() {
                   }}
                 />
               ) : null}
-              {isSolo && soloSkipMode && game.round !== 5 ? (
+              {isSolo && soloSkipMode && !shouldDiscardBeforeRound(game.round) ? (
                 <Button
                   title={`Cancelar descarte (${soloSkipCountLabel})`}
                   variant="ghost"
@@ -1486,11 +1503,21 @@ export default function PlayScreen() {
                         !sub.rival &&
                         !(active && sub.playerId === active.id)
                     )
-                    .map((sub, optNum) => (
+                    .map((sub, optNum) => {
+                      const filled = Engine.getFilledSubmission(game, sub);
+                      return (
                       <View key={sub.playerId} style={styles.judgeCard}>
-                        <Text style={styles.judgeLabel}>
-                          Opción {optNum + 1}
-                        </Text>
+                        <View style={styles.soloRivalHead}>
+                          <Text style={styles.judgeLabel}>
+                            Opción {optNum + 1}
+                          </Text>
+                          <Text
+                            style={styles.soloStar}
+                            onPress={() => toggleFavFilled(filled, sub.cards)}
+                          >
+                            {isFavFilled(filled) ? '★' : '☆'}
+                          </Text>
+                        </View>
                         <FilledPromptText
                           large
                           promptText={game.currentPrompt?.text ?? ''}
@@ -1501,7 +1528,8 @@ export default function PlayScreen() {
                           onPress={() => castVote(sub.playerId)}
                         />
                       </View>
-                    ))}
+                    );
+                    })}
                   {!isOnline ? (
                     <Button
                       title="Ocultar"
@@ -1512,47 +1540,78 @@ export default function PlayScreen() {
                 </>
               )}
             </>
-          ) : !isSolo &&
-            (isOnline ? myPlayerId !== zar.id : active?.id !== zar.id) ? (
-            <Muted>
-              {isOnline
-                ? `Esperando al Zar (${zar.nickname})…`
-                : `Pasa el móvil al Zar (${zar.nickname}).`}
-            </Muted>
-          ) : privacy && !isSolo && !isOnline ? (
+          ) : privacy &&
+            !isSolo &&
+            !isOnline &&
+            active?.id === zar.id ? (
             <Button
               title="Soy el Zar — revelar jugadas"
               onPress={() => setPrivacy(false)}
             />
           ) : (
             <>
-              <Label>
-                {isSolo ? '¿Cuál gana? (tú o un rival)' : 'Elige la mejor jugada'}
-              </Label>
-              {revealOrderSafe.map((idx, optNum) => {
-                const sub = game.submissions[idx];
-                if (!sub) return null;
-                const isRival = !!sub.rival || sub.playerId.startsWith('rival-');
-                // Solo may label Tú / bots; async/live stay anonymous until reveal
-                const label = isSolo
-                  ? !!human && sub.playerId === human.id && !sub.rival
-                    ? 'Tú'
-                    : isRival
-                      ? rivalLabel(sub.playerId)
-                      : 'Opción'
-                  : `Opción ${optNum + 1}`;
+              {(() => {
+                const isZarSeat = isOnline
+                  ? myPlayerId === zar.id
+                  : active?.id === zar.id;
+                const canPickWinner = isSolo || isZarSeat;
                 return (
-                  <View key={`${sub.playerId}-${idx}`} style={styles.judgeCard}>
-                    <Text style={styles.judgeLabel}>{label}</Text>
-                    <FilledPromptText
-                      large
-                      promptText={game.currentPrompt?.text ?? ''}
-                      answers={sub.cards.map((c) => c.text)}
-                    />
-                    <Button title="Gana esta" onPress={() => judge(sub.playerId)} />
-                  </View>
+                  <>
+                    <Label>
+                      {isSolo
+                        ? '¿Cuál gana? (tú o un rival)'
+                        : canPickWinner
+                          ? 'Elige la mejor jugada'
+                          : 'Jugadas anónimas'}
+                    </Label>
+                    {revealOrderSafe.map((idx, optNum) => {
+                      const sub = game.submissions[idx];
+                      if (!sub) return null;
+                      const isRival =
+                        !!sub.rival || sub.playerId.startsWith('rival-');
+                      // Solo may label Tú / bots; async/live stay anonymous until reveal
+                      const label = isSolo
+                        ? !!human && sub.playerId === human.id && !sub.rival
+                          ? 'Tú'
+                          : isRival
+                            ? rivalLabel(sub.playerId)
+                            : 'Opción'
+                        : `Opción ${optNum + 1}`;
+                      const filled = Engine.getFilledSubmission(game, sub);
+                      return (
+                        <View
+                          key={`${sub.playerId}-${idx}`}
+                          style={styles.judgeCard}
+                        >
+                          <View style={styles.soloRivalHead}>
+                            <Text style={styles.judgeLabel}>{label}</Text>
+                            <Text
+                              style={styles.soloStar}
+                              onPress={() => toggleFavFilled(filled, sub.cards)}
+                            >
+                              {isFavFilled(filled) ? '★' : '☆'}
+                            </Text>
+                          </View>
+                          <FilledPromptText
+                            large
+                            promptText={game.currentPrompt?.text ?? ''}
+                            answers={sub.cards.map((c) => c.text)}
+                          />
+                          {canPickWinner ? (
+                            <Button
+                              title="Gana esta"
+                              onPress={() => judge(sub.playerId)}
+                            />
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                    {!isSolo && !canPickWinner ? (
+                      <Muted>El Zar está eligiendo…</Muted>
+                    ) : null}
+                  </>
                 );
-              })}
+              })()}
             </>
           )}
         </>
@@ -1624,11 +1683,17 @@ export default function PlayScreen() {
           ) : (
             <>
               {(() => {
+                const tieIds = (game.roundWinnerIds ?? []).filter(Boolean);
+                const isTie = tieIds.length > 1;
                 const iWon =
                   !!game.roundWinnerId &&
                   (isOnline
-                    ? myPlayerId === game.roundWinnerId
-                    : active?.id === game.roundWinnerId || isSolo);
+                    ? isTie
+                      ? tieIds.includes(myPlayerId ?? '')
+                      : myPlayerId === game.roundWinnerId
+                    : isTie
+                      ? !!active && tieIds.includes(active.id)
+                      : active?.id === game.roundWinnerId || isSolo);
                 const iAmNextZar =
                   !voteMode &&
                   !winnerIsRival &&
@@ -1636,11 +1701,22 @@ export default function PlayScreen() {
                   (isOnline
                     ? myPlayerId === game.roundWinnerId
                     : true);
+                const tiedSubs = isTie
+                  ? tieIds
+                      .map((id) =>
+                        game.submissions.find((s) => s.playerId === id)
+                      )
+                      .filter(
+                        (s): s is NonNullable<typeof s> => !!s
+                      )
+                  : [];
                 return (
                   <>
                     <View style={styles.revealTitleRow}>
-                      <Title>{iWon ? '¡Puntaco!' : 'Fin de ronda'}</Title>
-                      {iWon ? (
+                      <Title>
+                        {isTie ? 'Empate' : iWon ? '¡Puntaco!' : 'Fin de ronda'}
+                      </Title>
+                      {iWon && !isTie ? (
                         <Pressable
                           onPress={toggleMyAnswerFav}
                           hitSlop={12}
@@ -1655,31 +1731,93 @@ export default function PlayScreen() {
                       ) : null}
                     </View>
                     <Subtitle>
-                      {winnerIsRival
-                        ? `Gana el bot (${winnerName})`
-                        : iWon
-                          ? `Has ganado esta ronda`
-                          : `Gana: ${winnerName}`}
-                      {!isSolo && !winnerIsRival && !voteMode
+                      {isTie
+                        ? 'Empate · +1 cada una'
+                        : winnerIsRival
+                          ? `Gana el bot (${winnerName})`
+                          : iWon
+                            ? `Has ganado esta ronda`
+                            : `Gana: ${winnerName}`}
+                      {!isTie && !isSolo && !winnerIsRival && !voteMode
                         ? ` · próximo Zar: ${winnerName}`
                         : ''}
                     </Subtitle>
                     <Muted>
-                      {`+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
+                      {isTie
+                        ? `Empate · +1 cada una. Meta: ${game.targetScore} Puntacos.`
+                        : `+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
                     </Muted>
-                    {winnerSub ? (
-                      <CardFace
-                        kind="answer"
-                        text={Engine.getFilledSubmission(game, winnerSub)}
-                      />
-                    ) : null}
+                    {isTie
+                      ? tiedSubs.map((sub) => {
+                          const filled = Engine.getFilledSubmission(game, sub);
+                          const nick =
+                            game.players.find((p) => p.id === sub.playerId)
+                              ?.nickname ?? '—';
+                          return (
+                            <View
+                              key={`tie-${sub.playerId}`}
+                              style={styles.judgeCard}
+                            >
+                              <View style={styles.soloRivalHead}>
+                                <Text style={styles.judgeLabel}>{nick}</Text>
+                                <Text
+                                  style={styles.soloStar}
+                                  onPress={() =>
+                                    toggleFavFilled(filled, sub.cards)
+                                  }
+                                >
+                                  {isFavFilled(filled) ? '★' : '☆'}
+                                </Text>
+                              </View>
+                              <FilledPromptText
+                                large
+                                promptText={game.currentPrompt?.text ?? ''}
+                                answers={sub.cards.map((c) => c.text)}
+                              />
+                            </View>
+                          );
+                        })
+                      : winnerSub
+                        ? (() => {
+                            const filled = Engine.getFilledSubmission(
+                              game,
+                              winnerSub
+                            );
+                            return (
+                              <View style={styles.judgeCard}>
+                                <View style={styles.soloRivalHead}>
+                                  <Text style={styles.judgeLabel}>
+                                    {winnerName}
+                                  </Text>
+                                  <Text
+                                    style={styles.soloStar}
+                                    onPress={() =>
+                                      toggleFavFilled(filled, winnerSub.cards)
+                                    }
+                                  >
+                                    {isFavFilled(filled) ? '★' : '☆'}
+                                  </Text>
+                                </View>
+                                <FilledPromptText
+                                  large
+                                  promptText={game.currentPrompt?.text ?? ''}
+                                  answers={winnerSub.cards.map((c) => c.text)}
+                                />
+                              </View>
+                            );
+                          })()
+                        : null}
                     <Label>Clasificación</Label>
                     {[...game.players]
                       .sort((a, b) => b.score - a.score)
                       .map((p, i) => (
                         <Muted key={p.id}>
                           {i + 1}. {p.nickname} — {p.score}
-                          {p.id === game.roundWinnerId ? ' (+1)' : ''}
+                          {(isTie
+                            ? tieIds.includes(p.id)
+                            : p.id === game.roundWinnerId)
+                            ? ' (+1)'
+                            : ''}
                           {myPlayerId === p.id || active?.id === p.id
                             ? ' · tú'
                             : ''}

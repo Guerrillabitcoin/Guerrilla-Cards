@@ -11,12 +11,15 @@ export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
   {
     version: '0.99',
-    date: '2026-09-14',
+    date: '2026-09-15',
     notes: [
-      'Puntaco solo para el ganador; el resto ve quién ganó',
-      'Siguiente ronda: solo el nuevo Zar avanza (o auto 10 s); pregunta nueva + manos',
-      'Sync: no machaca manos al pasar de revelado a enviar',
-      'Fix: tras el Zar, no se quedan «ya contestaste» por respuestas de la ronda anterior',
+      'Al juzgar: todos ven las opciones anónimas; solo el Zar elige',
+      'Descarte cada 5 rondas (5, 10, 15…), no solo una vez',
+      'Resultados: ranking + reiniciar partida (mismo código online)',
+      'Lobby: el apodo guardado ya no se pisa al escribir / al sincronizar',
+      'Home: Multijugador beta + unirse por código bajo el modo',
+      'Voto: empate → ambas respuestas +1 y se muestran',
+      '★ favoritos en respuestas enviadas, opciones al juzgar y revelado',
     ],
   },
   {

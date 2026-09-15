@@ -117,10 +117,23 @@ function parseExisting(raw) {
 function mergeLobbyPlayers(existingPlayers, incomingPlayers) {
   const byId = new Map();
   for (const p of existingPlayers || []) {
-    if (p && p.id) byId.set(p.id, p);
+    if (p && p.id) byId.set(p.id, { ...p });
   }
   for (const p of incomingPlayers || []) {
-    if (p && p.id && !byId.has(p.id)) byId.set(p.id, p);
+    if (!p || !p.id) continue;
+    const prev = byId.get(p.id);
+    if (!prev) {
+      byId.set(p.id, p);
+      continue;
+    }
+    // Rename is authoritative from the renaming client (incoming)
+    const incomingNick =
+      p.nickname != null ? String(p.nickname).trim() : '';
+    byId.set(p.id, {
+      ...prev,
+      ...p,
+      nickname: incomingNick || prev.nickname,
+    });
   }
   const merged = Array.from(byId.values());
   if (merged.length > ASYNC_MAX_PLAYERS) {
@@ -526,9 +539,15 @@ async function handler(req, res) {
         const existingProg = gameProgress(existing);
         const incomingProg = gameProgress(incoming);
 
+        // Rematch from results resets round/progress; newer updatedAt wins.
+        const matchRestart =
+          existing.phase === 'results' &&
+          incoming.phase !== 'results' &&
+          (incoming.updatedAt ?? 0) >= (existing.updatedAt ?? 0);
+
         // Stale only when remote is strictly ahead in round/phase progress.
         // reveal → next submitting/discarding is FORWARD (higher gameProgress).
-        if (!bothLobby && existingProg > incomingProg) {
+        if (!bothLobby && existingProg > incomingProg && !matchRestart) {
           return res.status(200).json({
             ok: true,
             skipped: true,
@@ -537,7 +556,9 @@ async function handler(req, res) {
           });
         }
 
-        if (bothLobby) {
+        if (matchRestart) {
+          state = { ...incoming, code };
+        } else if (bothLobby) {
           // Concurrent host/joiner pushes: union players by id so neither wipes seats
           const mergedPlayers = mergeLobbyPlayers(
             existing.players,
