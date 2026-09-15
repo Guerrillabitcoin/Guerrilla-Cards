@@ -289,9 +289,9 @@ export default function ResultsScreen() {
       </View>
 
       {!isSolo ? rankingBlock : null}
-      {!isSolo ? menuBlock : null}
+      {menuBlock}
 
-      {/* Solo: archive of all round answers first (legacy layout). Multi: after ranking. */}
+      {/* Menú arriba; archivo de respuestas debajo. */}
       <View style={styles.answersBox}>
         <Text style={styles.lastTitle}>{answersTitle}</Text>
         <Muted>{answersHint}</Muted>
@@ -379,7 +379,6 @@ export default function ResultsScreen() {
         })()}
       </View>
 
-      {isSolo ? menuBlock : null}
     </Screen>
   );
 }
