@@ -372,6 +372,35 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
       const seat = getMySeatSync(key);
       remote = mergeHandsPreserveLocal(remote, local, seat);
+      // Same discarding round: union who already discarded (sync must not wipe peers)
+      if (
+        local &&
+        remote.phase === 'discarding' &&
+        local.phase === 'discarding' &&
+        (local.round ?? 0) === (remote.round ?? 0)
+      ) {
+        const ids = Array.from(
+          new Set([
+            ...(local.discardDonePlayerIds ?? []),
+            ...(remote.discardDonePlayerIds ?? []),
+          ])
+        );
+        const byDiscard = new Map<
+          string,
+          NonNullable<typeof remote.lastDiscarded>[number]
+        >();
+        for (const row of [
+          ...(local.lastDiscarded ?? []),
+          ...(remote.lastDiscarded ?? []),
+        ]) {
+          if (row?.playerId) byDiscard.set(row.playerId, row);
+        }
+        remote = {
+          ...remote,
+          discardDonePlayerIds: ids,
+          lastDiscarded: Array.from(byDiscard.values()),
+        };
+      }
       // Only re-attach OUR in-progress answer for THIS submitting round+prompt.
       // Never re-inject peers' (or prior-round) answers — that left 2/3 stuck
       // as «ya contestaste» after Zar advanced.

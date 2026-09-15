@@ -1134,7 +1134,7 @@ export function soloSkipRoundDiscard(
   }
   // If skip would start a discard-gated round (5, 10, 15…), force discard first
   const aboutToStart = next.round + 1;
-  if (shouldDiscardBeforeRound(aboutToStart)) {
+  if (shouldDiscardBeforeRound(aboutToStart, next.mode)) {
     return startDiscardRound(next);
   }
   return beginRound(next);
@@ -1152,15 +1152,15 @@ export function nextRound(state: GameState): GameState {
         updatedAt: now(),
       };
     }
-    // Same as multi: discard phase before rounds 5, 10, 15…
+    // Solo: discard before 5 (not before final round 10)
     const aboutToStart = state.round + 1;
-    if (shouldDiscardBeforeRound(aboutToStart)) {
+    if (shouldDiscardBeforeRound(aboutToStart, 'solo')) {
       return startDiscardRound(state);
     }
     return beginRound({ ...state, zarIndex: 0 });
   }
   const aboutToStart = state.round + 1;
-  if (shouldDiscardBeforeRound(aboutToStart)) {
+  if (shouldDiscardBeforeRound(aboutToStart, state.mode)) {
     return startDiscardRound(state);
   }
   const zarIndex = nextZarIndex(state);

@@ -350,6 +350,28 @@ function promoteJudgingIfReady(state) {
   };
 }
 
+function unionDiscardDone(a, b) {
+  const out = [];
+  const seen = new Set();
+  for (const id of [...(a || []), ...(b || [])]) {
+    if (!id || seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
+}
+
+function mergeLastDiscarded(existing, incoming) {
+  const byId = new Map();
+  for (const row of existing || []) {
+    if (row && row.playerId) byId.set(row.playerId, row);
+  }
+  for (const row of incoming || []) {
+    if (row && row.playerId) byId.set(row.playerId, row);
+  }
+  return Array.from(byId.values());
+}
+
 function applyPrivacyMerges(existing, incoming) {
   if (!existing || typeof existing !== 'object') return incoming;
 
@@ -368,6 +390,13 @@ function applyPrivacyMerges(existing, incoming) {
       revealOrder: [],
       votes: {},
       roundWinnerId: null,
+      roundWinnerIds: [],
+      discardDonePlayerIds:
+        incoming.phase === 'discarding'
+          ? incoming.discardDonePlayerIds || []
+          : [],
+      lastDiscarded:
+        incoming.phase === 'discarding' ? incoming.lastDiscarded || [] : [],
     });
   }
 
@@ -394,6 +423,24 @@ function applyPrivacyMerges(existing, incoming) {
       ? incoming.roundWinnerId ?? null
       : incoming.roundWinnerId || existing.roundWinnerId || null,
   };
+  // Discarding: never lose a peer who already discarded (avoids double-discard)
+  if (
+    phase === 'discarding' &&
+    existing.phase === 'discarding' &&
+    (Number(existing.round) || 0) === (Number(incoming.round) || 0)
+  ) {
+    state = {
+      ...state,
+      discardDonePlayerIds: unionDiscardDone(
+        existing.discardDonePlayerIds,
+        incoming.discardDonePlayerIds
+      ),
+      lastDiscarded: mergeLastDiscarded(
+        existing.lastDiscarded,
+        incoming.lastDiscarded
+      ),
+    };
+  }
   if (phase === 'reveal' || phase === 'results') {
     // Keep scores from the more advanced side
     if (

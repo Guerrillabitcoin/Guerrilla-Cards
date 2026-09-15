@@ -20,6 +20,8 @@ export const APP_VERSION_NOTES = [
       'Home: Multijugador beta + unirse por código bajo el modo',
       'Voto: empate → ambas respuestas +1 y se muestran',
       '★ favoritos en respuestas enviadas, opciones al juzgar y revelado',
+      'Solo: final con todas las respuestas; sin descarte en la ronda 10',
+      'Multi: fix doble descarte (sync une quién ya descartó)',
     ],
   },
   {

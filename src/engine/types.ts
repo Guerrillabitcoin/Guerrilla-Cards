@@ -152,9 +152,18 @@ export const SOLO_RIVAL_COUNT = 3;
 
 /** Discard phase before every round that is a multiple of this (5, 10, 15…). */
 export const DISCARD_AT_ROUND = 5;
-/** True when round N should be preceded by a discard phase. */
-export function shouldDiscardBeforeRound(n: number): boolean {
-  return n > 0 && n % DISCARD_AT_ROUND === 0;
+/**
+ * True when round N should be preceded by a discard phase.
+ * Solo: never before the final round (10) — only mid-match gates (e.g. 5).
+ * Multi: every multiple of 5 including 10, 15…
+ */
+export function shouldDiscardBeforeRound(
+  n: number,
+  mode?: GameMode | string | null
+): boolean {
+  if (!(n > 0 && n % DISCARD_AT_ROUND === 0)) return false;
+  if (mode === 'solo' && n >= SOLO_MAX_ROUNDS) return false;
+  return true;
 }
 /** Min answer cards to discard in the discard phase */
 export const DISCARD_MIN = 2;

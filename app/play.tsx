@@ -133,7 +133,7 @@ export default function PlayScreen() {
 
   useEffect(() => {
     // En rondas múltiplo de 5 no hay descartar/pasar (fase de descarte aparte).
-    if (game?.round != null && shouldDiscardBeforeRound(game.round) && soloSkipMode) {
+    if (game?.round != null && shouldDiscardBeforeRound(game.round, game.mode) && soloSkipMode) {
       setSoloSkipMode(false);
       setPicked([]);
     }
@@ -385,7 +385,7 @@ export default function PlayScreen() {
     if (game.discardDonePlayerIds.includes(seatId)) return;
     const player = game.players.find((p) => p.id === seatId);
     if (!player || player.isBot) return;
-    const key = `${game.code}:discard:${seatId}`;
+    const key = `${game.code}:discard:r${game.round}:${seatId}`;
     if (discardSeedKeyRef.current === key) return;
     discardSeedKeyRef.current = key;
     const ids = player.hand.map((c) => c.id);
@@ -1422,7 +1422,7 @@ export default function PlayScreen() {
               </View>
               {isSolo &&
               !soloSkipMode &&
-              !shouldDiscardBeforeRound(game.round) ? (
+              !shouldDiscardBeforeRound(game.round, game.mode) ? (
                 <Button
                   title="Descartar (tirar 2 y saltar ronda)"
                   variant="discard"
@@ -1432,7 +1432,7 @@ export default function PlayScreen() {
                   }}
                 />
               ) : null}
-              {isSolo && soloSkipMode && !shouldDiscardBeforeRound(game.round) ? (
+              {isSolo && soloSkipMode && !shouldDiscardBeforeRound(game.round, game.mode) ? (
                 <Button
                   title={`Cancelar descarte (${soloSkipCountLabel})`}
                   variant="ghost"

@@ -222,9 +222,56 @@ export default function ResultsScreen() {
     }
   };
 
+  const isSolo = game.mode === 'solo';
+  const answersTitle = isSolo
+    ? 'Tus respuestas de la partida'
+    : 'Tus respuestas';
+  const answersHint = isSolo
+    ? 'Las 10 rondas · de la última a la primera · toca ★ para favoritas'
+    : 'De la última a la primera · toca ★ para favoritas';
+
+  const rankingBlock =
+    !isSolo && ranked.length >= 1 ? (
+      <View style={styles.list}>
+        <Label>Clasificación final</Label>
+        {ranked.map((p, i) => (
+          <View
+            key={p.id}
+            style={[styles.row, i === 0 && styles.rowFirst]}
+          >
+            <View style={[styles.rankBadge, i === 0 && styles.rankBadgeFirst]}>
+              <Text style={styles.rank}>{i + 1}</Text>
+            </View>
+            <Text style={styles.name} numberOfLines={1}>
+              {p.isBot ? '🤖 ' : ''}
+              {p.nickname}
+            </Text>
+            <Text style={[styles.score, i === 0 && styles.scoreFirst]}>
+              {p.score}
+            </Text>
+          </View>
+        ))}
+      </View>
+    ) : null;
+
+  const menuBlock = (
+    <View style={styles.menuBlock}>
+      <Button title="Reiniciar partida" onPress={onRestart} />
+      <Button
+        title="★ Ver respuestas favoritas"
+        variant="outline"
+        onPress={() => router.push('/historial')}
+      />
+      <Button
+        title="Menu inicio"
+        variant="ghost"
+        onPress={() => router.replace('/')}
+      />
+    </View>
+  );
+
   return (
     <Screen>
-      {/* Compact header — menu comes first below */}
       <View style={styles.heroCompact}>
         <Text style={styles.brand}>FIN DE PARTIDA</Text>
         <View style={styles.heroRow}>
@@ -235,54 +282,19 @@ export default function ResultsScreen() {
             </Text>
             <Text style={styles.metaLine}>
               {winner?.score ?? 0} Puntacos · {game.code} · {game.round}r
-              {game.mode === 'solo' ? ' · Solo' : ''}
+              {isSolo ? ' · Solo' : ''}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Ranking first (always show for multiplayer async, even 1+ players) */}
-      {ranked.length >= 1 ? (
-        <View style={styles.list}>
-          <Label>Clasificación final</Label>
-          {ranked.map((p, i) => (
-            <View
-              key={p.id}
-              style={[styles.row, i === 0 && styles.rowFirst]}
-            >
-              <View style={[styles.rankBadge, i === 0 && styles.rankBadgeFirst]}>
-                <Text style={styles.rank}>{i + 1}</Text>
-              </View>
-              <Text style={styles.name} numberOfLines={1}>
-                {p.isBot ? '🤖 ' : ''}
-                {p.nickname}
-              </Text>
-              <Text style={[styles.score, i === 0 && styles.scoreFirst]}>
-                {p.score}
-              </Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
+      {!isSolo ? rankingBlock : null}
+      {!isSolo ? menuBlock : null}
 
-      <View style={styles.menuBlock}>
-        <Button title="Reiniciar partida" onPress={onRestart} />
-        <Button
-          title="★ Ver respuestas favoritas"
-          variant="outline"
-          onPress={() => router.push('/historial')}
-        />
-        <Button
-          title="Menu inicio"
-          variant="ghost"
-          onPress={() => router.replace('/')}
-        />
-      </View>
-
-      {/* Tus respuestas: un solo recuadro, de la última a la primera */}
+      {/* Solo: archive of all round answers first (legacy layout). Multi: after ranking. */}
       <View style={styles.answersBox}>
-        <Text style={styles.lastTitle}>Tus respuestas</Text>
-        <Muted>De la última a la primera · toca ★ para favoritas</Muted>
+        <Text style={styles.lastTitle}>{answersTitle}</Text>
+        <Muted>{answersHint}</Muted>
         {(() => {
           // Build list: history (newest first) + live lastAnswer if missing
           const list = [...roundAnswers];
