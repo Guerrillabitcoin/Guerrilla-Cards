@@ -66,6 +66,7 @@ export default function PlayScreen() {
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const autoRevealKeyRef = useRef<string | null>(null);
   const autoRevealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const continueRoundRef = useRef<((opts?: { hostFallback?: boolean }) => void) | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
   const [lastHistoryId, setLastHistoryId] = useState<string | null>(null);
   /** Show ★ filled briefly before advancing after favoriting */
@@ -407,6 +408,56 @@ export default function PlayScreen() {
     game?.discardDonePlayerIds,
     game?.players,
     game,
+    onlineRoom,
+    myPlayerId,
+  ]);
+
+  // Online reveal: only the next Zar (winner) auto-advances at 10s.
+  // Others wait for poll. Host fallback at 12s if still stuck on reveal.
+  useEffect(() => {
+    if (!game || game.mode === 'solo') return;
+    if (game.phase !== 'reveal' || !game.roundWinnerId) {
+      if (autoRevealTimerRef.current) {
+        clearTimeout(autoRevealTimerRef.current);
+        autoRevealTimerRef.current = null;
+      }
+      if (game?.phase !== 'reveal') autoRevealKeyRef.current = null;
+      return;
+    }
+    const online = onlineRoom && !!myPlayerId;
+    const iAmNextZar = online && myPlayerId === game.roundWinnerId;
+    const iAmHost =
+      online &&
+      !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+    // Pass-and-play (one device): anyone may auto-advance
+    const mayAuto = !online || iAmNextZar;
+    const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
+      mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
+    }`;
+    if (autoRevealKeyRef.current === key) return;
+    autoRevealKeyRef.current = key;
+    if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
+
+    if (mayAuto) {
+      autoRevealTimerRef.current = setTimeout(() => {
+        autoRevealTimerRef.current = null;
+        continueRoundRef.current?.();
+      }, 10000);
+      return;
+    }
+    if (iAmHost) {
+      autoRevealTimerRef.current = setTimeout(() => {
+        autoRevealTimerRef.current = null;
+        continueRoundRef.current?.({ hostFallback: true });
+      }, 12000);
+    }
+  }, [
+    game?.mode,
+    game?.phase,
+    game?.code,
+    game?.round,
+    game?.roundWinnerId,
+    game?.players,
     onlineRoom,
     myPlayerId,
   ]);
@@ -889,55 +940,7 @@ export default function PlayScreen() {
     void run();
   };
 
-  // Online reveal: only the next Zar (winner) auto-advances at 10s.
-  // Others wait for poll. Host fallback at 12s if still stuck on reveal.
-  useEffect(() => {
-    if (!game || game.mode === 'solo') return;
-    if (game.phase !== 'reveal' || !game.roundWinnerId) {
-      if (autoRevealTimerRef.current) {
-        clearTimeout(autoRevealTimerRef.current);
-        autoRevealTimerRef.current = null;
-      }
-      if (game?.phase !== 'reveal') autoRevealKeyRef.current = null;
-      return;
-    }
-    const online = onlineRoom && !!myPlayerId;
-    const iAmNextZar = online && myPlayerId === game.roundWinnerId;
-    const iAmHost =
-      online &&
-      !!game.players.find((p) => p.id === myPlayerId && p.isHost);
-    // Pass-and-play (one device): anyone may auto-advance
-    const mayAuto = !online || iAmNextZar;
-    const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
-      mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
-    }`;
-    if (autoRevealKeyRef.current === key) return;
-    autoRevealKeyRef.current = key;
-    if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
-
-    if (mayAuto) {
-      autoRevealTimerRef.current = setTimeout(() => {
-        autoRevealTimerRef.current = null;
-        continueRound();
-      }, 10000);
-      return;
-    }
-    if (iAmHost) {
-      autoRevealTimerRef.current = setTimeout(() => {
-        autoRevealTimerRef.current = null;
-        continueRound({ hostFallback: true });
-      }, 12000);
-    }
-  }, [
-    game?.mode,
-    game?.phase,
-    game?.code,
-    game?.round,
-    game?.roundWinnerId,
-    game?.players,
-    onlineRoom,
-    myPlayerId,
-  ]);
+  continueRoundRef.current = continueRound;
 
   const historyEntry = lastHistoryId
     ? winningHistory.find((h) => h.id === lastHistoryId)

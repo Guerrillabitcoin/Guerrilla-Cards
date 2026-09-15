@@ -378,6 +378,8 @@ export default function ResultsScreen() {
           });
         })()}
       </View>
+
+      {isSolo ? menuBlock : null}
     </Screen>
   );
 }
