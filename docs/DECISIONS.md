@@ -78,3 +78,10 @@ Do not:
 - Do not put full `promptDeck` / `answerDeck` in React state or in the persisted JSON.
 - Hydrate piles in the store ref on load.
 - Debounce persist (~900 ms). Memory is source of truth mid-match.
+
+## Reto and Taller
+
+- Reto semanal uses a **temporary week deck**, not `core`.
+- Taller (edit / typo / add / export that week file) is preview + local only. Do not put Taller on the production Home.
+- Do not merge Taller drafts into `core.json` by default. Export JSON, review, then commit the week file.
+- Existing AdminPanel / local patches stay a preview tool. Production must not depend on `?admin=1`.
