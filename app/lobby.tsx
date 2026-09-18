@@ -12,9 +12,9 @@ import {
   Title,
 } from '@/src/components/ui';
 import * as Engine from '@/src/engine/game';
+import { startFlexible } from '@/src/engine/startFlexible';
 import { randomNickname } from '@/src/engine/nicknames';
 import {
-  ASYNC_TARGET_PLAYERS,
   MAX_PLAYERS,
   MIN_PLAYERS,
 } from '@/src/engine/types';
@@ -27,6 +27,14 @@ import {
   setMySeat,
 } from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
+
+function notify(title: string, message: string) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(`${title}: ${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
 
 export default function LobbyScreen() {
   const styles = useLobbyStyles();
@@ -97,7 +105,7 @@ export default function LobbyScreen() {
       });
       router.replace({ pathname: '/play', params: { code: game.code } });
     } catch (e) {
-      Alert.alert('Solo', e instanceof Error ? e.message : 'Error');
+      notify('Solo', e instanceof Error ? e.message : 'Error');
     }
   }, [
     ready,
@@ -156,16 +164,16 @@ export default function LobbyScreen() {
         );
       }
     } catch (e) {
-      Alert.alert('Jugador', e instanceof Error ? e.message : 'Error');
+      notify('Jugador', e instanceof Error ? e.message : 'Error');
     }
   };
 
   const start = () => {
     try {
-      updateGame(game.code, (g) => Engine.startGame(g));
+      updateGame(game.code, (g) => startFlexible(g));
       router.replace({ pathname: '/play', params: { code: game.code } });
     } catch (e) {
-      Alert.alert('Empezar', e instanceof Error ? e.message : 'Error');
+      notify('Empezar', e instanceof Error ? e.message : 'Error');
     }
   };
 
@@ -173,7 +181,7 @@ export default function LobbyScreen() {
     game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'multijugador' : 'solo';
   const seatMax = Math.max(
     MIN_PLAYERS,
-    Math.min(MAX_PLAYERS, game.maxPlayers ?? (isAsync ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS))
+    Math.min(MAX_PLAYERS, game.maxPlayers ?? MAX_PLAYERS)
   );
   const seatMin = MIN_PLAYERS;
   const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
@@ -259,7 +267,7 @@ export default function LobbyScreen() {
                   await pushRoom(g, seat);
                 })();
               } catch (e) {
-                Alert.alert(
+                notify(
                   'Nombre',
                   e instanceof Error ? e.message : 'No se pudo guardar'
                 );
