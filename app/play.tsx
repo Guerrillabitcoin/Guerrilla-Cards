@@ -432,7 +432,7 @@ export default function PlayScreen() {
       online &&
       !!game.players.find((p) => p.id === myPlayerId && p.isHost);
     // Pass-and-play (one device): anyone may auto-advance
-    const mayAuto = !online || iAmNextZar;
+    const mayAuto = true;
     const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
       mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
     }`;
@@ -918,10 +918,7 @@ export default function PlayScreen() {
           const iAmHost = !!cur.players.find(
             (p) => p.id === myPlayerId && p.isHost
           );
-          const mayAdvance =
-            iAmNextZar ||
-            (vote && iAmHost) ||
-            (opts?.hostFallback && iAmHost);
+          const mayAdvance = true;
           if (!mayAdvance) {
             advancingLockRef.current = false;
             return;
