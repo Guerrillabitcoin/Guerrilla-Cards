@@ -1,14 +1,26 @@
 /**
  * App release label shown in the UI (home + Partida header).
- * Bump N in 0.99.N on every commit we deploy.
- * UI always prefixes with "v" via APP_VERSION_LABEL.
+ * Bump on every commit we deploy. v1.0 only when the owner says so.
  */
-export const APP_VERSION = '0.99.421.01';
+export const APP_VERSION = '0.99.421.03';
 
-/** Display form, e.g. `v0.69` — use this in UI next to Partida / home. */
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.03',
+    date: '2026-09-18',
+    notes: [
+      '1v1: cada voto suma 1 a esa respuesta (2-0 → +2, 1-1 → +1 cada uno). Sin empate.',
+    ],
+  },
+  {
+    version: '0.99.421.01',
+    date: '2026-09-18',
+    notes: [
+      '1v1: se ven las dos respuestas y puedes votar la tuya',
+    ],
+  },
   {
     version: '0.99.421',
     date: '2026-09-18',

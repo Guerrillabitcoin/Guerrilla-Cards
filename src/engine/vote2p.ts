@@ -1,7 +1,7 @@
 import type { GameState } from './types';
 import * as Engine from './game';
 
-function twoPlayerVote(state: GameState): boolean {
+export function isTwoPlayerVote(state: GameState): boolean {
   const humans = state.players.filter((p) => !p.isBot).length;
   return (
     (state.judgeMode ?? 'zar') === 'vote' &&
@@ -10,9 +10,14 @@ function twoPlayerVote(state: GameState): boolean {
   );
 }
 
+function twoPlayerVote(state: GameState): boolean {
+  return isTwoPlayerVote(state);
+}
+
 /**
- * 2 players: you may vote for your own answer. Each received vote is +1.
- * 2-0 → winner +2. 1-1 → both +1. 3+ players keep the old rule (no self-vote, +1).
+ * 1v1: you may vote your own answer. Each vote is +1 to that answer.
+ * 2-0 → that player +2. 1-1 → each +1. No empate / no single-winner bonus.
+ * 3+ keeps the old rule (no self-vote, majority +1).
  */
 export function castVoteFlexible(
   state: GameState,
@@ -62,22 +67,26 @@ export function castVoteFlexible(
     p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
   );
 
-  const best = Math.max(0, ...Object.values(tallies));
-  const winners = Object.keys(tallies).filter((id) => tallies[id] === best && best > 0);
   const hitTarget = players.some((p) => p.score >= state.targetScore);
+  const hostId = state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
 
   return {
     ...state,
     players,
     votes,
-    roundWinnerId: winners[0] ?? null,
-    roundWinnerIds: winners.length > 1 ? winners : [],
+    roundWinnerId: hostId,
+    roundWinnerIds: [],
     phase: hitTarget ? 'results' : 'reveal',
-    activeSeatId: hitTarget ? null : state.activeSeatId,
+    activeSeatId: hitTarget ? null : hostId,
     updatedAt: Date.now(),
   };
 }
 
 export function showOwnAnswerWhenVoting(state: GameState): boolean {
   return twoPlayerVote(state);
+}
+
+export function votesFor(state: GameState, playerId: string): number {
+  const votes = state.votes ?? {};
+  return Object.values(votes).filter((id) => id === playerId).length;
 }
