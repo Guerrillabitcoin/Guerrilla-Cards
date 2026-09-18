@@ -1505,7 +1505,7 @@ export default function PlayScreen() {
                       (sub): sub is NonNullable<typeof sub> =>
                         !!sub &&
                         !sub.rival &&
-                        !(active && (showOwnAnswerWhenVoting(game) || !(active && sub.playerId === active.id)))
+                        (showOwnAnswerWhenVoting(game) || !(active && sub.playerId === active.id))
                     )
                     .map((sub, optNum) => {
                       const filled = Engine.getFilledSubmission(game, sub);
