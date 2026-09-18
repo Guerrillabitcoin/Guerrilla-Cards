@@ -3,7 +3,7 @@
  * Bump N in 0.99.N on every commit we deploy.
  * UI always prefixes with "v" via APP_VERSION_LABEL.
  */
-export const APP_VERSION = '0.99.421';
+export const APP_VERSION = '0.99.421.01';
 
 /** Display form, e.g. `v0.69` — use this in UI next to Partida / home. */
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
