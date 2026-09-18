@@ -15,6 +15,7 @@ import {
   Subtitle,
   Title,
 } from '@/src/components/ui';
+import { NextRoundBar } from '@/src/components/NextRoundBar';
 import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
 import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
@@ -443,7 +444,7 @@ export default function PlayScreen() {
       autoRevealTimerRef.current = setTimeout(() => {
         autoRevealTimerRef.current = null;
         continueRoundRef.current?.();
-      }, 10000);
+      }, 8000);
       return;
     }
     if (iAmHost) {
@@ -1122,6 +1123,7 @@ export default function PlayScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.sticky}>
+                  <NextRoundBar active={phase === 'reveal'} />
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
             {roundLine}
