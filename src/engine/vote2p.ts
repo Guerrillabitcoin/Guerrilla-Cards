@@ -30,20 +30,22 @@ function finishTwoPlayerVotes(state: GameState, votes: Record<string, string>): 
     p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
   );
   const hitTarget = players.some((p) => p.score >= state.targetScore);
+  const best = Math.max(0, ...Object.values(tallies));
+  const winners = eligible.filter((id) => (tallies[id] ?? 0) === best && best > 0);
+  const isSplit = winners.length > 1;
   const hostId = state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
   return {
     ...state,
     players,
     votes,
-    roundWinnerId: hostId,
-    roundWinnerIds: [],
+    roundWinnerId: isSplit ? hostId : winners[0] ?? hostId,
+    roundWinnerIds: isSplit ? winners : [],
     phase: hitTarget ? 'results' : 'reveal',
     activeSeatId: hitTarget ? null : hostId,
     updatedAt: Date.now(),
   };
 }
 
-/** If both 1v1 votes are present while still judging, close the round (no extra vote). */
 export function resolveVotesIfComplete(state: GameState): GameState {
   if (!twoPlayerVote(state) || state.phase !== 'judging') return state;
   const votes = state.votes ?? {};
