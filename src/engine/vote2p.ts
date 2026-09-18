@@ -2,16 +2,17 @@ import type { GameState } from './types';
 import * as Engine from './game';
 
 function twoPlayerVote(state: GameState): boolean {
+  const humans = state.players.filter((p) => !p.isBot).length;
   return (
     (state.judgeMode ?? 'zar') === 'vote' &&
     state.mode !== 'solo' &&
-    state.players.filter((p) => !p.isBot).length === 2
+    (state.maxPlayers === 2 || humans === 2)
   );
 }
 
 /**
  * 2 players: you may vote for your own answer. Each received vote is +1.
- * 2–0 → winner +2. 1–1 → both +1. 3+ players keep the old rule (no self-vote, +1).
+ * 2-0 → winner +2. 1-1 → both +1. 3+ players keep the old rule (no self-vote, +1).
  */
 export function castVoteFlexible(
   state: GameState,
