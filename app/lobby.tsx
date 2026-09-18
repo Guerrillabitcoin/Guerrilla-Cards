@@ -59,7 +59,6 @@ export default function LobbyScreen() {
     };
   }, [gameCode]);
 
-  // Seed nick from seat once; do not overwrite while user is typing
   useEffect(() => {
     if (!game || !myPlayerId) return;
     if (nickDirtyRef.current) return;
@@ -67,7 +66,6 @@ export default function LobbyScreen() {
     if (me?.nickname) setNick(me.nickname);
   }, [game?.code, myPlayerId, game?.players]);
 
-  // Poll remote room while in lobby (async online)
   useEffect(() => {
     if (!ready || !gameCode || !onlineRoom) return;
     let cancelled = false;
@@ -84,7 +82,6 @@ export default function LobbyScreen() {
     };
   }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
-  // Solo games should skip lobby (auto-started from Home); if somehow here, start
   useEffect(() => {
     if (!ready || !game || game.mode !== 'solo' || game.phase !== 'lobby') return;
     try {
@@ -93,7 +90,7 @@ export default function LobbyScreen() {
         if (next.players.filter((p) => p.isBot).length === 0) {
           next = Engine.addSoloBots(next);
         }
-        if (next.players.length >= MIN_PLAYERS) {
+        if (next.players.length >= 1) {
           next = Engine.startGame(next);
         }
         return next;
@@ -112,7 +109,6 @@ export default function LobbyScreen() {
     updateGame,
   ]);
 
-  // Online: when host starts remotely, jump to play
   useEffect(() => {
     if (!ready || !game || !onlineRoom) return;
     if (game.phase !== 'lobby' && game.phase !== 'results') {
@@ -154,7 +150,6 @@ export default function LobbyScreen() {
         return next;
       });
       setNick(randomNickname());
-      // Local pass-and-play: adding seats on one device disables pure online lock
       if (isOnline && addedId && !myPlayerId) {
         void setMySeat(game.code, addedId).then(() =>
           setMyPlayerIdState(addedId)
@@ -175,14 +170,16 @@ export default function LobbyScreen() {
   };
 
   const modeLabel =
-    game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'async' : 'solo';
-  const seatMax = isAsync ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
-  const seatMin = isAsync ? ASYNC_TARGET_PLAYERS : MIN_PLAYERS;
+    game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'multijugador' : 'solo';
+  const seatMax = Math.max(
+    MIN_PLAYERS,
+    Math.min(MAX_PLAYERS, game.maxPlayers ?? (isAsync ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS))
+  );
+  const seatMin = MIN_PLAYERS;
   const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
   const canStart = game.players.length >= seatMin;
   const iAmHost =
     !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
-  const canAddLocal = !isOnline || game.players.length < seatMax;
 
   return (
     <Screen>
@@ -194,15 +191,15 @@ export default function LobbyScreen() {
       </Subtitle>
       <Muted>
         {isOnline
-          ? `Online: comparte el código ${game.code}. Cada jugador se une desde su dispositivo (exactamente ${ASYNC_TARGET_PLAYERS}). Necesita KV en Vercel.`
+          ? `Online: comparte el código ${game.code}. Cada jugador entra desde su dispositivo (${seatMin}–${seatMax}).`
           : isAsync
-            ? `Async: exactamente ${ASYNC_TARGET_PLAYERS} jugadores. Pasa el móvil entre turnos; el código ${game.code} sirve para retomar aquí.`
-            : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil. Pásalo entre personas en cada turno.`}
+            ? `Multijugador: ${seatMin}–${seatMax} jugadores. El código ${game.code} sirve para retomar.`
+            : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil.`}
       </Muted>
 
       <Label>
         Jugadores ({game.players.length}
-        {isAsync ? `/${ASYNC_TARGET_PLAYERS}` : ''})
+        {isAsync ? `/${seatMax}` : ''})
       </Label>
       {game.players.map((p) => (
         <View key={p.id} style={styles.seat}>
@@ -224,15 +221,14 @@ export default function LobbyScreen() {
         </View>
       ))}
 
-      {/* Online: cada uno elige SOLO su nombre; no añadir asientos locales (confuso). */}
       {isOnline && myPlayerId ? (
         <>
           <Label>Tu nombre</Label>
           <Input
             value={nick}
-            onChangeText={(t) => {
+            onChangeText={(txt) => {
               nickDirtyRef.current = true;
-              setNick(t);
+              setNick(txt);
             }}
             placeholder="Tu apodo"
             maxLength={42}
@@ -256,7 +252,6 @@ export default function LobbyScreen() {
                 );
                 setNick(nextNick);
                 nickDirtyRef.current = false;
-                // Belt-and-suspenders push so rename wins the lobby merge
                 void (async () => {
                   const g = getGame(game.code);
                   if (!g || g.mode !== 'async') return;
@@ -272,13 +267,11 @@ export default function LobbyScreen() {
             }}
           />
           <Muted>
-            Los demás se unen desde Inicio con el código {game.code}. Aquí no se
-            añaden jugadores del mismo dispositivo.
+            Los demás se unen desde Inicio con el código {game.code}.
           </Muted>
         </>
       ) : null}
 
-      {/* Pass-and-play (sin online): añadir asientos en este dispositivo */}
       {!isOnline && game.players.length < seatMax ? (
         <>
           <Label>Añadir asiento</Label>
