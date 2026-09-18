@@ -4,7 +4,7 @@ Party card game — **Guerrilla Cards** (Spanish). Dark guerrilla UI. Expo + Typ
 
 **Brand:** Guerrilla Cards only. No Cards Against Humanity / Cartas Contra la Humanidad trademarks or CAH stock card text.
 
-Shipped UI version lives in `src/version.ts` (currently **v0.99**). `package.json` / `app.json` may lag; do not treat them as the label shown in the app.
+Shipped UI version lives in `src/version.ts` (currently **v0.99.420**). `package.json` / `app.json` may lag; do not treat them as the label shown in the app.
 
 For agents: read `AGENTS.md` first. Architecture, scars, preview vs production, and wishlist: `docs/`.
 
