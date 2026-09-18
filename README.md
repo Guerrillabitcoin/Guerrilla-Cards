@@ -22,16 +22,19 @@ npx expo start
 
 Local cubre Solo y pass-and-play. El multi entre dispositivos usa `/api/room` en Vercel (hace falta KV / Upstash).
 
-### Cómo se juega hoy
+### Cómo se juega
 
-- **Solo:** un humano; tras enviar se rellenan 3 rivales desde el mazo.
-- **Live:** pass-and-play en este dispositivo, 3–8 asientos. Cada asiento confirma identidad antes de ver la mano.
-- **Async (hoy = online en web):** 4 asientos, código de sala. En web la sala vive en KV; en nativo el código solo existe en este teléfono.
-- Flujo: prompt → envío desde mano de 12 → Zar o voto → Puntaco → siguiente ronda.
-- Cartas de `_banned` **nunca** se reparte.
-- Descarte periódico: solo en modo Solo (el multi lo tenía y se apagó; ver `docs/DECISIONS.md`).
+Tres modos de cara al jugador (el tercero aún no está):
 
-Wishlist (quitar async de la UI, multi 2–8, beta en otro proyecto Vercel): `docs/ROADMAP.md`.
+- **Solo** — un humano; al enviar se rellenan 3 rivales desde el mazo.
+- **Multijugador** — un código de sala. Hoy el código interno aún distingue mismo teléfono (`live`) y online web (`async`, 4 asientos). En pantalla no hace falta esa jerga.
+- **Reto semanal** — adelante: cartas de actualidad, pocas rondas, recopilar respuestas y votos.
+
+Flujo de una ronda: pregunta → envío desde mano de 12 → Zar o voto → Puntaco → siguiente ronda.
+Cartas de `_banned` **nunca** se reparte.
+Descarte periódico: hoy solo en Solo (`docs/DECISIONS.md`).
+
+Detalle de lo que falta: `docs/ROADMAP.md`.
 
 ## EN — Quick start
 
