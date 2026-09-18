@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
   Button,
+  Chip,
   Input,
   Label,
   Loading,
@@ -12,12 +13,13 @@ import {
   Title,
 } from '@/src/components/ui';
 import * as Engine from '@/src/engine/game';
-import { startFlexible } from '@/src/engine/startFlexible';
-import { randomNickname } from '@/src/engine/nicknames';
 import {
-  MAX_PLAYERS,
-  MIN_PLAYERS,
-} from '@/src/engine/types';
+  addPlayerFlexible,
+  startFlexible,
+  withSeatCap,
+} from '@/src/engine/startFlexible';
+import { randomNickname } from '@/src/engine/nicknames';
+import { MAX_PLAYERS, MIN_PLAYERS } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import {
   getMySeat,
@@ -145,6 +147,31 @@ export default function LobbyScreen() {
 
   const isAsync = game.mode === 'async';
   const isOnline = isAsync && onlineRoom;
+  const iAmHost =
+    !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
+
+  const seatMax = Math.max(
+    MIN_PLAYERS,
+    Math.min(MAX_PLAYERS, game.maxPlayers ?? MAX_PLAYERS)
+  );
+  const seatMin = MIN_PLAYERS;
+  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
+  const canStart = game.players.length >= seatMin;
+
+  const setCap = (n: number) => {
+    if (!iAmHost) return;
+    if (n < game.players.length) {
+      notify('Sala', `Ya hay ${game.players.length} jugadores. Quita alguno o elige ${game.players.length} o más.`);
+      return;
+    }
+    updateGame(game.code, (g) => withSeatCap(g, n));
+    void (async () => {
+      const g = getGame(game.code);
+      if (!g) return;
+      const seat = await getMySeat(game.code);
+      await pushRoom(g, seat);
+    })();
+  };
 
   const addSeat = () => {
     try {
@@ -152,7 +179,7 @@ export default function LobbyScreen() {
       const seatNick = nick.trim() || randomNickname();
       updateGame(game.code, (g) => {
         const before = new Set(g.players.map((p) => p.id));
-        const next = Engine.addPlayer(g, seatNick);
+        const next = addPlayerFlexible(g, seatNick);
         const neu = next.players.find((p) => !before.has(p.id));
         addedId = neu?.id ?? null;
         return next;
@@ -179,15 +206,6 @@ export default function LobbyScreen() {
 
   const modeLabel =
     game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'multijugador' : 'solo';
-  const seatMax = Math.max(
-    MIN_PLAYERS,
-    Math.min(MAX_PLAYERS, game.maxPlayers ?? MAX_PLAYERS)
-  );
-  const seatMin = MIN_PLAYERS;
-  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
-  const canStart = game.players.length >= seatMin;
-  const iAmHost =
-    !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
 
   return (
     <Screen>
@@ -204,6 +222,27 @@ export default function LobbyScreen() {
             ? `Multijugador: ${seatMin}–${seatMax} jugadores. El código ${game.code} sirve para retomar.`
             : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil.`}
       </Muted>
+
+      {iAmHost ? (
+        <>
+          <Label>Esta sala es para</Label>
+          <View style={styles.capRow}>
+            {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <Chip
+                key={n}
+                label={String(n)}
+                selected={seatMax === n}
+                onPress={() => setCap(n)}
+              />
+            ))}
+          </View>
+          <Muted>
+            {seatMax === 2
+              ? '2 jugadores: los dos votan, también la propia. Ganador único +2.'
+              : `Esperando hasta ${seatMax}. Puedes empezar con ${seatMin}+.`}
+          </Muted>
+        </>
+      ) : null}
 
       <Label>
         Jugadores ({game.players.length}
@@ -320,19 +359,24 @@ function useLobbyStyles() {
   return useMemo(
     () =>
       StyleSheet.create({
-  seat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.bgElevated,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  seatName: { color: colors.text, fontWeight: '700', fontSize: 16 },
-}),
+        capRow: {
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: 6,
+        },
+        seat: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: colors.bgElevated,
+          borderRadius: 4,
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        seatName: { color: colors.text, fontWeight: '700', fontSize: 16 },
+      }),
     [colors, fontFamily]
   );
 }
