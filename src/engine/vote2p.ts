@@ -14,11 +14,44 @@ function twoPlayerVote(state: GameState): boolean {
   return isTwoPlayerVote(state);
 }
 
-/**
- * 1v1: you may vote your own answer. Each vote is +1 to that answer.
- * 2-0 → that player +2. 1-1 → each +1. No empate / no single-winner bonus.
- * 3+ keeps the old rule (no self-vote, majority +1).
- */
+export function votesFor(state: GameState, playerId: string): number {
+  const votes = state.votes ?? {};
+  return Object.values(votes).filter((id) => id === playerId).length;
+}
+
+function finishTwoPlayerVotes(state: GameState, votes: Record<string, string>): GameState {
+  const eligible = state.submissions.filter((s) => !s.rival).map((s) => s.playerId);
+  const tallies: Record<string, number> = {};
+  for (const id of eligible) tallies[id] = 0;
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] ?? 0) + 1;
+  }
+  const players = state.players.map((p) =>
+    p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
+  );
+  const hitTarget = players.some((p) => p.score >= state.targetScore);
+  const hostId = state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
+  return {
+    ...state,
+    players,
+    votes,
+    roundWinnerId: hostId,
+    roundWinnerIds: [],
+    phase: hitTarget ? 'results' : 'reveal',
+    activeSeatId: hitTarget ? null : hostId,
+    updatedAt: Date.now(),
+  };
+}
+
+/** If both 1v1 votes are present while still judging, close the round (no extra vote). */
+export function resolveVotesIfComplete(state: GameState): GameState {
+  if (!twoPlayerVote(state) || state.phase !== 'judging') return state;
+  const votes = state.votes ?? {};
+  const eligible = state.submissions.filter((s) => !s.rival).map((s) => s.playerId);
+  if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
+  return finishTwoPlayerVotes(state, votes);
+}
+
 export function castVoteFlexible(
   state: GameState,
   voterId: string,
@@ -44,7 +77,6 @@ export function castVoteFlexible(
   const votes = { ...prev, [voterId]: submissionPlayerId };
   const eligible = state.submissions.filter((s) => !s.rival).map((s) => s.playerId);
   const pending = eligible.filter((id) => !votes[id]);
-
   if (pending.length) {
     const nextSeat =
       state.players.find((p) => pending.includes(p.id) && !p.isBot) ??
@@ -56,37 +88,9 @@ export function castVoteFlexible(
       updatedAt: Date.now(),
     };
   }
-
-  const tallies: Record<string, number> = {};
-  for (const id of eligible) tallies[id] = 0;
-  for (const target of Object.values(votes)) {
-    tallies[target] = (tallies[target] ?? 0) + 1;
-  }
-
-  const players = state.players.map((p) =>
-    p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
-  );
-
-  const hitTarget = players.some((p) => p.score >= state.targetScore);
-  const hostId = state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
-
-  return {
-    ...state,
-    players,
-    votes,
-    roundWinnerId: hostId,
-    roundWinnerIds: [],
-    phase: hitTarget ? 'results' : 'reveal',
-    activeSeatId: hitTarget ? null : hostId,
-    updatedAt: Date.now(),
-  };
+  return finishTwoPlayerVotes(state, votes);
 }
 
 export function showOwnAnswerWhenVoting(state: GameState): boolean {
   return twoPlayerVote(state);
-}
-
-export function votesFor(state: GameState, playerId: string): number {
-  const votes = state.votes ?? {};
-  return Object.values(votes).filter((id) => id === playerId).length;
 }

@@ -1,10 +1,10 @@
 /**
  * Cross-device async room sync via /api/room (Vercel KV).
- * Sync: slimForRoom strips decks + early submission text; hands kept so deals reach all devices.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import { coerceGameState, type GameState, type Submission } from '../engine/types';
+import { resolveVotesIfComplete } from '../engine/vote2p';
 export { gameProgress } from '../engine/syncProgress';
 
 const SEAT_KEY = (code: string) => `guerrilla_seat_${code.trim().toUpperCase()}`;
@@ -66,7 +66,7 @@ export function mergeHandsPreserveLocal(
   local: GameState | null | undefined,
   myPlayerId?: string | null
 ): GameState {
-  if (!local?.players?.length) return remote;
+  if (!local?.players?.length) return resolveVotesIfComplete(remote);
   const localById = new Map(local.players.map((p) => [p.id, p]));
   const players = remote.players.map((rp) => {
     const lp = localById.get(rp.id);
@@ -106,7 +106,18 @@ export function mergeHandsPreserveLocal(
       }
     }
   }
-  return { ...remote, players, submissions };
+
+  let votes = { ...(remote.votes ?? {}) };
+  if (
+    local &&
+    (local.round ?? 0) === (remote.round ?? 0) &&
+    (local.phase === 'judging' || remote.phase === 'judging') &&
+    (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null)
+  ) {
+    votes = { ...(local.votes ?? {}), ...votes };
+  }
+
+  return resolveVotesIfComplete({ ...remote, players, submissions, votes });
 }
 
 export type PushResult =
