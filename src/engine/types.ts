@@ -102,6 +102,8 @@ export interface GameState {
   discardDonePlayerIds: string[];
   /** Cards discarded in the current discard round (per player) */
   lastDiscarded?: { playerId: string; cards: Card[] }[];
+  /** Multi lobby size the host asked for (2–8). */
+  maxPlayers?: number;
 }
 
 /** Winning round combo persisted in historial */
@@ -136,10 +138,12 @@ export interface DiscardStat {
 }
 
 export const HAND_SIZE = 12;
-export const MIN_PLAYERS = 3;
+/** Multi: 2 (always vote) through 8. */
+export const MIN_PLAYERS = 2;
 export const MAX_PLAYERS = 8;
-/** Async lobby: exactly 4 seats to start (pass-and-play MVP). */
+/** Default listed seat count when creating multi. Host can pick 2–8. */
 export const ASYNC_TARGET_PLAYERS = 4;
+export const ASYNC_MAX_PLAYERS = 8;
 export const DEFAULT_TARGET_SCORE = 5;
 /** Solo: máximo de rondas (luego results). */
 export const SOLO_MAX_ROUNDS = 10;
@@ -153,17 +157,15 @@ export const SOLO_RIVAL_COUNT = 3;
 /** Discard phase before every round that is a multiple of this (5, 10, 15…). */
 export const DISCARD_AT_ROUND = 5;
 /**
- * Discard before rounds 5, 10, 15… — Solo only for now.
- * Multi (async/live): disabled (was hanging sync). Solo: never before final round 10.
+ * Discard before rounds 5, 10, 15… in Solo and Multijugador.
+ * Solo: never before the final round 10.
  */
 export function shouldDiscardBeforeRound(
   n: number,
   mode?: GameMode | string | null
 ): boolean {
-  if (mode === 'async' || mode === 'live') return false;
   if (!(n > 0 && n % DISCARD_AT_ROUND === 0)) return false;
   if (mode === 'solo' && n >= SOLO_MAX_ROUNDS) return false;
-  // Default / solo: allow mid-match discards (e.g. before round 5)
   return true;
 }
 /** Min answer cards to discard in the discard phase */
@@ -190,6 +192,7 @@ export function coerceGameState(g: GameState): GameState {
     discardRoundCompleted: g.discardRoundCompleted ?? false,
     discardDonePlayerIds: g.discardDonePlayerIds ?? [],
     lastDiscarded: g.lastDiscarded ?? [],
+    maxPlayers: g.maxPlayers ?? (g.mode === 'async' ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS),
     usedPromptIds: g.usedPromptIds ?? [],
     promptDeck: g.promptDeck ?? [],
     promptDeckPos: g.promptDeckPos ?? 0,
