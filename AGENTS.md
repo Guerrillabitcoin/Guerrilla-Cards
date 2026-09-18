@@ -19,7 +19,7 @@ Hand size: 12. Win token: Puntaco. Judge in multi: Zar or vote (2 players always
 
 ## Version source of truth
 
-- UI / release label: `src/version.ts` (`APP_VERSION`, currently `0.99`).
+- UI / release label: `src/version.ts` (`APP_VERSION`, currently `0.99.420`).
 - Do not treat `package.json` or `app.json` as the shipped version until they are aligned.
 - Bump `APP_VERSION` only when shipping a visible change.
 
