@@ -9,6 +9,14 @@ Read this before changing code. Product facts live here. Wishlist lives in `docs
 - No CAH stock card text.
 - House rules text is in `deck/rules.json`. Documented variants are not all implemented.
 
+Player-facing modes (keep the home screen this simple):
+
+- **Solo** — one human; after submit, 3 random rival fills from the answer pile.
+- **Multijugador** — one room code, 2–8 people (target UI). Today the code still splits this into `live` (same phone) and `async` (web `/api/room`, 4 seats). Do not add a third visible mode named Async.
+- **Reto semanal** — not built yet. Current-events cards, limited rounds, collect fills, upvote. See `docs/ROADMAP.md`.
+
+Hand size: 12. Win token: Puntaco. Judge in multi: Zar or vote (2 players always vote).
+
 ## Version source of truth
 
 - UI / release label: `src/version.ts` (`APP_VERSION`, currently `0.99`).
@@ -23,15 +31,9 @@ Read this before changing code. Product facts live here. Wishlist lives in `docs
 - `deck/` — JSON packs, `manifest.json`, `rules.json`.
 - `api/` — Vercel `/api/room` and `/api/telemetry`.
 
-## Modes (current code)
+## Internal mode ids (current code only)
 
-- `live` — pass-and-play on one device, 3–8 seats.
-- `async` — 4 seats; on web this is the online room path (`/api/room`).
-- `solo` — one human; 3 random rival fills from the answer pile after submit.
-- Judge: `zar` or `vote`.
-- Hand size: 12. Win token: Puntaco.
-
-`docs/ROADMAP.md` may remove `async` from the UI later. Until that ships, `async` is the online mode.
+Until the UI cleanup ships, engine ids stay `solo` | `live` | `async`. Map them to Solo / Multijugador in copy. Do not teach players the word async.
 
 ## Do not touch in the same change as something else
 
