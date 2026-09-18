@@ -1496,7 +1496,7 @@ export default function PlayScreen() {
                 <>
                   <Label>
                     {isOnline
-                      ? 'Elige una opción (anónimas — no la tuya)'
+                      ? 'Elige una de las dos (puedes votar la tuya)'
                       : `Voto de ${active?.nickname} — elige una (anónimas)`}
                   </Label>
                   {revealOrderSafe
