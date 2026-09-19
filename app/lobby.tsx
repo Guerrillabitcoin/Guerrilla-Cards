@@ -50,8 +50,9 @@ export default function LobbyScreen() {
   const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
   const nickDirtyRef = useRef(false);
-    const [remoteTried, setRemoteTried] = useState(false);
+  const [remoteTried, setRemoteTried] = useState(false);
   const joiningRef = useRef(false);
+
   const gameCode = code ? String(code).toUpperCase() : '';
   const game = ready && gameCode ? getGame(gameCode) : undefined;
 
@@ -63,7 +64,16 @@ export default function LobbyScreen() {
         getMySeat(gameCode),
         getOnlineFlag(gameCode),
       ]);
-      useEffect(() => {
+      if (cancelled) return;
+      setMyPlayerIdState(seat);
+      setOnlineRoom(online);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [gameCode]);
+
+  useEffect(() => {
     if (!ready || !gameCode) return;
     if (game) {
       setRemoteTried(true);
@@ -85,7 +95,7 @@ export default function LobbyScreen() {
 
   useEffect(() => {
     if (!ready || !game || game.phase !== 'lobby') return;
-    if (!onlineRoom && game.mode !== 'async') return;
+    if (game.mode !== 'async') return;
     if (myPlayerId && game.players.some((p) => p.id === myPlayerId)) return;
     if (joiningRef.current) return;
     joiningRef.current = true;
@@ -97,18 +107,14 @@ export default function LobbyScreen() {
         applyRemoteGame(joined.state);
         await setMySeat(game.code, joined.playerId);
         setMyPlayerIdState(joined.playerId);
+      } else {
+        joiningRef.current = false;
+        if (joined.error && joined.error !== 'not_web') {
+          notify('Unirse', joined.error);
+        }
       }
-      joiningRef.current = false;
     })();
-  }, [ready, game, onlineRoom, myPlayerId, nick, applyRemoteGame]);
-      if (cancelled) return;
-      setMyPlayerIdState(seat);
-      setOnlineRoom(online);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [gameCode]);
+  }, [ready, game, myPlayerId, nick, applyRemoteGame]);
 
   useEffect(() => {
     if (!game || !myPlayerId) return;
@@ -167,15 +173,15 @@ export default function LobbyScreen() {
     }
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
- if (!ready || (!game && !remoteTried)) return <Loading />;
+  if (!ready || (!game && !remoteTried)) return <Loading />;
 
   if (!game) {
     return (
       <Screen>
         <Title>Lobby perdido</Title>
         <Subtitle>
-          No hay partida con ese código aquí
-          {onlineRoom ? ' ni en el servidor' : ' en este dispositivo'}.
+          No hay partida con ese código en el servidor. Crea la sala otra vez
+          y comparte el enlace nuevo.
         </Subtitle>
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>
@@ -187,7 +193,7 @@ export default function LobbyScreen() {
   }
 
   const isAsync = game.mode === 'async';
-  const isOnline = isAsync && onlineRoom;
+  const isOnline = isAsync;
   const iAmHost =
     !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
 
@@ -195,7 +201,6 @@ export default function LobbyScreen() {
     MIN_PLAYERS,
     Math.min(MAX_PLAYERS, game.maxPlayers ?? MAX_PLAYERS)
   );
-  const seatMin = MIN_PLAYERS;
   const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
   const canStart = game.players.length >= seatMax;
 
@@ -212,37 +217,18 @@ export default function LobbyScreen() {
     void (async () => {
       const g = getGame(game.code);
       if (!g) return;
-      const seat = await getMySeat(game.code);
-      await pushRoom(g, seat);
+      await pushRoom(g, await getMySeat(game.code));
     })();
   };
 
-  const addSeat = () => {
-    try {
-      let addedId: string | null = null;
-      const seatNick = nick.trim() || randomNickname();
-      updateGame(game.code, (g) => {
-        const before = new Set(g.players.map((p) => p.id));
-        const next = addPlayerFlexible(g, seatNick);
-        const neu = next.players.find((p) => !before.has(p.id));
-        addedId = neu?.id ?? null;
-        return next;
-      });
-      setNick(randomNickname());
-      if (isOnline && addedId && !myPlayerId) {
-        void setMySeat(game.code, addedId).then(() =>
-          setMyPlayerIdState(addedId)
-        );
-      }
-    } catch (e) {
-      notify('Jugador', e instanceof Error ? e.message : 'Error');
-    }
-  };
-
   const start = () => {
+    if (!canStart) {
+      notify('Lobby', `Espera a ${seatMax} jugadores (hay ${game.players.length}).`);
+      return;
+    }
     try {
       updateGame(game.code, (g) => startFlexible(g));
-            void (async () => {
+      void (async () => {
         const g = getGame(game.code);
         if (!g) return;
         await pushRoom(g, await getMySeat(game.code));
@@ -253,12 +239,7 @@ export default function LobbyScreen() {
     }
   };
 
-  const modeLabel =
-    game.mode === 'live'
-      ? 'en vivo'
-      : game.mode === 'async'
-        ? 'multijugador'
-        : 'solo';
+  const modeLabel = isAsync ? 'multijugador' : game.mode === 'live' ? 'en vivo' : 'solo';
 
   return (
     <Screen>
@@ -269,11 +250,8 @@ export default function LobbyScreen() {
         {game.packIds.join(', ')} · Meta: {game.targetScore} Puntacos
       </Subtitle>
       <Muted>
-        {isOnline
-          ? `Online: comparte el código ${game.code}. Cada jugador entra desde su dispositivo (${seatMin}–${seatMax}).`
-          : isAsync
-            ? `Multijugador: ${seatMin}–${seatMax} jugadores. El código ${game.code} sirve para retomar.`
-            : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil.`}
+        Online: cada jugador en su dispositivo. Comparte el enlace lobby.
+        Sala para {seatMax}. Ahora {game.players.length}/{seatMax}.
       </Muted>
 
       {iAmHost ? (
@@ -290,26 +268,22 @@ export default function LobbyScreen() {
             ))}
           </View>
           <Muted>
-            {seatMax === 2
-              ? '2 jugadores: los dos votan, también la propia. Ganador único +2.'
-              : `Esperando hasta ${seatMax}. Puedes empezar con ${seatMin}+.`}
+            Cuando haya {seatMax} puedes empezar. Si sois menos, baja el número.
           </Muted>
         </>
       ) : null}
 
       <Label>
-        Jugadores ({game.players.length}
-        {isAsync ? `/${seatMax}` : ''})
+        Jugadores ({game.players.length}/{seatMax})
       </Label>
       {game.players.map((p) => (
         <View key={p.id} style={styles.seat}>
           <Text style={styles.seatName}>
-            {p.isBot ? '🤖 ' : ''}
             {p.nickname}
             {p.isHost ? ' · anfitrión' : ''}
             {myPlayerId === p.id ? ' · tú' : ''}
           </Text>
-          {!p.isHost && (!isOnline || iAmHost) ? (
+          {!p.isHost && iAmHost ? (
             <Button
               title="Quitar"
               variant="ghost"
@@ -354,9 +328,8 @@ export default function LobbyScreen() {
                 nickDirtyRef.current = false;
                 void (async () => {
                   const g = getGame(game.code);
-                  if (!g || g.mode !== 'async') return;
-                  const seat = await getMySeat(game.code);
-                  await pushRoom(g, seat);
+                  if (!g) return;
+                  await pushRoom(g, await getMySeat(game.code));
                 })();
               } catch (e) {
                 notify(
@@ -368,10 +341,6 @@ export default function LobbyScreen() {
           />
           {iAmHost ? (
             <>
-              <Muted>
-                Enlace de lobby para unirse. Enlace por jugador para recuperar
-                mano y fase si pierde las cookies.
-              </Muted>
               <Button
                 title={`Copiar enlace lobby (${game.code})`}
                 variant="outline"
@@ -381,7 +350,7 @@ export default function LobbyScreen() {
                   );
                 }}
               />
-              <Label>Enlace de cada jugador</Label>
+              <Label>Enlaces si alguien pierde las cookies</Label>
               {game.players
                 .filter((p) => !p.isBot)
                 .map((p) => (
@@ -399,33 +368,22 @@ export default function LobbyScreen() {
             </>
           ) : null}
         </>
-      ) : null}
-
-      {!isOnline && game.players.length < seatMax ? (
-        <>
-          <Label>Añadir asiento</Label>
-          <Input
-            value={nick}
-            onChangeText={setNick}
-            placeholder="Apodo del jugador"
-            maxLength={20}
-          />
-          <Button title="Añadir jugador" onPress={addSeat} variant="outline" />
-        </>
-      ) : null}
+      ) : (
+        <Muted>Entrando en la sala…</Muted>
+      )}
 
       {isOnline && !iAmHost ? (
         <Muted>
-          Esperando a que el anfitrión empiece
-          {game.players.length < seatMin
-            ? ` (faltan ${seatMin - game.players.length})`
-            : '…'}
+          Esperando al anfitrión
+          {game.players.length < seatMax
+            ? ` · ${game.players.length}/${seatMax}`
+            : ' · sala llena'}
         </Muted>
       ) : (
         <Button
           title={
             !canStart
-              ? `Faltan ${seatMin - game.players.length} jugadores`
+              ? `Faltan ${Math.max(0, seatMax - game.players.length)} de ${seatMax}`
               : 'Empezar partida'
           }
           onPress={start}
@@ -441,11 +399,7 @@ function useLobbyStyles() {
   return useMemo(
     () =>
       StyleSheet.create({
-        capRow: {
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          gap: 6,
-        },
+        capRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
         seat: {
           flexDirection: 'row',
           alignItems: 'center',
