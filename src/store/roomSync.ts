@@ -117,17 +117,62 @@ export function mergeHandsPreserveLocal(
     }
   }
 
+  // Union votes by voterId whenever same round+prompt and either side is
+  // judging (or still holds ballots). Prefer remote value on conflict, but
+  // never drop a peer vote that only exists locally.
   let votes = { ...(remote.votes ?? {}) };
   if (
     local &&
     (local.round ?? 0) === (remote.round ?? 0) &&
-    (local.phase === 'judging' || remote.phase === 'judging') &&
+    (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null) &&
+    (local.phase === 'judging' ||
+      remote.phase === 'judging' ||
+      Object.keys(local.votes ?? {}).length > 0 ||
+      Object.keys(remote.votes ?? {}).length > 0)
+  ) {
+    votes = { ...(local.votes ?? {}), ...(remote.votes ?? {}) };
+  }
+
+  // Same submitting round: union submissions by playerId (prefer real text).
+  if (
+    local &&
+    remote.phase === 'submitting' &&
+    local.phase === 'submitting' &&
+    (local.round ?? 0) === (remote.round ?? 0) &&
     (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null)
   ) {
-    votes = { ...(local.votes ?? {}), ...votes };
+    const byId = new Map<string, Submission>();
+    for (const s of [...(local.submissions ?? []), ...submissions]) {
+      if (!s?.playerId || s.rival) continue;
+      if (s.round != null && s.round !== remoteRound) continue;
+      const prev = byId.get(s.playerId);
+      if (!prev) {
+        byId.set(s.playerId, s);
+        continue;
+      }
+      const sReal = s.cards.some((c) => !isRedactedCardText(c.text));
+      const pReal = prev.cards.some((c) => !isRedactedCardText(c.text));
+      byId.set(s.playerId, sReal || !pReal ? s : prev);
+    }
+    submissions = Array.from(byId.values());
   }
 
   return resolveVotesIfComplete({ ...remote, players, submissions, votes });
+}
+
+
+/** True when `a` has any voterId that `b` lacks (richer ballot map). */
+export function hasRicherVotes(
+  a: GameState | null | undefined,
+  b: GameState | null | undefined
+): boolean {
+  const av = a?.votes ?? {};
+  const bv = b?.votes ?? {};
+  const aKeys = Object.keys(av);
+  if (aKeys.length <= Object.keys(bv).length) {
+    return aKeys.some((k) => av[k] && !bv[k]);
+  }
+  return aKeys.some((k) => av[k] && !bv[k]) || aKeys.length > Object.keys(bv).length;
 }
 
 export type PushResult =

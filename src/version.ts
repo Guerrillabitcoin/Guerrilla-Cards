@@ -1,6 +1,14 @@
-export const APP_VERSION = '0.99.421.14';
+export const APP_VERSION = '0.99.421.15';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.15',
+    date: '2026-09-19',
+    notes: [
+      'Voto online: fusión por votante (ya no se pierden votos simultáneos ni se cuelga en Votos N/N)',
+      'Reveal/empate: cada carta muestra Puntacos y ronda junto al apodo',
+    ],
+  },
   {
     version: '0.99.421.14',
     date: '2026-09-19',

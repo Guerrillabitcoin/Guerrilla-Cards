@@ -1820,9 +1820,7 @@ export default function PlayScreen() {
                               style={styles.judgeCard}
                             >
                               <View style={styles.soloRivalHead}>
-                                <Text style={styles.judgeLabel}>
-                                  {`${nick} · ${(game.players.find((p) => p.id === sub.playerId)?.score ?? 0)} Puntacos · ronda ${game.round}`}
-                                </Text>
+                                <Text style={styles.judgeLabel}>{nick}</Text>
                                 <Text
                                   style={styles.soloStar}
                                   onPress={() =>
@@ -1850,11 +1848,7 @@ export default function PlayScreen() {
                               <View style={styles.judgeCard}>
                                 <View style={styles.soloRivalHead}>
                                   <Text style={styles.judgeLabel}>
-                                    {`${winnerName} · ${
-                                      winnerIsRival
-                                        ? 0
-                                        : game.players.find((p) => p.id === game.roundWinnerId)?.score ?? 0
-                                    } Puntacos · ronda ${game.round}`}
+                                    {winnerName}
                                   </Text>
                                   <Text
                                     style={styles.soloStar}

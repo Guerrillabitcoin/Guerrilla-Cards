@@ -24,6 +24,7 @@ import { gameProgress } from '../engine/syncProgress';
 import {
   getMySeat,
   getMySeatSync,
+  hasRicherVotes,
   mergeHandsPreserveLocal,
   pushRoom,
 } from './roomSync';
@@ -361,7 +362,17 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         !remoteAdvanced &&
         (local.updatedAt ?? 0) > (remote.updatedAt ?? 0)
       ) {
-        return false;
+        // Still accept if remote carries peer votes/submits we lack (simultaneous push race)
+        const richerVotes =
+          (local.round ?? 0) === (remote.round ?? 0) &&
+          hasRicherVotes(remote, local);
+        const richerSubs =
+          (local.round ?? 0) === (remote.round ?? 0) &&
+          local.phase === remote.phase &&
+          (remote.submissions?.length ?? 0) > (local.submissions?.length ?? 0);
+        if (!richerVotes && !richerSubs) {
+          return false;
+        }
       }
       if (
         local &&
@@ -370,16 +381,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         local.phase === remote.phase &&
         (local.submissions?.length ?? 0) >= (remote.submissions?.length ?? 0)
       ) {
-        // Same phase/time: still accept if remote has more discards (online multi)
+        // Same phase/time: still accept if remote has more discards or richer votes
         const localDisc = local.discardDonePlayerIds?.length ?? 0;
         const remoteDisc = remote.discardDonePlayerIds?.length ?? 0;
-        if (
-          !(
-            remote.phase === 'discarding' &&
-            local.phase === 'discarding' &&
-            remoteDisc > localDisc
-          )
-        ) {
+        const moreDiscards =
+          remote.phase === 'discarding' &&
+          local.phase === 'discarding' &&
+          remoteDisc > localDisc;
+        const richerVotes = hasRicherVotes(remote, local);
+        if (!moreDiscards && !richerVotes) {
           return false;
         }
       }
@@ -516,20 +526,36 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             if (local && gameProgress(local) > gameProgress(remote)) {
               return;
             }
-            if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
+            const seatId = seat ?? getMySeatSync(key);
+            // Even when local clock is newer, union votes/subs from skipped remote
+            // then re-push so peer ballots land on the server.
+            const shouldMerge =
+              !local ||
+              (remote.updatedAt ?? 0) > (local.updatedAt ?? 0) ||
+              hasRicherVotes(remote, local) ||
+              hasRicherVotes(local, remote) ||
+              (local.phase === 'judging' && remote.phase === 'judging');
+            if (!shouldMerge) {
               return;
             }
-            remote = mergeHandsPreserveLocal(
-              remote,
-              local,
-              seat ?? getMySeatSync(key)
-            );
+            remote = mergeHandsPreserveLocal(remote, local, seatId);
             gamesRef.current = { ...gamesRef.current, [key]: remote };
             setGames((prevMap) => ({
               ...prevMap,
               [key]: toUiGame(remote),
             }));
             void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
+            if (
+              remote.mode === 'async' &&
+              (hasRicherVotes(remote, r.state) ||
+                (remote.phase === 'judging' &&
+                  Object.keys(remote.votes ?? {}).length >
+                    Object.keys(r.state.votes ?? {}).length) ||
+                remote.phase === 'reveal' ||
+                remote.phase === 'results')
+            ) {
+              void pushRoom(remote, seatId);
+            }
           }
         })();
       }

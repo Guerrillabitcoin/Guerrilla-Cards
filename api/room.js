@@ -4,6 +4,8 @@
  *
  * Upsert merges hands by player id and submissions (prefer real card text while
  * submitting; prefer full incoming on judging/reveal/results with real-text fallback).
+ * Votes are unioned by voterId (and submissions by playerId) so concurrent pushes
+ * keep all votes instead of last-write-wins.
  */
 
 const ROOM_PREFIX = 'gc:room:';
@@ -372,6 +374,117 @@ function mergeLastDiscarded(existing, incoming) {
   return Array.from(byId.values());
 }
 
+/** Union vote maps by voterId. Incoming overwrites the same voter; peers keep theirs. */
+function mergeVotesByVoterId(existingVotes, incomingVotes) {
+  const out = { ...(existingVotes || {}) };
+  for (const [voterId, targetId] of Object.entries(incomingVotes || {})) {
+    if (!voterId || targetId == null || targetId === '') continue;
+    out[voterId] = targetId;
+  }
+  return out;
+}
+
+function voteCount(votes) {
+  return Object.keys(votes || {}).length;
+}
+
+/**
+ * Lightweight server-side finalize when all submission owners have voted.
+ * Mirrors client resolveVotesIfComplete / tallyVotesIfComplete enough to advance
+ * phase so the room does not hang waiting for a client that never saw the union.
+ */
+function resolveVotesIfCompleteServer(state) {
+  if (!state || state.phase !== 'judging') return state;
+  if ((state.judgeMode || 'zar') !== 'vote' || state.mode === 'solo') return state;
+  const votes = state.votes || {};
+  const eligible = (state.submissions || [])
+    .filter((s) => s && !s.rival)
+    .map((s) => s.playerId)
+    .filter(Boolean);
+  if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
+
+  const tallies = {};
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] || 0) + 1;
+  }
+  let best = -1;
+  for (const n of Object.values(tallies)) {
+    if (n > best) best = n;
+  }
+  const tied = Object.keys(tallies).filter((id) => tallies[id] === best);
+  const humans = (state.players || []).filter((p) => p && !p.isBot).length;
+  const hostId =
+    ((state.players || []).find((p) => p && p.isHost) || {}).id ||
+    eligible[0] ||
+    null;
+  const now = Date.now();
+
+  // 2-player vote: +votesReceived each (special scoring)
+  if (humans === 2 || Number(state.maxPlayers) === 2) {
+    const players = (state.players || []).map((p) =>
+      p && p.id in tallies
+        ? { ...p, score: (p.score || 0) + (tallies[p.id] || 0) }
+        : p
+    );
+    const hitTarget = players.some(
+      (p) => p && p.score >= (state.targetScore || 999)
+    );
+    const isSplit = tied.length > 1;
+    return {
+      ...state,
+      players,
+      votes,
+      roundWinnerId: isSplit ? hostId : tied[0] || hostId,
+      roundWinnerIds: isSplit ? tied : [],
+      phase: hitTarget ? 'results' : 'reveal',
+      activeSeatId: hitTarget ? null : hostId,
+      updatedAt: now,
+    };
+  }
+
+  // >2 humans: tie annuls (no points)
+  if (tied.length >= 2) {
+    return {
+      ...state,
+      votes,
+      roundWinnerId: null,
+      roundWinnerIds: tied,
+      phase: 'reveal',
+      activeSeatId: hostId,
+      updatedAt: now,
+    };
+  }
+
+  const winnerId = tied[0];
+  if (!winnerId) {
+    return {
+      ...state,
+      votes,
+      roundWinnerId: null,
+      roundWinnerIds: eligible.slice(0, 2),
+      phase: 'reveal',
+      activeSeatId: hostId,
+      updatedAt: now,
+    };
+  }
+  const players = (state.players || []).map((p) =>
+    p && p.id === winnerId ? { ...p, score: (p.score || 0) + 1 } : p
+  );
+  const hitTarget = players.some(
+    (p) => p && p.score >= (state.targetScore || 999)
+  );
+  return {
+    ...state,
+    players,
+    votes,
+    roundWinnerId: winnerId,
+    roundWinnerIds: [],
+    phase: hitTarget ? 'results' : 'reveal',
+    activeSeatId: hitTarget ? null : winnerId,
+    updatedAt: now,
+  };
+}
+
 function applyPrivacyMerges(existing, incoming) {
   if (!existing || typeof existing !== 'object') return incoming;
 
@@ -414,14 +527,40 @@ function applyPrivacyMerges(existing, incoming) {
   }
   const clearWinner =
     phase === 'submitting' || phase === 'discarding' || phase === 'lobby';
+  const sameRound =
+    (Number(existing.round) || 0) === (Number(incoming.round) || 0);
+  // Judging (and same-round reveal/results): union votes by voterId — concurrent
+  // castVote pushes must not last-write-wins wipe a peer's ballot.
+  let votes = incoming.votes || {};
+  if (
+    sameRound &&
+    (phase === 'judging' ||
+      existing.phase === 'judging' ||
+      incoming.phase === 'judging' ||
+      ((phase === 'reveal' || phase === 'results') &&
+        (voteCount(existing.votes) > 0 || voteCount(incoming.votes) > 0)))
+  ) {
+    votes = mergeVotesByVoterId(existing.votes, incoming.votes);
+  } else if (clearWinner) {
+    votes = incoming.votes || {};
+  } else {
+    votes =
+      voteCount(incoming.votes) >= voteCount(existing.votes)
+        ? incoming.votes || existing.votes || {}
+        : existing.votes || incoming.votes || {};
+  }
   let state = {
     ...incoming,
     phase,
     players,
     submissions,
+    votes,
     roundWinnerId: clearWinner
       ? incoming.roundWinnerId ?? null
       : incoming.roundWinnerId || existing.roundWinnerId || null,
+    roundWinnerIds: clearWinner
+      ? incoming.roundWinnerIds || []
+      : incoming.roundWinnerIds || existing.roundWinnerIds || [],
   };
   // Discarding: never lose a peer who already discarded (avoids double-discard)
   if (
@@ -489,6 +628,7 @@ function applyPrivacyMerges(existing, incoming) {
       shuffleIndices(submissions.length);
     state.activeSeatId =
       incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;
+    state = resolveVotesIfCompleteServer(state);
   }
   return promoteJudgingIfReady(state);
 }
@@ -711,12 +851,21 @@ async function handler(req, res) {
           remoteNewer &&
           existingProg === incomingProg &&
           existing.phase === incoming.phase &&
-          existing.phase === 'submitting'
+          (existing.phase === 'submitting' || existing.phase === 'judging')
         ) {
-          // Same submitting tick, remote newer: still merge peer answers
+          // Same submitting/judging tick, remote newer: still merge peer
+          // answers / votes (union) so concurrent pushes do not hang.
+          state = applyPrivacyMerges(existing, incoming);
+        } else if (
+          remoteNewer &&
+          existingProg === incomingProg &&
+          existing.phase === 'judging' &&
+          incoming.phase === 'judging'
+        ) {
           state = applyPrivacyMerges(existing, incoming);
         } else if (remoteNewer && existingProg >= incomingProg) {
           // Same-or-equal progress, remote newer — keep remote
+          // Exception: richer vote map on equal judging progress already handled above.
           return res.status(200).json({
             ok: true,
             skipped: true,
@@ -730,6 +879,7 @@ async function handler(req, res) {
       }
 
       state = promoteJudgingIfReady(state);
+      state = resolveVotesIfCompleteServer(state);
 
       const payload = JSON.stringify(state);
       if (payload.length > MAX_BODY_CHARS) {
@@ -750,5 +900,7 @@ async function handler(req, res) {
 handler.mergeHandsByPlayerId = mergeHandsByPlayerId;
 handler.isNextCycleAdvance = isNextCycleAdvance;
 handler.applyPrivacyMerges = applyPrivacyMerges;
+handler.mergeVotesByVoterId = mergeVotesByVoterId;
+handler.resolveVotesIfCompleteServer = resolveVotesIfCompleteServer;
 module.exports = handler;
 
