@@ -28,6 +28,7 @@ import {
   pushRoom,
   setMySeat,
 } from '@/src/store/roomSync';
+import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function notify(title: string, message: string) {
@@ -40,7 +41,6 @@ function notify(title: string, message: string) {
 
 export default function LobbyScreen() {
   const styles = useLobbyStyles();
-
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
@@ -161,7 +161,10 @@ export default function LobbyScreen() {
   const setCap = (n: number) => {
     if (!iAmHost) return;
     if (n < game.players.length) {
-      notify('Sala', `Ya hay ${game.players.length} jugadores. Quita alguno o elige ${game.players.length} o más.`);
+      notify(
+        'Sala',
+        `Ya hay ${game.players.length} jugadores. Quita alguno o elige ${game.players.length} o más.`
+      );
       return;
     }
     updateGame(game.code, (g) => withSeatCap(g, n));
@@ -205,7 +208,11 @@ export default function LobbyScreen() {
   };
 
   const modeLabel =
-    game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'multijugador' : 'solo';
+    game.mode === 'live'
+      ? 'en vivo'
+      : game.mode === 'async'
+        ? 'multijugador'
+        : 'solo';
 
   return (
     <Screen>
@@ -313,9 +320,38 @@ export default function LobbyScreen() {
               }
             }}
           />
-          <Muted>
-            Los demás se unen desde Inicio con el código {game.code}.
-          </Muted>
+          {iAmHost ? (
+            <>
+              <Muted>
+                Enlace de lobby para unirse. Enlace por jugador para recuperar
+                mano y fase si pierde las cookies.
+              </Muted>
+              <Button
+                title={`Copiar enlace lobby (${game.code})`}
+                variant="outline"
+                onPress={() => {
+                  void copyRecoveryUrl(game.code).then((url) =>
+                    notify('Lobby', url)
+                  );
+                }}
+              />
+              <Label>Enlace de cada jugador</Label>
+              {game.players
+                .filter((p) => !p.isBot)
+                .map((p) => (
+                  <Button
+                    key={`link-${p.id}`}
+                    title={`Copiar ${p.nickname}`}
+                    variant="ghost"
+                    onPress={() => {
+                      void copyRecoveryUrl(game.code, p.id).then((url) =>
+                        notify(p.nickname, url)
+                      );
+                    }}
+                  />
+                ))}
+            </>
+          ) : null}
         </>
       ) : null}
 
