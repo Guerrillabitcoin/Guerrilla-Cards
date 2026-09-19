@@ -26,13 +26,10 @@ import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscard
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
 import {
-  claimSeat,
   getMySeat,
   getOnlineFlag,
   pullRoom,
   pushRoom,
-  setMySeat,
-  setOnlineFlag,
 } from '@/src/store/roomSync';
 import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
@@ -47,7 +44,7 @@ export default function PlayScreen() {
   const styles = usePlayStyles();
   const { patches: adminPatches } = useAdmin();
 
-  const { code, seat: seatParam } = useLocalSearchParams<{ code: string; seat?: string }>();
+  const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
   const {
@@ -123,40 +120,6 @@ export default function PlayScreen() {
       cancelled = true;
     };
   }, [gameCode]);
-
-  // Deep-link /play?code=&seat= → reclaim seat and stay on the live board
-  const seatClaimRan = useRef<string | null>(null);
-  useEffect(() => {
-    if (!ready || !gameCode) return;
-    const want = String(seatParam ?? '').trim();
-    if (!want) return;
-    const key = `${gameCode}:${want}`;
-    if (seatClaimRan.current === key) return;
-    seatClaimRan.current = key;
-    let cancelled = false;
-    void (async () => {
-      await setOnlineFlag(gameCode, true);
-      setOnlineRoom(true);
-      const claimed = await claimSeat(gameCode, want);
-      if (cancelled) return;
-      if (claimed.ok) {
-        await setMySeat(gameCode, claimed.playerId);
-        setMyPlayerId(claimed.playerId);
-        applyRemoteGame(claimed.state);
-        return;
-      }
-      const pulled = await pullRoom(gameCode);
-      if (cancelled || !pulled.ok) return;
-      applyRemoteGame(pulled.state);
-      if (pulled.state.players.some((p) => p.id === want)) {
-        await setMySeat(gameCode, want);
-        setMyPlayerId(want);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [ready, gameCode, seatParam, applyRemoteGame]);
 
   useEffect(() => {
     if (!ready || !gameCode || !onlineRoom) return;
@@ -1283,6 +1246,13 @@ export default function PlayScreen() {
         </Muted>
       ) : null}
 
+      {isOnline && iAmHostPlayer ? (
+        <HostRecoveryLinks
+          code={game.code}
+          players={game.players}
+          compact
+        />
+      ) : null}
 
       {isDiscarding ? (
         <>
@@ -1895,14 +1865,6 @@ export default function PlayScreen() {
             </>
           )}
         </>
-      ) : null}
-
-      {isOnline && iAmHostPlayer ? (
-        <HostRecoveryLinks
-          code={game.code}
-          players={game.players}
-          compact
-        />
       ) : null}
       </ScrollView>
 

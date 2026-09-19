@@ -1,6 +1,14 @@
-export const APP_VERSION = '0.99.421.12';
+export const APP_VERSION = '0.99.421.13';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.13',
+    date: '2026-09-19',
+    notes: [
+      'Enlaces de asiento abren /play y reclaman el turno (no el menú)',
+      'Bloque recuperar asiento del anfitrión al final de la partida',
+    ],
+  },
   {
     version: '0.99.421.12',
     date: '2026-09-19',

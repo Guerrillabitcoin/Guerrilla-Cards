@@ -32,7 +32,10 @@ export function recoveryUrl(code: string, seat?: string | null): string {
   const origin =
     typeof window !== 'undefined' ? window.location.origin : '';
   const codeQ = encodeURIComponent(code.trim().toUpperCase());
-  if (seat) return `${origin}/?code=${codeQ}&seat=${encodeURIComponent(seat)}`;
+  // Deep-link into the live board (not home). Seat claim runs on /play.
+  if (seat) {
+    return `${origin}/play?code=${codeQ}&seat=${encodeURIComponent(seat)}`;
+  }
   return `${origin}/lobby?code=${codeQ}`;
 }
 
@@ -71,8 +74,8 @@ export function HostRecoveryLinks({
   if (!humans.length) return null;
   return (
     <View style={[styles.box, compact ? styles.compact : null]}>
-      <Label>Enlaces si alguien pierde las cookies</Label>
-      <Muted>Solo el anfitrión ve esto · cópialo y envíaselo</Muted>
+      <Label>Recuperar asiento</Label>
+      <Muted>Al final · solo anfitrión · si alguien pierde las cookies</Muted>
       <Button
         title={`Copiar enlace lobby (${code})`}
         variant="outline"
@@ -106,7 +109,8 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   compact: {
-    marginTop: 4,
-    marginBottom: 4,
+    marginTop: 24,
+    marginBottom: 8,
+    opacity: 0.95,
   },
 });

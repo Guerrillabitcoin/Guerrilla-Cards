@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -111,6 +111,8 @@ export default function HomeScreen() {
   const [joinCode, setJoinCode] = useState('');
     const [claimGame, setClaimGame] = useState<GameState | null>(null);
   const urlParams = useLocalSearchParams<{ code?: string; seat?: string }>();
+  const deepLinkHandled = useRef(false);
+
   const [mode, setMode] = useState<GameMode>('solo');
   const [judgeMode, setJudgeMode] = useState<JudgeMode>('zar');
   const [maxPlayers, setMaxPlayers] = useState(4);
@@ -248,11 +250,62 @@ export default function HomeScreen() {
     return n;
   };
 
-  const openGame = (code: string, phase: string) => {
+  const openGame = (code: string, phase: string, seat?: string) => {
     if (phase === 'lobby') router.push({ pathname: '/lobby', params: { code } });
     else if (phase === 'results') router.push({ pathname: '/results', params: { code } });
-    else router.push({ pathname: '/play', params: { code } });
+    else {
+      const params: { code: string; seat?: string } = { code };
+      if (seat) params.seat = seat;
+      router.push({ pathname: '/play', params });
+    }
   };
+
+  // Recovery / deep links: /?code=XXXX&seat=p_id → claim and jump into the live board
+  useEffect(() => {
+    if (!ready || deepLinkHandled.current) return;
+    const code = String(urlParams.code ?? '').trim().toUpperCase();
+    const seat = String(urlParams.seat ?? '').trim();
+    if (!code) return;
+    deepLinkHandled.current = true;
+    setJoinCode(code);
+    void (async () => {
+      try {
+        if (seat) {
+          const claimed = await claimSeat(code, seat);
+          if (claimed.ok) {
+            saveGame(claimed.state, { sync: false });
+            await setOnlineFlag(code, true);
+            await setMySeat(code, claimed.playerId);
+            openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
+            return;
+          }
+        }
+        const remote = await pullRoom(code);
+        if (remote.ok) {
+          saveGame(remote.state, { sync: false });
+          await setOnlineFlag(code, true);
+          if (seat && remote.state.players.some((p) => p.id === seat)) {
+            await setMySeat(code, seat);
+            openGame(remote.state.code, remote.state.phase, seat);
+            return;
+          }
+          if (remote.state.phase === 'lobby') {
+            openGame(remote.state.code, 'lobby');
+            return;
+          }
+          if (seat) {
+            notify('Asiento', 'No se pudo reclamar ese asiento. Elige en la lista.');
+            setClaimGame(remote.state);
+            return;
+          }
+          openGame(remote.state.code, remote.state.phase);
+        }
+      } catch (e) {
+        notify('Enlace', e instanceof Error ? e.message : 'No se pudo abrir la partida');
+      }
+    })();
+  }, [ready, urlParams.code, urlParams.seat]);
+
 
   const resolveNick = () => {
     const n = nickname.trim();
@@ -344,7 +397,7 @@ export default function HomeScreen() {
             await setOnlineFlag(code, true);
             await setMySeat(code, claimed.playerId);
             setClaimGame(null);
-            openGame(claimed.state.code, claimed.state.phase);
+            openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
             return;
           }
           notify('Asiento', claimed.error || 'No se pudo reclamar');
@@ -380,7 +433,7 @@ export default function HomeScreen() {
               saveGame(claimed.state, { sync: false });
               await setOnlineFlag(code, true);
               await setMySeat(code, claimed.playerId);
-              openGame(claimed.state.code, claimed.state.phase);
+              openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
               return;
             }
           }
