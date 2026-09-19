@@ -1383,6 +1383,12 @@ export default function PlayScreen() {
                 : ''}
               . Enviados: {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}
             </Muted>
+              <WaitingRoster
+              players={game.players}
+              doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
+              meId={myPlayerId ?? active?.id}
+              verb="responda"
+            />
           ) : (
             <>
               {!isSolo ? (
@@ -1483,7 +1489,13 @@ export default function PlayScreen() {
                       )
                       .join(', ')}`
                   : ''}
-              </Muted>
+             </Muted>
+              <WaitingRoster
+                players={game.players}
+                doneIds={Object.keys(votesMap)}
+                meId={myPlayerId ?? active?.id}
+                verb="vote"
+              />
               {active && votesMap[active.id] ? (
                 <Muted>
                   {isOnline
@@ -1818,22 +1830,7 @@ export default function PlayScreen() {
                             );
                           })()
                         : null}
-                    <Label>Clasificación</Label>
-                    {[...game.players]
-                      .sort((a, b) => b.score - a.score)
-                      .map((p, i) => (
-                        <Muted key={p.id}>
-                          {i + 1}. {p.nickname} — {p.score}
-                          {(isTie
-                            ? tieIds.includes(p.id)
-                            : p.id === game.roundWinnerId)
-                            ? ' (+1)'
-                            : ''}
-                          {myPlayerId === p.id || active?.id === p.id
-                            ? ' · tú'
-                            : ''}
-                        </Muted>
-                      ))}
+                                       <RoundStandings game={game} meId={myPlayerId ?? active?.id} />
                     {!isSolo ? (
                       <Muted>
                         {iAmNextZar
