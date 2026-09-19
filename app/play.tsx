@@ -1257,8 +1257,23 @@ export default function PlayScreen() {
           {game.discardDonePlayerIds.includes(active?.id ?? '') ? (
             <View style={styles.doneBox}>
               <Text style={styles.doneBadge}>✓ Descarte enviado</Text>
-              {!isSolo ? (
-                <Muted>Esperando al resto de jugadores…</Muted>
+                            {!isSolo ? (
+                <>
+                <Muted>
+                  Enviados {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}.
+                  {submitPendingPlayers.length
+                    ? ` Esperando a que contesten: ${submitPendingPlayers
+                        .map((p) => p.nickname)
+                        .join(', ')}`
+                    : ' Esperando…'}
+                </Muted>
+                <WaitingRoster
+                  players={game.players}
+                  doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
+                  meId={myPlayerId ?? active?.id}
+                  verb="responda"
+                />
+                </>
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
