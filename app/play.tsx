@@ -1264,7 +1264,6 @@ export default function PlayScreen() {
                   meId={myPlayerId ?? active?.id}
                   verb="responda"
              />
-                </>
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
@@ -1272,7 +1271,6 @@ export default function PlayScreen() {
               <Subtitle>¿Eres {active?.nickname}?</Subtitle>
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
               <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
-            </>
           ) : (
             <>
               <View style={styles.discardCounterBox}>
@@ -1358,14 +1356,6 @@ export default function PlayScreen() {
                 />
               ) : null}
               {!isSolo ? (
-                <Muted>
-                  Enviados {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}.
-                  {submitPendingPlayers.length
-                    ? ` Esperando a que contesten: ${submitPendingPlayers
-                        .map((p) => p.nickname)
-                        .join(', ')}`
-                    : ' Esperando…'}
-                </Muted>
               <WaitingRoster
                   players={game.players}
                   doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
@@ -1388,7 +1378,6 @@ export default function PlayScreen() {
               meId={myPlayerId ?? active?.id}
               verb="responda"
          />
-            </>
           ) : (
             <>
               {!isSolo ? (
