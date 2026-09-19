@@ -92,6 +92,7 @@ interface GameContextValue {
     packIds: string[];
     targetScore?: number;
     judgeMode?: JudgeMode;
+    maxPlayers?: number;
   }) => GameState;
   /** Solo: create host-only + start (rivals injected after submit) */
   createAndStartSolo: (opts: {
@@ -253,6 +254,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       packIds: string[];
       targetScore?: number;
       judgeMode?: JudgeMode;
+      maxPlayers?: number;
     }) => {
       // Sync-ish: start without avoid, then we still push recents on play.
       // Prefer reading cached recents from refs filled on boot.

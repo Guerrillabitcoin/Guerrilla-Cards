@@ -529,7 +529,15 @@ async function handler(req, res) {
           return res.status(409).json({ ok: false, error: 'not_lobby' });
         }
         const players = Array.isArray(existing.players) ? existing.players : [];
-        if (players.length >= ASYNC_MAX_PLAYERS) {
+        const capRaw = Number(existing.maxPlayers);
+        const cap = Math.max(
+          2,
+          Math.min(
+            ASYNC_MAX_PLAYERS,
+            Number.isFinite(capRaw) && capRaw >= 2 ? Math.floor(capRaw) : ASYNC_MAX_PLAYERS
+          )
+        );
+        if (players.length >= cap) {
           return res.status(409).json({ ok: false, error: 'lobby_full' });
         }
         const nickname = uniqueNick(body.nickname, players);
@@ -557,7 +565,7 @@ async function handler(req, res) {
         return res.status(200).json({ ok: true, code, playerId, state });
       }
 
-          if (action === 'claim') {
+      if (action === 'claim') {
         const code = normalizeCode(body.code);
         const playerId = String(body.playerId || '').trim();
         if (!code || code.length < 3) {
@@ -585,9 +593,7 @@ async function handler(req, res) {
         });
       }
 
-        return res.status(400).json({ ok: false, error: 'unknown_action' });
-      }
-
+      // Default action: upsert (host create / pushRoom)
       const code = normalizeCode(body.code || body.state?.code);
       if (!code || code.length < 3) {
         return res.status(400).json({ ok: false, error: 'bad_code' });

@@ -78,6 +78,8 @@ export function createGame(opts: {
   targetScore?: number;
   code?: string;
   judgeMode?: JudgeMode;
+  /** Async lobby size (2–8). */
+  maxPlayers?: number;
   /** Prompt ids seen recently (other matches) — put later in the deck */
   avoidPromptIds?: string[];
   avoidAnswerIds?: string[];
@@ -111,6 +113,16 @@ export function createGame(opts: {
     phase: 'lobby',
     zarIndex: 0,
     judgeMode: opts.judgeMode ?? 'zar',
+    maxPlayers:
+      opts.mode === 'async'
+        ? Math.max(
+            MIN_PLAYERS,
+            Math.min(
+              MAX_PLAYERS,
+              Math.floor(opts.maxPlayers ?? ASYNC_TARGET_PLAYERS)
+            )
+          )
+        : opts.maxPlayers,
     votes: {},
     currentPrompt: null,
     submissions: [],

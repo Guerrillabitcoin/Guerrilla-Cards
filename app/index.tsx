@@ -265,7 +265,7 @@ export default function HomeScreen() {
   const startSoloNow = () => {
     try {
       if (!ready) {
-        Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+        notify('Un momento', 'Cargando mazo y partidas guardadas…');
         return;
       }
       const nick = resolveNick();
@@ -277,13 +277,13 @@ export default function HomeScreen() {
       });
       openGame(game.code, game.phase);
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
+      notify('Error', e instanceof Error ? e.message : 'No se pudo crear');
     }
   };
 
   const startAsyncNow = () => {
     if (!ready) {
-      Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+      notify('Un momento', 'Cargando mazo y partidas guardadas…');
       return;
     }
     void (async () => {
@@ -303,7 +303,7 @@ export default function HomeScreen() {
         const pushed = await pushRoom(game, hostId);
         if (pushed.ok) await setOnlineFlag(game.code, true);
         else if (pushed.error === 'kv_not_configured') {
-          Alert.alert(
+          notify(
             'Sin KV',
             'No hay KV_REST_API_URL/TOKEN en Vercel. La partida queda en este dispositivo (pass-and-play).'
           );
@@ -311,7 +311,7 @@ export default function HomeScreen() {
         } else await setOnlineFlag(game.code, false);
         openGame(game.code, game.phase);
       } catch (e) {
-        Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
+        notify('Error', e instanceof Error ? e.message : 'No se pudo crear');
       }
     })();
   };
@@ -331,7 +331,7 @@ export default function HomeScreen() {
     const code = (codeOverride || joinCode).trim().toUpperCase();
     const wantSeat = (seatOverride || '').trim();
     if (!code) {
-      Alert.alert('Código', 'Introduce el código de la partida.');
+      notify('Código', 'Introduce el código de la partida.');
       return;
     }
     setJoinCode(code);
@@ -361,15 +361,15 @@ export default function HomeScreen() {
           return;
         }
         if (joined.error === 'kv_not_configured') {
-          Alert.alert('Sin KV', 'El servidor no tiene KV configurado.');
+          notify('Sin KV', 'El servidor no tiene KV configurado.');
           return;
         }
         if (joined.error === 'not_found') {
-          Alert.alert('No encontrada', 'No hay sala online con ese código.');
+          notify('No encontrada', 'No hay sala online con ese código.');
           return;
         }
         if (joined.error === 'lobby_full') {
-          Alert.alert('Sala llena', 'No quedan huecos.');
+          notify('Sala llena', 'No quedan huecos.');
           return;
         }
         if (joined.error === 'not_lobby') {
@@ -406,38 +406,23 @@ export default function HomeScreen() {
             return;
           }
           if (g.phase !== 'lobby') {
-            Alert.alert('Partida empezada', 'Ya no está en lobby.');
+            // Mid-game without cookie → claim UI, never invent a seat
+            setClaimGame(g);
+            notify('Asiento', 'Elige quién eres en la lista de abajo.');
             return;
           }
-          const taken = new Set(g.players.map((p) => p.nickname.toLowerCase()));
-          let nick = desiredNick;
-          let guard = 0;
-          while (taken.has(nick.toLowerCase()) && guard < 24) {
-            nick = randomNickname(nick);
-            guard++;
-          }
-          if (taken.has(nick.toLowerCase())) nick = `${desiredNick}${Math.floor(Math.random() * 90 + 10)}`;
-          setNickname(nick);
-          const before = new Set(g.players.map((p) => p.id));
-          updateGame(code, (cur) => Engine.addPlayer(cur, nick));
-          const live = getGame(code) ?? joinOrOpen(code);
-          if (!live) {
-            Alert.alert('Unirse', 'No se pudo actualizar la sala local.');
-            return;
-          }
-          const neu = live.players.find((p) => !before.has(p.id));
-          if (!neu) {
-            Alert.alert('Unirse', 'No se creó un asiento nuevo.');
-            return;
-          }
-          await setMySeat(code, neu.id);
-          await pushRoom(live, neu.id);
-          openGame(live.code, live.phase);
+          // Lobby but atomic join failed: do not create a ghost seat locally
+          notify(
+            'Unirse',
+            joined.error && joined.error !== 'not_web'
+              ? `No se pudo unir (${joined.error}). Reintenta.`
+              : 'No se pudo unir. Reintenta el código.'
+          );
           return;
         }
-        Alert.alert('Unirse', joined.error && joined.error !== 'not_web' ? `No se pudo unir (${joined.error}).` : 'No hay partida con ese código.');
+        notify('Unirse', joined.error && joined.error !== 'not_web' ? `No se pudo unir (${joined.error}).` : 'No hay partida con ese código.');
       } catch (e) {
-        Alert.alert('Unirse', e instanceof Error ? e.message : 'No se pudo unir');
+        notify('Unirse', e instanceof Error ? e.message : 'No se pudo unir');
       }
     })();
   };

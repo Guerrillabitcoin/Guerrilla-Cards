@@ -1,6 +1,14 @@
-export const APP_VERSION = '0.99.421.09';
+export const APP_VERSION = '0.99.421.10';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.10',
+    date: '2026-09-19',
+    notes: [
+      'Arreglo unirse/lobby: API room.js (join/claim/upsert) y aforo maxPlayers',
+      'Sin asientos fantasma; avisos web con window.alert',
+    ],
+  },
   {
     version: '0.99.421.09',
     date: '2026-09-18',
