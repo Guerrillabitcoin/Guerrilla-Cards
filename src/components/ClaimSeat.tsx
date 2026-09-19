@@ -31,8 +31,9 @@ export function ClaimSeat({
 export function recoveryUrl(code: string, seat?: string | null): string {
   const origin =
     typeof window !== 'undefined' ? window.location.origin : '';
-  const u = `${origin}/?code=${encodeURIComponent(code.trim().toUpperCase())}`;
-  return seat ? `${u}&seat=${encodeURIComponent(seat)}` : u;
+  const codeQ = encodeURIComponent(code.trim().toUpperCase());
+  if (seat) return `${origin}/?code=${codeQ}&seat=${encodeURIComponent(seat)}`;
+  return `${origin}/lobby?code=${codeQ}`;
 }
 
 export async function copyRecoveryUrl(

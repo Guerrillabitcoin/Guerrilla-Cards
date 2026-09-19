@@ -1,19 +1,12 @@
-/**
- * App release label shown in the UI (home + Partida header).
- * Bump on every commit we deploy. v1.0 only when the owner says so.
- */
-export const APP_VERSION = '0.99.421.08';
-
+export const APP_VERSION = '0.99.421.09';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
-
 export const APP_VERSION_NOTES = [
   {
-    version: '0.99.421.08',
+    version: '0.99.421.09',
     date: '2026-09-18',
     notes: [
-      'Claim de jugador si no hay cookies',
-      'Enlaces por jugador para recuperar mano y fase',
-      'Unirse al lobby con /?code=XXXX',
+      'Enlace /lobby?code= baja la sala y sienta al jugador',
+      'El anfitrión empieza cuando está el número elegido',
     ],
   },
 ] as const;
