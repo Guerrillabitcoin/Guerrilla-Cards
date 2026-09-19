@@ -30,9 +30,59 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+/** Sync read before first paint (web localStorage). Avoids default→saved skin flash. */
+function readThemeIdSync(): ThemeId {
+  if (typeof window === 'undefined') return DEFAULT_THEME_ID;
+  try {
+    const keys = [
+      THEME_KEY,
+      // Some AsyncStorage web builds prefix keys
+      `@${THEME_KEY}`,
+      `RCTAsyncLocalStorage_${THEME_KEY}`,
+    ];
+    for (const k of keys) {
+      const raw = window.localStorage.getItem(k);
+      if (!raw) continue;
+      if (raw in THEMES) return raw as ThemeId;
+      try {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === 'string' && parsed in THEMES) {
+          return parsed as ThemeId;
+        }
+      } catch {
+        /* not JSON */
+      }
+    }
+  } catch {
+    /* private mode / blocked */
+  }
+  return DEFAULT_THEME_ID;
+}
+
+function applyDomTheme(id: ThemeId) {
+  if (typeof document === 'undefined') return;
+  const bg = THEMES[id]?.colors?.bg;
+  try {
+    document.documentElement.dataset.theme = id;
+    if (bg) {
+      document.documentElement.style.backgroundColor = bg;
+      if (document.body) document.body.style.backgroundColor = bg;
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeId, setThemeIdState] = useState<ThemeId>(DEFAULT_THEME_ID);
-  const [ready, setReady] = useState(false);
+  const [themeId, setThemeIdState] = useState<ThemeId>(() => {
+    const id = readThemeIdSync();
+    applyDomTheme(id);
+    return id;
+  });
+  // Web: sync read already done → ready immediately. Native: wait for AsyncStorage.
+  const [ready, setReady] = useState(
+    () => typeof window !== 'undefined'
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -40,10 +90,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       try {
         const raw = await AsyncStorage.getItem(THEME_KEY);
         if (!cancelled && raw && raw in THEMES) {
-          setThemeIdState(raw as ThemeId);
+          const id = raw as ThemeId;
+          setThemeIdState((cur) => (cur === id ? cur : id));
+          applyDomTheme(id);
         }
       } catch {
-        /* keep default */
+        /* keep sync/default */
       } finally {
         if (!cancelled) setReady(true);
       }
@@ -53,16 +105,36 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    applyDomTheme(themeId);
+  }, [themeId]);
+
   const setThemeId = useCallback((id: ThemeId) => {
     setThemeIdState(id);
+    applyDomTheme(id);
     void AsyncStorage.setItem(THEME_KEY, id);
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(THEME_KEY, id);
+      }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   const cycleTheme = useCallback(() => {
     setThemeIdState((cur) => {
       const i = THEME_ORDER.indexOf(cur);
       const next = THEME_ORDER[(i + 1) % THEME_ORDER.length];
+      applyDomTheme(next);
       void AsyncStorage.setItem(THEME_KEY, next);
+      try {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(THEME_KEY, next);
+        }
+      } catch {
+        /* ignore */
+      }
       return next;
     });
   }, []);
@@ -90,7 +162,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
-    // Safe fallback before provider (shouldn't happen in app)
     const theme = THEMES[DEFAULT_THEME_ID];
     return {
       themeId: DEFAULT_THEME_ID,

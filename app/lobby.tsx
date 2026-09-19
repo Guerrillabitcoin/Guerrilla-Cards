@@ -3,6 +3,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import {
   Button,
+  Chip,
   Input,
   Label,
   Loading,
@@ -12,39 +13,63 @@ import {
   Title,
 } from '@/src/components/ui';
 import * as Engine from '@/src/engine/game';
-import { randomNickname } from '@/src/engine/nicknames';
 import {
-  ASYNC_TARGET_PLAYERS,
-  MAX_PLAYERS,
-  MIN_PLAYERS,
-} from '@/src/engine/types';
+  addPlayerFlexible,
+  startFlexible,
+  withSeatCap,
+} from '@/src/engine/startFlexible';
+import { randomNickname } from '@/src/engine/nicknames';
+import { MAX_PLAYERS, MIN_PLAYERS } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import {
   getMySeat,
+  getMySeatSync,
   getOnlineFlag,
+  joinRoom,
   pullRoom,
   pushRoom,
   setMySeat,
+  setOnlineFlag,
 } from '@/src/store/roomSync';
+import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { useTheme } from '@/src/store/ThemeContext';
+
+function notify(title: string, message: string) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(`${title}: ${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
+
+/** Dedupe StrictMode / remount double-joins per room code (module scope). */
+const lobbyJoinInFlight = new Set<string>();
 
 export default function LobbyScreen() {
   const styles = useLobbyStyles();
-
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
-  const [nick, setNick] = useState(() => randomNickname());
-  const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
-  const [onlineRoom, setOnlineRoom] = useState(false);
-  const nickDirtyRef = useRef(false);
-
   const gameCode = code ? String(code).toUpperCase() : '';
+  const [nick, setNick] = useState(() => randomNickname());
+  // Prefer sync cache so host create→lobby does not race into joinRoom.
+  const [myPlayerId, setMyPlayerIdState] = useState<string | null>(() =>
+    gameCode ? getMySeatSync(gameCode) : null
+  );
+  const [onlineRoom, setOnlineRoom] = useState(false);
+  const [seatReady, setSeatReady] = useState(() =>
+    gameCode ? getMySeatSync(gameCode) != null : false
+  );
+  const nickDirtyRef = useRef(false);
+  const [remoteTried, setRemoteTried] = useState(false);
+  const joiningRef = useRef(false);
+
   const game = ready && gameCode ? getGame(gameCode) : undefined;
 
   useEffect(() => {
     if (!gameCode) return;
     let cancelled = false;
+    setSeatReady(getMySeatSync(gameCode) != null);
     void (async () => {
       const [seat, online] = await Promise.all([
         getMySeat(gameCode),
@@ -53,13 +78,124 @@ export default function LobbyScreen() {
       if (cancelled) return;
       setMyPlayerIdState(seat);
       setOnlineRoom(online);
+      setSeatReady(true);
     })();
     return () => {
       cancelled = true;
     };
   }, [gameCode]);
 
-  // Seed nick from seat once; do not overwrite while user is typing
+  useEffect(() => {
+    if (!ready || !gameCode) return;
+    if (game) {
+      setRemoteTried(true);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      await setOnlineFlag(gameCode, true);
+      setOnlineRoom(true);
+      const res = await pullRoom(gameCode);
+      if (cancelled) return;
+      if (res.ok) applyRemoteGame(res.state);
+      setRemoteTried(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, gameCode, game, applyRemoteGame]);
+
+  useEffect(() => {
+    if (!ready || !seatReady || !game || game.phase !== 'lobby') return;
+    if (game.mode !== 'async') return;
+    if (myPlayerId && game.players.some((p) => p.id === myPlayerId)) return;
+
+    // Guests (no seat cookie) must always joinRoom as a NEW seat.
+    // Host create already awaits setMySeat before navigating — do NOT reclaim
+    // sole host here or invite links steal the host seat when players.length===1.
+    const codeKey = game.code.trim().toUpperCase();
+    if (joiningRef.current || lobbyJoinInFlight.has(codeKey)) return;
+    joiningRef.current = true;
+    lobbyJoinInFlight.add(codeKey);
+    let cancelled = false;
+    void (async () => {
+      try {
+        await setOnlineFlag(game.code, true);
+        if (cancelled) return;
+        setOnlineRoom(true);
+        // Fresh pull so we don't join on a stale local roster / wrong cap
+        const pulled = await pullRoom(game.code);
+        if (cancelled) return;
+        if (pulled.ok) applyRemoteGame(pulled.state);
+        const live = pulled.ok ? pulled.state : game;
+        if (live.phase !== 'lobby') {
+          joiningRef.current = false;
+          lobbyJoinInFlight.delete(codeKey);
+          return;
+        }
+        // Seat cookie from an older session for this code: clear if not in roster
+        if (myPlayerId && !live.players.some((p) => p.id === myPlayerId)) {
+          // fall through to join as new seat
+        }
+        const cap = Math.max(
+          2,
+          Math.min(8, Number(live.maxPlayers) || 8)
+        );
+        if ((live.players?.length ?? 0) >= cap) {
+          joiningRef.current = false;
+          lobbyJoinInFlight.delete(codeKey);
+          notify('Unirse', 'Sala llena');
+          return;
+        }
+        const joined = await joinRoom(game.code, nick);
+        if (cancelled) return;
+        if (joined.ok) {
+          applyRemoteGame(joined.state);
+          await setMySeat(game.code, joined.playerId);
+          setMyPlayerIdState(joined.playerId);
+          // Keep inFlight until seat confirmed in roster (prevents StrictMode double seat)
+          const confirmed = joined.state.players.some(
+            (p) => p.id === joined.playerId
+          );
+          if (!confirmed) {
+            joiningRef.current = false;
+            lobbyJoinInFlight.delete(codeKey);
+          }
+        } else {
+          joiningRef.current = false;
+          lobbyJoinInFlight.delete(codeKey);
+          if (joined.error && joined.error !== 'not_web') {
+            const msg =
+              joined.error === 'lobby_full'
+                ? 'Sala llena'
+                : joined.error === 'join_busy'
+                  ? 'Sala ocupada, reintenta'
+                  : joined.error === 'not_lobby'
+                    ? 'La partida ya empezó'
+                    : joined.error;
+            notify('Unirse', msg);
+          }
+        }
+      } catch {
+        joiningRef.current = false;
+        lobbyJoinInFlight.delete(codeKey);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      // Do NOT clear inFlight on unmount — StrictMode remount must not double-join.
+      // Clear only after success confirmation or failure (above).
+    };
+  }, [ready, seatReady, game, myPlayerId, nick, applyRemoteGame]);
+
+  useEffect(() => {
+    if (!gameCode || !myPlayerId || !game) return;
+    if (game.players.some((p) => p.id === myPlayerId)) {
+      lobbyJoinInFlight.delete(gameCode);
+      joiningRef.current = false;
+    }
+  }, [gameCode, myPlayerId, game?.players]);
+
   useEffect(() => {
     if (!game || !myPlayerId) return;
     if (nickDirtyRef.current) return;
@@ -67,7 +203,6 @@ export default function LobbyScreen() {
     if (me?.nickname) setNick(me.nickname);
   }, [game?.code, myPlayerId, game?.players]);
 
-  // Poll remote room while in lobby (async online)
   useEffect(() => {
     if (!ready || !gameCode || !onlineRoom) return;
     let cancelled = false;
@@ -84,7 +219,6 @@ export default function LobbyScreen() {
     };
   }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
-  // Solo games should skip lobby (auto-started from Home); if somehow here, start
   useEffect(() => {
     if (!ready || !game || game.mode !== 'solo' || game.phase !== 'lobby') return;
     try {
@@ -93,14 +227,14 @@ export default function LobbyScreen() {
         if (next.players.filter((p) => p.isBot).length === 0) {
           next = Engine.addSoloBots(next);
         }
-        if (next.players.length >= MIN_PLAYERS) {
+        if (next.players.length >= 1) {
           next = Engine.startGame(next);
         }
         return next;
       });
       router.replace({ pathname: '/play', params: { code: game.code } });
     } catch (e) {
-      Alert.alert('Solo', e instanceof Error ? e.message : 'Error');
+      notify('Solo', e instanceof Error ? e.message : 'Error');
     }
   }, [
     ready,
@@ -112,7 +246,6 @@ export default function LobbyScreen() {
     updateGame,
   ]);
 
-  // Online: when host starts remotely, jump to play
   useEffect(() => {
     if (!ready || !game || !onlineRoom) return;
     if (game.phase !== 'lobby' && game.phase !== 'results') {
@@ -120,15 +253,15 @@ export default function LobbyScreen() {
     }
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
-  if (!ready) return <Loading />;
+  if (!ready || (!game && !remoteTried)) return <Loading />;
 
   if (!game) {
     return (
       <Screen>
         <Title>Lobby perdido</Title>
         <Subtitle>
-          No hay partida con ese código aquí
-          {onlineRoom ? ' ni en el servidor' : ' en este dispositivo'}.
+          No hay partida con ese código en el servidor. Crea la sala otra vez
+          y comparte el enlace nuevo.
         </Subtitle>
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>
@@ -140,49 +273,53 @@ export default function LobbyScreen() {
   }
 
   const isAsync = game.mode === 'async';
-  const isOnline = isAsync && onlineRoom;
+  const isOnline = isAsync;
+  const iAmHost =
+    !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
 
-  const addSeat = () => {
-    try {
-      let addedId: string | null = null;
-      const seatNick = nick.trim() || randomNickname();
-      updateGame(game.code, (g) => {
-        const before = new Set(g.players.map((p) => p.id));
-        const next = Engine.addPlayer(g, seatNick);
-        const neu = next.players.find((p) => !before.has(p.id));
-        addedId = neu?.id ?? null;
-        return next;
-      });
-      setNick(randomNickname());
-      // Local pass-and-play: adding seats on one device disables pure online lock
-      if (isOnline && addedId && !myPlayerId) {
-        void setMySeat(game.code, addedId).then(() =>
-          setMyPlayerIdState(addedId)
-        );
-      }
-    } catch (e) {
-      Alert.alert('Jugador', e instanceof Error ? e.message : 'Error');
+  const seatMax = Math.max(
+    MIN_PLAYERS,
+    Math.min(MAX_PLAYERS, game.maxPlayers ?? MAX_PLAYERS)
+  );
+  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
+  const canStart = game.players.length >= seatMax;
+
+  const setCap = (n: number) => {
+    if (!iAmHost) return;
+    if (n < game.players.length) {
+      notify(
+        'Sala',
+        `Ya hay ${game.players.length} jugadores. Quita alguno o elige ${game.players.length} o más.`
+      );
+      return;
     }
+    updateGame(game.code, (g) => withSeatCap(g, n));
+    void (async () => {
+      const g = getGame(game.code);
+      if (!g) return;
+      await pushRoom(g, await getMySeat(game.code));
+    })();
   };
 
   const start = () => {
+    if (!canStart) {
+      notify('Lobby', `Espera a ${seatMax} jugadores (hay ${game.players.length}).`);
+      return;
+    }
     try {
-      updateGame(game.code, (g) => Engine.startGame(g));
+      updateGame(game.code, (g) => startFlexible(g));
+      void (async () => {
+        const g = getGame(game.code);
+        if (!g) return;
+        await pushRoom(g, await getMySeat(game.code));
+      })();
       router.replace({ pathname: '/play', params: { code: game.code } });
     } catch (e) {
-      Alert.alert('Empezar', e instanceof Error ? e.message : 'Error');
+      notify('Empezar', e instanceof Error ? e.message : 'Error');
     }
   };
 
-  const modeLabel =
-    game.mode === 'live' ? 'en vivo' : game.mode === 'async' ? 'async' : 'solo';
-  const seatMax = isAsync ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
-  const seatMin = isAsync ? ASYNC_TARGET_PLAYERS : MIN_PLAYERS;
-  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
-  const canStart = game.players.length >= seatMin;
-  const iAmHost =
-    !!myPlayerId && game.players.some((p) => p.id === myPlayerId && p.isHost);
-  const canAddLocal = !isOnline || game.players.length < seatMax;
+  const modeLabel = isAsync ? 'multijugador' : game.mode === 'live' ? 'en vivo' : 'solo';
 
   return (
     <Screen>
@@ -193,26 +330,40 @@ export default function LobbyScreen() {
         {game.packIds.join(', ')} · Meta: {game.targetScore} Puntacos
       </Subtitle>
       <Muted>
-        {isOnline
-          ? `Online: comparte el código ${game.code}. Cada jugador se une desde su dispositivo (exactamente ${ASYNC_TARGET_PLAYERS}). Necesita KV en Vercel.`
-          : isAsync
-            ? `Async: exactamente ${ASYNC_TARGET_PLAYERS} jugadores. Pasa el móvil entre turnos; el código ${game.code} sirve para retomar aquí.`
-            : `Añade ${MIN_PLAYERS}–${MAX_PLAYERS} asientos en este móvil. Pásalo entre personas en cada turno.`}
+        Online: cada jugador en su dispositivo. Comparte el enlace lobby.
+        Sala para {seatMax}. Ahora {game.players.length}/{seatMax}.
       </Muted>
 
+      {iAmHost ? (
+        <>
+          <Label>Esta sala es para</Label>
+          <View style={styles.capRow}>
+            {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <Chip
+                key={n}
+                label={String(n)}
+                selected={seatMax === n}
+                onPress={() => setCap(n)}
+              />
+            ))}
+          </View>
+          <Muted>
+            Cuando haya {seatMax} puedes empezar. Si sois menos, baja el número.
+          </Muted>
+        </>
+      ) : null}
+
       <Label>
-        Jugadores ({game.players.length}
-        {isAsync ? `/${ASYNC_TARGET_PLAYERS}` : ''})
+        Jugadores ({game.players.length}/{seatMax})
       </Label>
       {game.players.map((p) => (
         <View key={p.id} style={styles.seat}>
           <Text style={styles.seatName}>
-            {p.isBot ? '🤖 ' : ''}
             {p.nickname}
             {p.isHost ? ' · anfitrión' : ''}
             {myPlayerId === p.id ? ' · tú' : ''}
           </Text>
-          {!p.isHost && (!isOnline || iAmHost) ? (
+          {!p.isHost && iAmHost ? (
             <Button
               title="Quitar"
               variant="ghost"
@@ -224,15 +375,14 @@ export default function LobbyScreen() {
         </View>
       ))}
 
-      {/* Online: cada uno elige SOLO su nombre; no añadir asientos locales (confuso). */}
       {isOnline && myPlayerId ? (
         <>
           <Label>Tu nombre</Label>
           <Input
             value={nick}
-            onChangeText={(t) => {
+            onChangeText={(txt) => {
               nickDirtyRef.current = true;
-              setNick(t);
+              setNick(txt);
             }}
             placeholder="Tu apodo"
             maxLength={42}
@@ -256,54 +406,64 @@ export default function LobbyScreen() {
                 );
                 setNick(nextNick);
                 nickDirtyRef.current = false;
-                // Belt-and-suspenders push so rename wins the lobby merge
                 void (async () => {
                   const g = getGame(game.code);
-                  if (!g || g.mode !== 'async') return;
-                  const seat = await getMySeat(game.code);
-                  await pushRoom(g, seat);
+                  if (!g) return;
+                  await pushRoom(g, await getMySeat(game.code));
                 })();
               } catch (e) {
-                Alert.alert(
+                notify(
                   'Nombre',
                   e instanceof Error ? e.message : 'No se pudo guardar'
                 );
               }
             }}
           />
-          <Muted>
-            Los demás se unen desde Inicio con el código {game.code}. Aquí no se
-            añaden jugadores del mismo dispositivo.
-          </Muted>
+          {iAmHost ? (
+            <>
+              <Button
+                title={`Copiar enlace lobby (${game.code})`}
+                variant="outline"
+                onPress={() => {
+                  void copyRecoveryUrl(game.code).then((url) =>
+                    notify('Lobby', url)
+                  );
+                }}
+              />
+              <Label>Enlaces si alguien pierde las cookies</Label>
+              {game.players
+                .filter((p) => !p.isBot)
+                .map((p) => (
+                  <Button
+                    key={`link-${p.id}`}
+                    title={`Copiar ${p.nickname}`}
+                    variant="ghost"
+                    onPress={() => {
+                      void copyRecoveryUrl(game.code, p.id).then((url) =>
+                        notify(p.nickname, url)
+                      );
+                    }}
+                  />
+                ))}
+            </>
+          ) : null}
         </>
-      ) : null}
-
-      {/* Pass-and-play (sin online): añadir asientos en este dispositivo */}
-      {!isOnline && game.players.length < seatMax ? (
-        <>
-          <Label>Añadir asiento</Label>
-          <Input
-            value={nick}
-            onChangeText={setNick}
-            placeholder="Apodo del jugador"
-            maxLength={20}
-          />
-          <Button title="Añadir jugador" onPress={addSeat} variant="outline" />
-        </>
-      ) : null}
+      ) : (
+        <Muted>Entrando en la sala…</Muted>
+      )}
 
       {isOnline && !iAmHost ? (
         <Muted>
-          Esperando a que el anfitrión empiece
-          {game.players.length < seatMin
-            ? ` (faltan ${seatMin - game.players.length})`
-            : '…'}
+          Esperando al anfitrión
+          {game.players.length < seatMax
+            ? ` · ${game.players.length}/${seatMax}`
+            : ' · sala llena'}
         </Muted>
       ) : (
         <Button
           title={
             !canStart
-              ? `Faltan ${seatMin - game.players.length} jugadores`
+              ? `Faltan ${Math.max(0, seatMax - game.players.length)} de ${seatMax}`
               : 'Empezar partida'
           }
           onPress={start}
@@ -319,19 +479,20 @@ function useLobbyStyles() {
   return useMemo(
     () =>
       StyleSheet.create({
-  seat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.bgElevated,
-    borderRadius: 4,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  seatName: { color: colors.text, fontWeight: '700', fontSize: 16 },
-}),
+        capRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+        seat: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: colors.bgElevated,
+          borderRadius: 4,
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderWidth: 1,
+          borderColor: colors.border,
+        },
+        seatName: { color: colors.text, fontWeight: '700', fontSize: 16 },
+      }),
     [colors, fontFamily]
   );
 }

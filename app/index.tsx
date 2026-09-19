@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -27,19 +27,30 @@ import {
 } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import {
+  claimSeat,
   getMySeat,
   joinRoom,
+  listOpenRooms,
   pullRoom,
   pushRoom,
   setMySeat,
   setOnlineFlag,
+  type OpenRoomRow,
 } from '@/src/store/roomSync';
 import { randomNickname } from '@/src/engine/nicknames';
 import * as Engine from '@/src/engine/game';
 import { useTheme } from '@/src/store/ThemeContext';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { APP_VERSION_LABEL } from '@/src/version';
-
+function notify(title: string, message: string) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(`${title}: ${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
+import { ClaimSeat } from '@/src/components/ClaimSeat';
+import type { GameState } from '@/src/engine/types';
 
 function shortPackTitle(id: string, title: string): string {
   const aliases: Record<string, string> = {
@@ -65,7 +76,6 @@ const ADULT_OK_KEY = 'guerrilla_adult_ok_v1';
 
 export default function HomeScreen() {
   const styles = useHomeStyles();
-
   const router = useRouter();
   const {
     createGame,
@@ -84,23 +94,10 @@ export default function HomeScreen() {
   const { width: winW } = useWindowDimensions();
   const denseMenu = winW >= 900;
   const mobileCompact = winW < 700;
-  // Muy compacto: más columnas = tiles más pequeños
-  // More columns → smaller pack boxes
-  const packCols = mobileCompact
-    ? 4
-    : winW >= 1400
-      ? 7
-      : winW >= 1100
-        ? 6
-        : winW >= 900
-          ? 6
-          : 5;
+  const packCols = mobileCompact ? 4 : winW >= 1400 ? 7 : winW >= 1100 ? 6 : winW >= 900 ? 6 : 5;
   const packCellWidthPct =
     `${(100 - (packCols - 1) * (mobileCompact ? 2 : 1.2)) / packCols}%` as `${number}%`;
-  const ADULT_IDS = useMemo(
-    () => new Set(['plus18', 'sexo', 'drogas', 'religion']),
-    []
-  );
+  const ADULT_IDS = useMemo(() => new Set(['plus18', 'sexo', 'drogas', 'religion']), []);
   const temaIds = useMemo(
     () => packs.filter((p) => !ADULT_IDS.has(p.id)).map((p) => p.id),
     [packs, ADULT_IDS]
@@ -112,9 +109,14 @@ export default function HomeScreen() {
 
   const [nickname, setNickname] = useState(() => randomNickname());
   const [joinCode, setJoinCode] = useState('');
+    const [claimGame, setClaimGame] = useState<GameState | null>(null);
+  const urlParams = useLocalSearchParams<{ code?: string; seat?: string }>();
+  const deepLinkHandled = useRef(false);
+
   const [mode, setMode] = useState<GameMode>('solo');
   const [judgeMode, setJudgeMode] = useState<JudgeMode>('zar');
-  // Por defecto: todas las de Temas Core (nada de +18, nunca banneadas)
+  const [maxPlayers, setMaxPlayers] = useState(4);
+  const [openRooms, setOpenRooms] = useState<OpenRoomRow[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [targetScore, setTargetScore] = useState(String(SOLO_DEFAULT_TARGET));
   const [adultOk, setAdultOk] = useState(false);
@@ -128,6 +130,25 @@ export default function HomeScreen() {
       if (v === '1') setAdultOk(true);
     });
   }, []);
+
+  useEffect(() => {
+    if (mode !== 'async' || Platform.OS !== 'web') {
+      setOpenRooms([]);
+      return;
+    }
+    let cancelled = false;
+    const load = () => {
+      void listOpenRooms().then((res) => {
+        if (!cancelled && res.ok) setOpenRooms(res.rooms);
+      });
+    };
+    load();
+    const timer = setInterval(load, 8000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [mode]);
 
   const markAdultOk = useCallback(() => {
     setAdultOk(true);
@@ -152,40 +173,22 @@ export default function HomeScreen() {
       }
       Alert.alert('Contenido +18', msg, [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Soy mayor de 18',
-          onPress: () => {
-            markAdultOk();
-            onYes();
-          },
-        },
+        { text: 'Soy mayor de 18', onPress: () => { markAdultOk(); onYes(); } },
       ]);
     },
     [adultOk, markAdultOk]
   );
 
-  const selectedPlayable = useMemo(
-    () => selected.filter((id) => id !== '_banned'),
-    [selected]
-  );
+  const selectedPlayable = useMemo(() => selected.filter((id) => id !== '_banned'), [selected]);
   const selectedSet = useMemo(() => new Set(selectedPlayable), [selectedPlayable]);
-  const selectedKey = useMemo(
-    () => selectedPlayable.slice().sort().join('|'),
-    [selectedPlayable]
-  );
+  const selectedKey = useMemo(() => selectedPlayable.slice().sort().join('|'), [selectedPlayable]);
   const selectedDeckCounts = useMemo(() => {
     const c = countCombinedDeck(selectedPlayable.length ? selectedPlayable : ['core']);
-    return {
-      prompts: c.prompts,
-      answers: c.answers,
-      packs: selectedPlayable.length || 1,
-    };
+    return { prompts: c.prompts, answers: c.answers, packs: selectedPlayable.length || 1 };
   }, [selectedKey, selectedPlayable]);
   const bannedCount = useMemo(() => getBannedCount(), []);
-  const allTemasOn =
-    temaIds.length > 0 && temaIds.every((id) => selectedSet.has(id));
-  const allAdultOn =
-    adultIds.length > 0 && adultIds.every((id) => selectedSet.has(id));
+  const allTemasOn = temaIds.length > 0 && temaIds.every((id) => selectedSet.has(id));
+  const allAdultOn = adultIds.length > 0 && adultIds.every((id) => selectedSet.has(id));
 
   const applyTogglePack = (id: string) => {
     setSelected((prev) => {
@@ -213,8 +216,6 @@ export default function HomeScreen() {
       const clean = prev.filter((x) => x !== '_banned');
       const withoutTemas = clean.filter((id) => !temaIds.includes(id));
       if (temaIds.every((id) => clean.includes(id))) {
-        // Desmarcar Temas Core: quita el resto de temas, pero deja `core`.
-        // Para quitar `core` hay que pulsar el tile Core a mano.
         return [...new Set([...withoutTemas, 'core'])];
       }
       return [...new Set([...withoutTemas, ...temaIds])];
@@ -234,7 +235,6 @@ export default function HomeScreen() {
   };
 
   const toggleTemas18 = () => {
-    // Turning all +18 off never needs confirm
     if (allAdultOn) {
       applyToggleTemas18();
       return;
@@ -250,15 +250,62 @@ export default function HomeScreen() {
     return n;
   };
 
-  const openGame = (code: string, phase: string) => {
-    if (phase === 'lobby') {
-      router.push({ pathname: '/lobby', params: { code } });
-    } else if (phase === 'results') {
-      router.push({ pathname: '/results', params: { code } });
-    } else {
-      router.push({ pathname: '/play', params: { code } });
+  const openGame = (code: string, phase: string, seat?: string) => {
+    if (phase === 'lobby') router.push({ pathname: '/lobby', params: { code } });
+    else if (phase === 'results') router.push({ pathname: '/results', params: { code } });
+    else {
+      const params: { code: string; seat?: string } = { code };
+      if (seat) params.seat = seat;
+      router.push({ pathname: '/play', params });
     }
   };
+
+  // Recovery / deep links: /?code=XXXX&seat=p_id → claim and jump into the live board
+  useEffect(() => {
+    if (!ready || deepLinkHandled.current) return;
+    const code = String(urlParams.code ?? '').trim().toUpperCase();
+    const seat = String(urlParams.seat ?? '').trim();
+    if (!code) return;
+    deepLinkHandled.current = true;
+    setJoinCode(code);
+    void (async () => {
+      try {
+        if (seat) {
+          const claimed = await claimSeat(code, seat);
+          if (claimed.ok) {
+            saveGame(claimed.state, { sync: false });
+            await setOnlineFlag(code, true);
+            await setMySeat(code, claimed.playerId);
+            openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
+            return;
+          }
+        }
+        const remote = await pullRoom(code);
+        if (remote.ok) {
+          saveGame(remote.state, { sync: false });
+          await setOnlineFlag(code, true);
+          if (seat && remote.state.players.some((p) => p.id === seat)) {
+            await setMySeat(code, seat);
+            openGame(remote.state.code, remote.state.phase, seat);
+            return;
+          }
+          if (remote.state.phase === 'lobby') {
+            openGame(remote.state.code, 'lobby');
+            return;
+          }
+          if (seat) {
+            notify('Asiento', 'No se pudo reclamar ese asiento. Elige en la lista.');
+            setClaimGame(remote.state);
+            return;
+          }
+          openGame(remote.state.code, remote.state.phase);
+        }
+      } catch (e) {
+        notify('Enlace', e instanceof Error ? e.message : 'No se pudo abrir la partida');
+      }
+    })();
+  }, [ready, urlParams.code, urlParams.seat]);
+
 
   const resolveNick = () => {
     const n = nickname.trim();
@@ -271,7 +318,7 @@ export default function HomeScreen() {
   const startSoloNow = () => {
     try {
       if (!ready) {
-        Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+        notify('Un momento', 'Cargando mazo y partidas guardadas…');
         return;
       }
       const nick = resolveNick();
@@ -283,13 +330,13 @@ export default function HomeScreen() {
       });
       openGame(game.code, game.phase);
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
+      notify('Error', e instanceof Error ? e.message : 'No se pudo crear');
     }
   };
 
   const startAsyncNow = () => {
     if (!ready) {
-      Alert.alert('Un momento', 'Cargando mazo y partidas guardadas…');
+      notify('Un momento', 'Cargando mazo y partidas guardadas…');
       return;
     }
     void (async () => {
@@ -301,25 +348,23 @@ export default function HomeScreen() {
           mode: 'async',
           packIds: selectedPlayable,
           targetScore: target,
-          judgeMode,
+          judgeMode: maxPlayers === 2 ? 'vote' : judgeMode,
+          maxPlayers,
         });
         const hostId = game.players[0]?.id;
         if (hostId) await setMySeat(game.code, hostId);
         const pushed = await pushRoom(game, hostId);
-        if (pushed.ok) {
-          await setOnlineFlag(game.code, true);
-        } else if (pushed.error === 'kv_not_configured') {
-          Alert.alert(
+        if (pushed.ok) await setOnlineFlag(game.code, true);
+        else if (pushed.error === 'kv_not_configured') {
+          notify(
             'Sin KV',
-            'No hay KV_REST_API_URL/TOKEN en Vercel. La partida queda en este dispositivo (pass-and-play). Configura KV para jugar entre ordenadores.'
+            'No hay KV_REST_API_URL/TOKEN en Vercel. La partida queda en este dispositivo (pass-and-play).'
           );
           await setOnlineFlag(game.code, false);
-        } else {
-          await setOnlineFlag(game.code, false);
-        }
+        } else await setOnlineFlag(game.code, false);
         openGame(game.code, game.phase);
       } catch (e) {
-        Alert.alert('Error', e instanceof Error ? e.message : 'No se pudo crear');
+        notify('Error', e instanceof Error ? e.message : 'No se pudo crear');
       }
     })();
   };
@@ -335,17 +380,29 @@ export default function HomeScreen() {
     run();
   };
 
-  const onJoin = () => {
-    const code = joinCode.trim().toUpperCase();
+  const onJoin = (codeOverride?: string, seatOverride?: string) => {
+    const code = (codeOverride || joinCode).trim().toUpperCase();
+    const wantSeat = (seatOverride || '').trim();
     if (!code) {
-      Alert.alert('Código', 'Introduce el código de la partida.');
+      notify('Código', 'Introduce el código de la partida.');
       return;
     }
+    setJoinCode(code);
     void (async () => {
       try {
+        if (wantSeat) {
+          const claimed = await claimSeat(code, wantSeat);
+          if (claimed.ok) {
+            saveGame(claimed.state, { sync: false });
+            await setOnlineFlag(code, true);
+            await setMySeat(code, claimed.playerId);
+            setClaimGame(null);
+            openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
+            return;
+          }
+          notify('Asiento', claimed.error || 'No se pudo reclamar');
+        }
         const desiredNick = resolveNick();
-
-        // Preferred path: atomic server join (unique seat + nick per device)
         const joined = await joinRoom(code, desiredNick);
         if (joined.ok) {
           const me = joined.state.players.find((p) => p.id === joined.playerId);
@@ -356,34 +413,41 @@ export default function HomeScreen() {
           openGame(joined.state.code, joined.state.phase);
           return;
         }
-
         if (joined.error === 'kv_not_configured') {
-          Alert.alert(
-            'Sin KV',
-            'El servidor no tiene KV configurado (KV_REST_API_URL/UPSTASH_REDIS_REST_*). No se puede unir entre dispositivos.'
-          );
+          notify('Sin KV', 'El servidor no tiene KV configurado.');
           return;
         }
         if (joined.error === 'not_found') {
-          Alert.alert(
-            'No encontrada',
-            'No hay sala online con ese código. Pide al anfitrión que cree la partida y espere a que sincronice.'
-          );
+          notify('No encontrada', 'No hay sala online con ese código.');
           return;
         }
         if (joined.error === 'lobby_full') {
-          Alert.alert('Sala llena', 'Ya hay 4 jugadores en esta partida.');
+          notify('Sala llena', 'No quedan huecos.');
           return;
         }
         if (joined.error === 'not_lobby') {
-          Alert.alert(
-            'Partida empezada',
-            'La partida ya no está en lobby; no se puede unir ahora.'
-          );
+          const seat = await getMySeat(code);
+          if (seat) {
+            const claimed = await claimSeat(code, seat);
+            if (claimed.ok) {
+              saveGame(claimed.state, { sync: false });
+              await setOnlineFlag(code, true);
+              await setMySeat(code, claimed.playerId);
+              openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
+              return;
+            }
+          }
+         const live = await pullRoom(code);
+          if (live.ok) {
+            saveGame(live.state, { sync: false });
+            await setOnlineFlag(code, true);
+            setClaimGame(live.state);
+            notify('Asiento', 'Elige quién eres en la lista de abajo.');
+            return;
+          }
+          notify('Partida empezada', 'Pide al anfitrión tu enlace de jugador.');
           return;
         }
-
-        // Fallback: local / legacy client add (unique nick against room)
         const remote = await pullRoom(code);
         if (remote.ok) {
           saveGame(remote.state, { sync: false });
@@ -395,77 +459,32 @@ export default function HomeScreen() {
             return;
           }
           if (g.phase !== 'lobby') {
-            Alert.alert(
-              'Partida empezada',
-              'La partida ya no está en lobby; no se puede unir ahora.'
-            );
+            // Mid-game without cookie → claim UI, never invent a seat
+            setClaimGame(g);
+            notify('Asiento', 'Elige quién eres en la lista de abajo.');
             return;
           }
-          const taken = new Set(
-            g.players.map((p) => p.nickname.toLowerCase())
+          // Lobby but atomic join failed: do not create a ghost seat locally
+          notify(
+            'Unirse',
+            joined.error && joined.error !== 'not_web'
+              ? `No se pudo unir (${joined.error}). Reintenta.`
+              : 'No se pudo unir. Reintenta el código.'
           );
-          let nick = desiredNick;
-          let guard = 0;
-          while (taken.has(nick.toLowerCase()) && guard < 24) {
-            nick = randomNickname(nick);
-            guard++;
-          }
-          if (taken.has(nick.toLowerCase())) {
-            nick = `${desiredNick}${Math.floor(Math.random() * 90 + 10)}`;
-          }
-          setNickname(nick);
-          const before = new Set(g.players.map((p) => p.id));
-          updateGame(code, (cur) => Engine.addPlayer(cur, nick));
-          const live = getGame(code) ?? joinOrOpen(code);
-          if (!live) {
-            Alert.alert('Unirse', 'No se pudo actualizar la sala local.');
-            return;
-          }
-          const neu = live.players.find((p) => !before.has(p.id));
-          if (!neu) {
-            Alert.alert(
-              'Unirse',
-              'No se creó un asiento nuevo (¿apodo repetido?). Prueba otro nombre.'
-            );
-            return;
-          }
-          await setMySeat(code, neu.id);
-          const pushed = await pushRoom(live, neu.id);
-          if (!pushed.ok && pushed.error !== 'kv_not_configured') {
-            Alert.alert(
-              'Unirse',
-              `Asiento local ok, sync falló: ${pushed.error}`
-            );
-          }
-          openGame(live.code, live.phase);
           return;
         }
-
-        Alert.alert(
-          'Unirse',
-          joined.error && joined.error !== 'not_web'
-            ? `No se pudo unir (${joined.error}).`
-            : 'No hay partida local ni online con ese código.'
-        );
+        notify('Unirse', joined.error && joined.error !== 'not_web' ? `No se pudo unir (${joined.error}).` : 'No hay partida con ese código.');
       } catch (e) {
-        Alert.alert(
-          'Unirse',
-          e instanceof Error ? e.message : 'No se pudo unir'
-        );
+        notify('Unirse', e instanceof Error ? e.message : 'No se pudo unir');
       }
     })();
   };
 
-  const recent = Object.values(games)
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, 5);
-
+  const recent = Object.values(games).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5);
   const modeHint =
-    mode === 'live'
-      ? 'En vivo = rondas rápidas pass-and-play.'
-      : mode === 'async'
-        ? 'Multijugador beta: código entre dispositivos (necesita KV en Vercel) o pass-and-play en el mismo navegador. 4 jugadores · Voto o Zar · meta configurable.'
-        : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo (sin asientos bot).';
+    mode === 'async'
+      ? 'Multijugador: 2–8 personas, un código. 2 jugadores siempre votan. Salas con hueco salen abajo.'
+      : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo.';
 
   return (
     <Screen style={denseMenu ? styles.screenDense : undefined} contentDense={denseMenu}>
@@ -473,151 +492,78 @@ export default function HomeScreen() {
         <ThemeToggle />
       </View>
       <View style={styles.brandRow}>
-        <Text
-          style={[styles.brandTitle, denseMenu && styles.brandTitleDense]}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.7}
-        >
+        <Text style={[styles.brandTitle, denseMenu && styles.brandTitleDense]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
           GUERRILLA CARDS
         </Text>
         <Text style={styles.brandVersion}>{APP_VERSION_LABEL}</Text>
       </View>
       <Subtitle style={denseMenu ? styles.subDense : undefined}>
-        Juego de humor negro en español. Rellena los huecos de las preguntas con
-        disparatadas e ingeniosas respuestas.
+        Juego de humor negro en español. Rellena los huecos de las preguntas con disparatadas e ingeniosas respuestas.
       </Subtitle>
       <Muted style={styles.localNotice}>
         {Platform.OS === 'web'
           ? 'Las partidas se guardan solo en este navegador. Si borras datos del sitio o cambias de dispositivo, se pierden.'
-          : 'Las partidas se guardan solo en este dispositivo. Si borras los datos de la app, se pierden.'}
+          : 'Las partidas se guardan solo en este dispositivo.'}
       </Muted>
-
       <Label>Tu apodo (aleatorio al entrar)</Label>
-      <Input
-        value={nickname}
-        onChangeText={setNickname}
-        placeholder="ComidaADomicilio"
-        autoCapitalize="none"
-        maxLength={42}
-      />
-      <Button
-        title="Otro nombre raro"
-        variant="ghost"
-        onPress={() => setNickname(randomNickname(nickname))}
-      />
-
+      <Input value={nickname} onChangeText={setNickname} placeholder="ComidaADomicilio" autoCapitalize="none" maxLength={42} />
+      <Button title="Otro nombre raro" variant="ghost" onPress={() => setNickname(randomNickname(nickname))} />
       <Label>Modo</Label>
       <View style={[styles.row, styles.modeRow, mobileCompact && styles.modeRowMobile]}>
-        <Chip
-          label={mobileCompact ? 'Solo' : 'Solo (rivales)'}
-          selected={mode === 'solo'}
-          onPress={() => {
-            setMode('solo');
-            setTargetScore(String(SOLO_DEFAULT_TARGET));
-          }}
-        />
-        <Chip
-          label="En vivo"
-          selected={false}
-          disabled
-          badge="próximamente"
-          onPress={() => {}}
-        />
-        <Chip
-          label="Multijugador"
-          selected={mode === 'async'}
-          badge="beta"
-          onPress={() => {
-            setMode('async');
-            setTargetScore(String(SOLO_DEFAULT_TARGET));
-          }}
-        />
+        <Chip label="Solo" selected={mode === 'solo'} onPress={() => { setMode('solo'); setTargetScore(String(SOLO_DEFAULT_TARGET)); }} />
+        <Chip label="Multijugador" selected={mode === 'async'} onPress={() => { setMode('async'); setTargetScore(String(SOLO_DEFAULT_TARGET)); }} />
+        <Chip label="Reto semanal" selected={false} disabled badge="próximamente" onPress={() => {}} />
       </View>
       <Muted>{modeHint}</Muted>
-
       {mode === 'async' ? (
         <>
-          <Label>Código de partida</Label>
-          <Input
-            value={joinCode}
-            onChangeText={setJoinCode}
-            placeholder="ABC12"
-            autoCapitalize="characters"
-            maxLength={8}
-          />
-          <Button
-            title="Unirse"
-            onPress={onJoin}
-            variant="outline"
-          />
-        </>
-      ) : null}
-
-      {mode === 'async' ? (
-        <>
+          <Label>Jugadores (2–8)</Label>
+          <View style={[styles.row, styles.modeRow]}>
+            {[2, 3, 4, 5, 6, 7, 8].map((n) => (
+              <Chip key={n} label={String(n)} selected={maxPlayers === n} onPress={() => { setMaxPlayers(n); if (n === 2) setJudgeMode('vote'); }} />
+            ))}
+          </View>
           <Label>Juez de la ronda</Label>
           <View style={[styles.row, styles.modeRow]}>
-            <Chip
-              label="Zar"
-              selected={judgeMode === 'zar'}
-              onPress={() => setJudgeMode('zar')}
-            />
-            <Chip
-              label="Voto"
-              selected={judgeMode === 'vote'}
-              onPress={() => setJudgeMode('vote')}
-            />
+            <Chip label="Zar" selected={judgeMode === 'zar'} disabled={maxPlayers === 2} onPress={() => { if (maxPlayers !== 2) setJudgeMode('zar'); }} />
+            <Chip label="Voto" selected={judgeMode === 'vote' || maxPlayers === 2} onPress={() => setJudgeMode('vote')} />
           </View>
           <Muted>
-            {judgeMode === 'zar'
-              ? 'Un Zar elige la mejor jugada; el ganador será el próximo Zar.'
-              : 'Todos votan su favorita (sin votar la propia). Empate: ambas suman punto.'}
+            {maxPlayers === 2 || judgeMode === 'vote'
+              ? 'Todos votan (sin votar la propia). Con 2 jugadores siempre es voto.'
+              : 'Un Zar elige la mejor jugada; el ganador será el próximo Zar.'}
           </Muted>
+          <Label>Salas con hueco</Label>
+          {openRooms.length === 0 ? (
+            <Muted>Ninguna sala abierta ahora. Crea una o pega un código.</Muted>
+          ) : (
+            openRooms.map((r) => (
+              <Button key={r.code} title={`${r.code} · ${r.seated}/${r.maxPlayers} · ${r.players.join(', ') || 'vacía'}`} variant="ghost" onPress={() => onJoin(r.code)} />
+            ))
+          )}
+          <Label>Código de partida</Label>
+          <Input value={joinCode} onChangeText={setJoinCode} placeholder="ABC12" autoCapitalize="characters" maxLength={8} />
+           <Button title="Unirse" onPress={() => onJoin()} variant="outline" />
+          {claimGame ? (
+            <ClaimSeat
+              game={claimGame}
+              onPick={(id) => onJoin(claimGame.code, id)}
+            />
+          ) : null}
         </>
       ) : null}
-
-      <Label>
-        {mode === 'solo'
-          ? 'Meta (Puntacos · máx. 10 rondas)'
-          : 'Meta (Puntacos)'}
-      </Label>
-      <Input
-        value={targetScore}
-        onChangeText={setTargetScore}
-        placeholder="10"
-        keyboardType="number-pad"
-        maxLength={2}
-      />
-
+      <Label>{mode === 'solo' ? 'Meta (Puntacos · máx. 10 rondas)' : 'Meta (Puntacos)'}</Label>
+      <Input value={targetScore} onChangeText={setTargetScore} placeholder="10" keyboardType="number-pad" maxLength={2} />
       <Label>PACKS DE CARTAS (selecciona)</Label>
       <View style={[styles.packTabs, mobileCompact && styles.packTabsMobile]}>
-        <Chip
-          label="Temas Core"
-          selected={allTemasOn}
-          onPress={toggleTemasCore}
-          badge={`${temaIds.filter((id) => selectedSet.has(id)).length}/${temaIds.length}`}
-        />
-        <Chip
-          label="Temas +18"
-          selected={allAdultOn}
-          onPress={toggleTemas18}
-          badge={`${adultIds.filter((id) => selectedSet.has(id)).length}/${adultIds.length}`}
-        />
+        <Chip label="Temas Core" selected={allTemasOn} onPress={toggleTemasCore} badge={`${temaIds.filter((id) => selectedSet.has(id)).length}/${temaIds.length}`} />
+        <Chip label="Temas +18" selected={allAdultOn} onPress={toggleTemas18} badge={`${adultIds.filter((id) => selectedSet.has(id)).length}/${adultIds.length}`} />
       </View>
       <Muted>
-        {selectedDeckCounts.prompts} preguntas · {selectedDeckCounts.answers}{' '}
-        respuestas · {selectedPlayable.length || 1} pack
-        {selectedPlayable.length === 1 ? '' : 's'}
+        {selectedDeckCounts.prompts} preguntas · {selectedDeckCounts.answers}{' '}respuestas · {selectedPlayable.length || 1} pack{selectedPlayable.length === 1 ? '' : 's'}
         {bannedCount ? ` · ${bannedCount} banneadas fuera` : ''}
       </Muted>
-      <View
-        style={[
-          styles.packGrid,
-          styles.packGridDense,
-          mobileCompact && styles.packGridMobile,
-        ]}
-      >
+      <View style={[styles.packGrid, styles.packGridDense, mobileCompact && styles.packGridMobile]}>
         {packs.map((p) => (
           <View key={p.id} style={[styles.packCell, { width: packCellWidthPct }]}>
             <PackTile
@@ -625,53 +571,27 @@ export default function HomeScreen() {
               title={shortPackTitle(p.id, p.title)}
               group={ADULT_IDS.has(p.id) ? '+18' : 'Core'}
               nsfw={p.nsfw || ADULT_IDS.has(p.id)}
-              subtitle={
-                mobileCompact
-                  ? `${(p.counts.answers ?? 0) + (p.counts.prompts ?? 0)}`
-                  : `${p.counts.prompts ?? 0}p · ${p.counts.answers ?? 0}r`
-              }
+              subtitle={mobileCompact ? `${(p.counts.answers ?? 0) + (p.counts.prompts ?? 0)}` : `${p.counts.prompts ?? 0}p · ${p.counts.answers ?? 0}r`}
               selected={selectedSet.has(p.id)}
               onPress={() => togglePack(p.id)}
             />
           </View>
         ))}
       </View>
-
-      <Button
-        title={
-          mode === 'async'
-            ? 'Crear partida Multijugador'
-            : 'Jugar solo (rivales aleatorios)'
-        }
-        onPress={onCreate}
-      />
-
-      <Button
-        title="★ Respuestas favoritas"
-        variant="outline"
-        onPress={() => router.push('/historial')}
-      />
-
+      <Button title={mode === 'async' ? 'Crear partida Multijugador' : 'Jugar solo (rivales aleatorios)'} onPress={onCreate} />
+      <Button title="★ Respuestas favoritas" variant="outline" onPress={() => router.push('/historial')} />
       {ready && recent.length > 0 ? (
         <>
           <Label>Partidas recientes</Label>
           {recent.map((g) => (
-            <Button
-              key={g.code}
-              title={`${g.code} · ${g.mode} · ${g.phase} · ${g.players.length} jug.`}
-              variant="ghost"
-              onPress={() => openGame(g.code, g.phase)}
-            />
+            <Button key={g.code} title={`${g.code} · ${g.mode} · ${g.phase} · ${g.players.length} jug.`} variant="ghost" onPress={() => openGame(g.code, g.phase)} />
           ))}
         </>
       ) : null}
-
       <Muted>
         {mode === 'async'
-          ? 'Multijugador: online con KV_REST_API_URL + KV_REST_API_TOKEN en Vercel · o local pass-and-play.'
-          : 'Modo Solo local · sin cuenta ni servidor.'}{' '}
-        Cartas banneadas nunca se reparte. Packs +18 piden confirmación de edad
-        la primera vez.
+          ? 'Multijugador: online con KV en Vercel · o local pass-and-play.'
+          : 'Modo Solo local · sin cuenta ni servidor.'}{' '}Cartas banneadas nunca se reparte.
       </Muted>
     </Screen>
   );
@@ -683,78 +603,25 @@ function useHomeStyles() {
   return useMemo(
     () =>
       StyleSheet.create({
-  screenDense: {
-    // consumed by Screen via style prop on outer view
-  },
-  brandTop: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 4,
-  },
-  brandRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  brandTitle: {
-    color: classic ? '#111111' : colors.accent,
-    fontWeight: '900',
-    letterSpacing: 2,
-    fontSize: 28,
-    textTransform: 'uppercase',
-    flexShrink: 1,
-  },
-  brandVersion: {
-    color: colors.textDim,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  brandTitleDense: {
-    fontSize: 24,
-    letterSpacing: 1.5,
-  },
-  subDense: {
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  localNotice: {
-    marginTop: -4,
-    marginBottom: 4,
-    fontSize: 12,
-    lineHeight: 16,
-  },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  modeRow: { gap: 6 },
-  modeRowMobile: { gap: 4 },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  packTabs: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  packTabsMobile: {
-    gap: 4,
-  },
-  packGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    justifyContent: 'flex-start',
-  },
-  packGridDense: {
-    gap: 6,
-  },
-  packGridMobile: {
-    gap: 4,
-  },
-  packCell: {
-    width: '23%',
-  },
-}),
+        screenDense: {},
+        brandTop: { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 8, marginBottom: 4 },
+        brandRow: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 8 },
+        brandTitle: { color: classic ? '#111111' : colors.accent, fontWeight: '900', letterSpacing: 2, fontSize: 28, textTransform: 'uppercase', flexShrink: 1 },
+        brandVersion: { color: colors.textDim, fontSize: 12, fontWeight: '700' },
+        brandTitleDense: { fontSize: 24, letterSpacing: 1.5 },
+        subDense: { fontSize: 13, lineHeight: 18 },
+        localNotice: { marginTop: -4, marginBottom: 4, fontSize: 12, lineHeight: 16 },
+        row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+        modeRow: { gap: 6 },
+        modeRowMobile: { gap: 4 },
+        wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+        packTabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+        packTabsMobile: { gap: 4 },
+        packGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start' },
+        packGridDense: { gap: 6 },
+        packGridMobile: { gap: 4 },
+        packCell: { width: '23%' },
+      }),
     [colors, fontFamily, classic]
   );
 }
-

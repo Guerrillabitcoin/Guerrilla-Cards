@@ -1,295 +1,69 @@
-/**
- * App release label shown in the UI (home + Partida header).
- * Bump this when shipping a visible change to Vercel / stores.
- * UI always prefixes with "v" via APP_VERSION_LABEL.
- */
-export const APP_VERSION = '0.99';
-
-/** Display form, e.g. `v0.69` — use this in UI next to Partida / home. */
+export const APP_VERSION = '0.99.421.16';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
-
 export const APP_VERSION_NOTES = [
   {
-    version: '0.99',
-    date: '2026-09-15',
+    version: '0.99.421.16',
+    date: '2026-09-19',
     notes: [
-      'Al juzgar: todos ven las opciones anónimas; solo el Zar elige',
-      'Descarte cada 5 rondas (5, 10, 15…), no solo una vez',
-      'Resultados: ranking + reiniciar partida (mismo código online)',
-      'Lobby: el apodo guardado ya no se pisa al escribir / al sincronizar',
-      'Home: Multijugador beta + unirse por código bajo el modo',
-      'Voto: empate → ambas respuestas +1 y se muestran',
-      '★ favoritos en respuestas enviadas, opciones al juzgar y revelado',
-      'Solo: final con todas las respuestas; sin descarte en la ronda 10',
-      'Multi: fix doble descarte (sync une quién ya descartó)',
-      'Descarte solo en Solo (antes de la 5); apagado en Multijugador',
+      'Lobby: el 3.º+ jugador ya entra con el mismo enlace (join atómico + sync de asientos)',
+      'Fin de partida: reinicio con listos (WaitingRoster); anfitrión/ganador puede forzar',
+      'Liga de sesión: +1 al ganador de cada partida; se mantiene al reiniciar la misma sala',
     ],
   },
   {
-    version: '0.98',
-    date: '2026-09-14',
+    version: '0.99.421.15',
+    date: '2026-09-19',
     notes: [
-      'Tras el Zar: revelado a todos, +1, ganador = nuevo Zar, siguiente ronda hasta la meta',
+      'Voto online: fusión por votante (ya no se pierden votos simultáneos ni se cuelga en Votos N/N)',
+      'Reveal/empate: cada carta muestra Puntacos y ronda junto al apodo',
     ],
   },
   {
-    version: '0.97',
-    date: '2026-09-14',
+    version: '0.99.421.14',
+    date: '2026-09-19',
     notes: [
-      'Tras las 3 respuestas (cualquier orden) → pantalla del Zar para elegir',
+      'Lobby: el enlace /lobby?code= sienta un jugador NUEVO (no roba el asiento del anfitrión)',
+      'Modo voto (>2): empate anula la ronda («Empate: voto dividido») y sigue a la siguiente',
     ],
   },
   {
-    version: '0.96',
-    date: '2026-09-14',
+    version: '0.99.421.13',
+    date: '2026-09-19',
     notes: [
-      'Fix: manos visibles al responder (sync ya no borra el reparto)',
-      'Lobby online: solo tu nombre; sin «añadir otro» en el mismo dispositivo',
+      'Enlaces de asiento abren /play y reclaman el turno (no el menú)',
+      'Bloque recuperar asiento del anfitrión al final de la partida',
     ],
   },
   {
-    version: '0.95',
-    date: '2026-09-14',
+    version: '0.99.421.12',
+    date: '2026-09-19',
     notes: [
-      'Join atómico: cada invitado recibe asiento propio (incógnito OK)',
-      'Nick único al unirse; «Tú» ya no se comparte entre ventanas',
+      'Descarte online: avanza al completar N/N (sync ya no se queda colgado)',
+      'Anfitrión: enlaces de recuperación visibles en partida (esperas)',
+      'Tema/skin: sin parpadeo al cargar (localStorage antes del primer paint)',
     ],
   },
   {
-    version: '0.94',
-    date: '2026-09-14',
+    version: '0.99.421.11',
+    date: '2026-09-19',
     notes: [
-      'Manos privadas / distintas entre jugadores',
-      'Zar ve respuestas solo al juzgar (niebla en sync)',
-      'Sync: redacta otras manos y texto de envíos tempranos',
+      'Crear sala: solo tú como anfitrión (sin 2.º jugador fantasma en lobby)',
     ],
   },
   {
-    version: '0.93',
-    date: '2026-09-14',
+    version: '0.99.421.10',
+    date: '2026-09-19',
     notes: [
-      'Unirse a partida async justo bajo Crear (solo modo Async)',
-      'Apodo gracioso por defecto; vacío → randomNickname',
-      'Fix unirse por código: await push, merge lobby, UPSTASH env',
+      'Arreglo unirse/lobby: API room.js (join/claim/upsert) y aforo maxPlayers',
+      'Sin asientos fantasma; avisos web con window.alert',
     ],
   },
   {
-    version: '0.92',
-    date: '2026-09-14',
+    version: '0.99.421.09',
+    date: '2026-09-18',
     notes: [
-      'Pick×2: los 2 huecos en la misma pantalla (sin re-confirmar identidad)',
+      'Enlace /lobby?code= baja la sala y sienta al jugador',
+      'El anfitrión empieza cuando está el número elegido',
     ],
-  },
-  {
-    version: '0.91',
-    date: '2026-09-14',
-    notes: [
-      'Anonimato al juzgar/votar: opciones sin apodo, orden aleatorio',
-      'Tras el ganador: revelar nick + clasificación; meta por defecto 10',
-      'Online async: salas KV (código entre dispositivos) si hay env en Vercel',
-    ],
-  },
-  {
-    version: '0.90',
-    date: '2026-09-14',
-    notes: [
-      'Async beta: chip gris pero activo; 4 jugadores pass-and-play',
-      'Juez Voto o Zar (ganador → próximo Zar); meta configurable',
-      'Mismo dispositivo/navegador (código local; sin servidor aún)',
-    ],
-  },
-  {
-    version: '0.89',
-    date: '2026-09-14',
-    notes: [
-      'Preguntas: más entropía en todo el mazo (no hundir casi todas las recientes)',
-    ],
-  },
-  {
-    version: '0.88',
-    date: '2026-09-14',
-    notes: [
-      'Compartir: texto grande como en partida (large)',
-    ],
-  },
-  {
-    version: '0.87',
-    date: '2026-09-14',
-    notes: [
-      'Compartir: imagen siempre cuadrada 420×420',
-    ],
-  },
-  {
-    version: '0.86',
-    date: '2026-09-14',
-    notes: [
-      'Compartir: tag bajo el título con URL de Vercel',
-    ],
-  },
-  {
-    version: '0.85',
-    date: '2026-09-14',
-    notes: [
-      'Quitar pregunta del César / sonido de comer',
-      'Compartir: sin pie guerrillacards ni tag de humor',
-    ],
-  },
-  {
-    version: '0.84',
-    date: '2026-09-14',
-    notes: [
-      'Cartas nuevas: mismo hueco + letras verdes 1s al empezar ronda',
-    ],
-  },
-  {
-    version: '0.83',
-    date: '2026-09-14',
-    notes: [
-      'Flash verde en cartas nuevas al reponer la mano',
-      'PC ancho: mano fija 6 columnas (sin bajar a 5)',
-    ],
-  },
-  {
-    version: '0.82',
-    date: '2026-09-14',
-    notes: [
-      '+85 preguntas nuevas clasificadas por packs',
-    ],
-  },
-  {
-    version: '0.81',
-    date: '2026-09-14',
-    notes: [
-      'Modo Admin deshabilitado',
-      'Classic: packs/opciones en naranja oscuro con letra clara',
-    ],
-  },
-  {
-    version: '0.80',
-    date: '2026-09-14',
-    notes: [
-      'Solo: sin descartar en ronda 5; vuelve en la 6',
-    ],
-  },
-  {
-    version: '0.79',
-    date: '2026-09-13',
-    notes: [
-      'Classic: home B/N; respuestas negras con glow naranja en letras',
-      'Solo: 3 respuestas bot (RESPUESTA BOT 1–3)',
-      'Solo: sin descartar/pasar en ronda 5; vuelve en la 6',
-    ],
-  },
-  {
-    version: '0.78',
-    date: '2026-09-13',
-    notes: [
-      'Modo Admin (PIN / ?admin=1): editar y añadir cartas con parches locales',
-      'Exportar parches JSON para commit al mazo live',
-    ],
-  },
-  {
-    version: '0.77',
-    date: '2026-09-13',
-    notes: [
-      'Temas Classic / Guerrilla / Oscuro (botón ◐ arriba)',
-      'Classic: B/N estilo CAH + Verdana; respuestas negras',
-    ],
-  },
-  {
-    version: '0.76',
-    date: '2026-09-13',
-    notes: [
-      'Sin botón Report flotante',
-    ],
-  },
-  {
-    version: '0.75',
-    date: '2026-09-13',
-    notes: [
-      'Quitar mayúsculas inventadas dentro de palabras (AVE/OTAN/CIS…)',
-    ],
-  },
-  {
-    version: '0.74',
-    date: '2026-09-13',
-    notes: [
-      'Botón Report más visible abajo-izquierda',
-    ],
-  },
-  {
-    version: '0.73',
-    date: '2026-09-13',
-    notes: [
-      'Reportar fallos (⚑ abajo-izquierda → logs Vercel)',
-      'PC: grid 6×2 o 4×3 si la letra no cabe (1080p)',
-    ],
-  },
-  {
-    version: '0.72',
-    date: '2026-09-13',
-    notes: [
-      'Mano fija de 12 cartas (2×6 móvil / 6×2 PC)',
-      'Misma talla de letra en toda la mano',
-    ],
-  },
-  {
-    version: '0.71',
-    date: '2026-09-13',
-    notes: [
-      '+382 respuestas nuevas del PDF, clasificadas por packs',
-      'Peinado de acentos, tipografías y mayúsculas de lugares',
-    ],
-  },
-  {
-    version: '0.70',
-    date: '2026-09-13',
-    notes: [
-      '+111 preguntas nuevas (core + packs temáticos)',
-    ],
-  },
-  {
-    version: '0.69',
-    date: '2026-09-13',
-    notes: [
-      'Vercel Analytics + Speed Insights',
-      'Telemetría de cartas jugadas/descartadas',
-      'Versión con prefijo v junto a Partida',
-    ],
-  },
-  {
-    version: '0.6',
-    date: '2026-09-12',
-    notes: [
-      'PC: letras más grandes en cartas y packs (usan mejor el alto)',
-    ],
-  },
-  {
-    version: '0.5',
-    date: '2026-09-12',
-    notes: [
-      'Al crear partida: un solo mazo mezclado (no pack a pack)',
-      'Baraja distinta en cada nueva / reinicio',
-    ],
-  },
-  {
-    version: '0.4',
-    date: '2026-09-12',
-    notes: ['Sorteo de preguntas con máxima entropía'],
-  },
-  {
-    version: '0.3',
-    date: '2026-09-12',
-    notes: ['Versión visible en inicio'],
-  },
-  {
-    version: '0.2',
-    date: '2026-09-12',
-    notes: ['Anti-repetición, favoritos, +18, compartir, Solo'],
-  },
-  {
-    version: '0.1',
-    date: '2026-09-12',
-    notes: ['MVP Solo'],
   },
 ] as const;
