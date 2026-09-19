@@ -24,9 +24,11 @@ import { useGameStore } from '@/src/store/GameContext';
 import {
   getMySeat,
   getOnlineFlag,
+  joinRoom,
   pullRoom,
   pushRoom,
   setMySeat,
+  setOnlineFlag,
 } from '@/src/store/roomSync';
 import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { useTheme } from '@/src/store/ThemeContext';
@@ -48,7 +50,8 @@ export default function LobbyScreen() {
   const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
   const [onlineRoom, setOnlineRoom] = useState(false);
   const nickDirtyRef = useRef(false);
-
+    const [remoteTried, setRemoteTried] = useState(false);
+  const joiningRef = useRef(false);
   const gameCode = code ? String(code).toUpperCase() : '';
   const game = ready && gameCode ? getGame(gameCode) : undefined;
 
@@ -60,6 +63,44 @@ export default function LobbyScreen() {
         getMySeat(gameCode),
         getOnlineFlag(gameCode),
       ]);
+      useEffect(() => {
+    if (!ready || !gameCode) return;
+    if (game) {
+      setRemoteTried(true);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      await setOnlineFlag(gameCode, true);
+      setOnlineRoom(true);
+      const res = await pullRoom(gameCode);
+      if (cancelled) return;
+      if (res.ok) applyRemoteGame(res.state);
+      setRemoteTried(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, gameCode, game, applyRemoteGame]);
+
+  useEffect(() => {
+    if (!ready || !game || game.phase !== 'lobby') return;
+    if (!onlineRoom && game.mode !== 'async') return;
+    if (myPlayerId && game.players.some((p) => p.id === myPlayerId)) return;
+    if (joiningRef.current) return;
+    joiningRef.current = true;
+    void (async () => {
+      await setOnlineFlag(game.code, true);
+      setOnlineRoom(true);
+      const joined = await joinRoom(game.code, nick);
+      if (joined.ok) {
+        applyRemoteGame(joined.state);
+        await setMySeat(game.code, joined.playerId);
+        setMyPlayerIdState(joined.playerId);
+      }
+      joiningRef.current = false;
+    })();
+  }, [ready, game, onlineRoom, myPlayerId, nick, applyRemoteGame]);
       if (cancelled) return;
       setMyPlayerIdState(seat);
       setOnlineRoom(online);
@@ -126,7 +167,7 @@ export default function LobbyScreen() {
     }
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
-  if (!ready) return <Loading />;
+ if (!ready || (!game && !remoteTried)) return <Loading />;
 
   if (!game) {
     return (
@@ -156,7 +197,7 @@ export default function LobbyScreen() {
   );
   const seatMin = MIN_PLAYERS;
   const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
-  const canStart = game.players.length >= seatMin;
+  const canStart = game.players.length >= seatMax;
 
   const setCap = (n: number) => {
     if (!iAmHost) return;
@@ -201,6 +242,11 @@ export default function LobbyScreen() {
   const start = () => {
     try {
       updateGame(game.code, (g) => startFlexible(g));
+            void (async () => {
+        const g = getGame(game.code);
+        if (!g) return;
+        await pushRoom(g, await getMySeat(game.code));
+      })();
       router.replace({ pathname: '/play', params: { code: game.code } });
     } catch (e) {
       notify('Empezar', e instanceof Error ? e.message : 'Error');
