@@ -8,7 +8,7 @@
 
 const ROOM_PREFIX = 'gc:room:';
 const MAX_BODY_CHARS = 900_000;
-const ASYNC_MAX_PLAYERS = 4;
+const ASYNC_MAX_PLAYERS = 8;
 
 function uid(prefix) {
   return (
@@ -557,7 +557,34 @@ async function handler(req, res) {
         return res.status(200).json({ ok: true, code, playerId, state });
       }
 
-      if (action !== 'upsert') {
+          if (action === 'claim') {
+        const code = normalizeCode(body.code);
+        const playerId = String(body.playerId || '').trim();
+        if (!code || code.length < 3) {
+          return res.status(400).json({ ok: false, error: 'bad_code' });
+        }
+        if (!playerId) {
+          return res.status(400).json({ ok: false, error: 'missing_seat' });
+        }
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvCommand(['GET', key]);
+        const existing = parseExisting(existingData?.result);
+        if (!existing) {
+          return res.status(404).json({ ok: false, error: 'not_found' });
+        }
+        const players = Array.isArray(existing.players) ? existing.players : [];
+        const seat = players.find((p) => p && p.id === playerId && !p.isBot);
+        if (!seat) {
+          return res.status(404).json({ ok: false, error: 'seat_missing' });
+        }
+        return res.status(200).json({
+          ok: true,
+          code,
+          playerId: seat.id,
+          state: { ...existing, code },
+        });
+      }
+
         return res.status(400).json({ ok: false, error: 'unknown_action' });
       }
 
