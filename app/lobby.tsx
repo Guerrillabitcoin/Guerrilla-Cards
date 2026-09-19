@@ -107,20 +107,9 @@ export default function LobbyScreen() {
     if (game.mode !== 'async') return;
     if (myPlayerId && game.players.some((p) => p.id === myPlayerId)) return;
 
-    // Host just created the room: reclaim sole host seat — never join as a 2nd player.
-    if (!myPlayerId) {
-      const soleHost = game.players.length === 1 ? game.players[0] : null;
-      if (soleHost?.isHost) {
-        void (async () => {
-          await setMySeat(game.code, soleHost.id);
-          setMyPlayerIdState(soleHost.id);
-          await setOnlineFlag(game.code, true);
-          setOnlineRoom(true);
-        })();
-        return;
-      }
-    }
-
+    // Guests (no seat cookie) must always joinRoom as a NEW seat.
+    // Host create already awaits setMySeat before navigating — do NOT reclaim
+    // sole host here or invite links steal the host seat when players.length===1.
     if (joiningRef.current) return;
     joiningRef.current = true;
     void (async () => {

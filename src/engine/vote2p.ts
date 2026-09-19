@@ -1,6 +1,7 @@
 import type { GameState } from './types';
 import * as Engine from './game';
 
+/** True when vote mode has exactly 2 human players (special 2p scoring). */
 export function isTwoPlayerVote(state: GameState): boolean {
   const humans = state.players.filter((p) => !p.isBot).length;
   return (
@@ -19,8 +20,18 @@ export function votesFor(state: GameState, playerId: string): number {
   return Object.values(votes).filter((id) => id === playerId).length;
 }
 
-function finishTwoPlayerVotes(state: GameState, votes: Record<string, string>): GameState {
-  const eligible = state.submissions.filter((s) => !s.rival).map((s) => s.playerId);
+/**
+ * 2-player vote finish: each gets +votesReceived (not annul).
+ * Split ties keep roundWinnerIds; roundWinnerId falls back to host for advance.
+ * Solo is never routed here.
+ */
+function finishTwoPlayerVotes(
+  state: GameState,
+  votes: Record<string, string>
+): GameState {
+  const eligible = state.submissions
+    .filter((s) => !s.rival)
+    .map((s) => s.playerId);
   const tallies: Record<string, number> = {};
   for (const id of eligible) tallies[id] = 0;
   for (const target of Object.values(votes)) {
@@ -31,9 +42,12 @@ function finishTwoPlayerVotes(state: GameState, votes: Record<string, string>): 
   );
   const hitTarget = players.some((p) => p.score >= state.targetScore);
   const best = Math.max(0, ...Object.values(tallies));
-  const winners = eligible.filter((id) => (tallies[id] ?? 0) === best && best > 0);
+  const winners = eligible.filter(
+    (id) => (tallies[id] ?? 0) === best && best > 0
+  );
   const isSplit = winners.length > 1;
-  const hostId = state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
+  const hostId =
+    state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
   return {
     ...state,
     players,
@@ -46,12 +60,27 @@ function finishTwoPlayerVotes(state: GameState, votes: Record<string, string>): 
   };
 }
 
+/**
+ * After room merge: if all votes are in, finalize.
+ * - 2p: special scoring (unchanged).
+ * - >2p: Engine.tallyVotesIfComplete (annuls ties).
+ * Prevents hang when the last vote arrived via sync rather than local castVote.
+ */
 export function resolveVotesIfComplete(state: GameState): GameState {
-  if (!twoPlayerVote(state) || state.phase !== 'judging') return state;
+  if ((state.judgeMode ?? 'zar') !== 'vote' || state.mode === 'solo') {
+    return state;
+  }
+  if (state.phase !== 'judging') return state;
   const votes = state.votes ?? {};
-  const eligible = state.submissions.filter((s) => !s.rival).map((s) => s.playerId);
+  const eligible = state.submissions
+    .filter((s) => !s.rival)
+    .map((s) => s.playerId);
   if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
-  return finishTwoPlayerVotes(state, votes);
+
+  if (twoPlayerVote(state)) {
+    return finishTwoPlayerVotes(state, votes);
+  }
+  return Engine.tallyVotesIfComplete({ ...state, votes });
 }
 
 export function castVoteFlexible(
@@ -70,14 +99,20 @@ export function castVoteFlexible(
   if (!state.submissions.some((s) => s.playerId === voterId && !s.rival)) {
     throw new Error('Solo quien envió respuesta puede votar.');
   }
-  if (!state.submissions.some((s) => s.playerId === submissionPlayerId && !s.rival)) {
+  if (
+    !state.submissions.some(
+      (s) => s.playerId === submissionPlayerId && !s.rival
+    )
+  ) {
     throw new Error('Esa jugada no existe.');
   }
   const prev = state.votes ?? {};
   if (prev[voterId]) throw new Error('Ya has votado esta ronda.');
 
   const votes = { ...prev, [voterId]: submissionPlayerId };
-  const eligible = state.submissions.filter((s) => !s.rival).map((s) => s.playerId);
+  const eligible = state.submissions
+    .filter((s) => !s.rival)
+    .map((s) => s.playerId);
   const pending = eligible.filter((id) => !votes[id]);
   if (pending.length) {
     const nextSeat =
@@ -93,6 +128,7 @@ export function castVoteFlexible(
   return finishTwoPlayerVotes(state, votes);
 }
 
+/** 2p vote UI may show own answer among options. */
 export function showOwnAnswerWhenVoting(state: GameState): boolean {
   return twoPlayerVote(state);
 }

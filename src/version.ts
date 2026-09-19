@@ -1,6 +1,14 @@
-export const APP_VERSION = '0.99.421.13';
+export const APP_VERSION = '0.99.421.14';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.14',
+    date: '2026-09-19',
+    notes: [
+      'Lobby: el enlace /lobby?code= sienta un jugador NUEVO (no roba el asiento del anfitrión)',
+      'Modo voto (>2): empate anula la ronda («Empate: voto dividido») y sigue a la siguiente',
+    ],
+  },
   {
     version: '0.99.421.13',
     date: '2026-09-19',

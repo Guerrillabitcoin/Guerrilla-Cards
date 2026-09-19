@@ -458,7 +458,7 @@ export default function PlayScreen() {
   // Others wait for poll. Host fallback at 12s if still stuck on reveal.
   useEffect(() => {
     if (!game || game.mode === 'solo') return;
-    if (game.phase !== 'reveal') { // 421.14 annul ties
+    if (game.phase !== 'reveal' || !game.roundWinnerId) {
       if (autoRevealTimerRef.current) {
         clearTimeout(autoRevealTimerRef.current);
         autoRevealTimerRef.current = null;
@@ -473,7 +473,7 @@ export default function PlayScreen() {
       !!game.players.find((p) => p.id === myPlayerId && p.isHost);
     // Pass-and-play (one device): anyone may auto-advance
     const mayAuto = true;
-    const key = `${game.code}:${game.round}:${game.roundWinnerId ?? 'annul'}:${(game.roundWinnerIds ?? []).join(',')}:${
+    const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
       mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
     }`;
     if (autoRevealKeyRef.current === key) return;
@@ -499,7 +499,6 @@ export default function PlayScreen() {
     game?.code,
     game?.round,
     game?.roundWinnerId,
-    game?.roundWinnerIds,
     game?.players,
     onlineRoom,
     myPlayerId,
@@ -922,9 +921,7 @@ export default function PlayScreen() {
         }
       }
     } catch (e) {
-      { const msg = e instanceof Error ? e.message : 'Error';
-      if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(`Voto: ${msg}`);
-      else Alert.alert('Voto', msg); }
+      Alert.alert('Voto', e instanceof Error ? e.message : 'Error');
     }
   };
 
@@ -979,8 +976,7 @@ export default function PlayScreen() {
         autoRevealKeyRef.current = null;
         const msg = e instanceof Error ? e.message : 'Error';
         if (/revelado/i.test(msg)) return;
-        if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(`Siguiente: ${msg}`);
-        else Alert.alert('Siguiente', msg);
+        Alert.alert('Siguiente', msg);
       }
     };
     void run();
@@ -1773,7 +1769,7 @@ export default function PlayScreen() {
                   <>
                     <View style={styles.revealTitleRow}>
                       <Title>
-                        {isTie ? (game.roundWinnerId ? 'Empate' : 'Empate: voto dividido') : iWon ? '¡Puntaco!' : 'Fin de ronda'}
+                        {isTie ? 'Empate' : iWon ? '¡Puntaco!' : 'Fin de ronda'}
                       </Title>
                       {iWon && !isTie ? (
                         <Pressable
@@ -1791,7 +1787,7 @@ export default function PlayScreen() {
                     </View>
                     <Subtitle>
                       {isTie
-                        ? (game.roundWinnerId ? 'Empate · +1 cada una' : 'Empate: voto dividido · sin puntos')
+                        ? 'Empate · +1 cada una'
                         : winnerIsRival
                           ? `Gana el bot (${winnerName})`
                           : iWon
@@ -1803,9 +1799,7 @@ export default function PlayScreen() {
                     </Subtitle>
                     <Muted>
                       {isTie
-                        ? (game.roundWinnerId
-                          ? `Empate · +1 cada una. Meta: ${game.targetScore} Puntacos.`
-                          : `Empate: voto dividido · ronda anulada. Meta: ${game.targetScore} Puntacos.`)
+                        ? `Empate · +1 cada una. Meta: ${game.targetScore} Puntacos.`
                         : `+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
                     </Muted>
                     {isTie

@@ -761,7 +761,8 @@ function applyRoundWinner(
 }
 
 /**
- * Vote ties (2+): +1 each real player, roundWinnerIds=tied, roundWinnerId=tied[0].
+ * Vote ties for exactly 2 humans (legacy / fallback): +1 each real player,
+ * roundWinnerIds=tied, roundWinnerId=tied[0]. Prefer vote2p for 2p online.
  * No revealOrder tiebreak. Results if any hits targetScore.
  */
 export function applyRoundWinners(
@@ -805,6 +806,72 @@ export function applyRoundWinners(
   };
 }
 
+/**
+ * Vote mode, >2 players, tied tallies: annul the round (no points),
+ * label via roundWinnerId=null + roundWinnerIds=tied («Empate: voto dividido» in UI),
+ * stay on reveal so clients can advance to next round.
+ */
+export function applyVoteSplitAnnul(
+  state: GameState,
+  tiedIds: string[]
+): GameState {
+  const ids = [...new Set(tiedIds)].filter(Boolean);
+  if (ids.length < 2) {
+    throw new Error('applyVoteSplitAnnul requiere al menos 2 empatados.');
+  }
+  const hostId =
+    state.players.find((p) => p.isHost)?.id ??
+    state.players.find((p) => !p.isBot)?.id ??
+    state.players[0]?.id ??
+    null;
+  return {
+    ...state,
+    // scores unchanged — round annulled
+    roundWinnerIds: ids,
+    roundWinnerId: null,
+    phase: 'reveal',
+    activeSeatId: hostId,
+    updatedAt: now(),
+  };
+}
+
+/**
+ * Tally completed votes. Majority → applyRoundWinner.
+ * Tie + >2 humans → applyVoteSplitAnnul (no points).
+ * Tie + 2 humans → applyRoundWinners (+1 each; vote2p usually handles 2p).
+ * Safe no-op if not all eligible have voted.
+ */
+export function tallyVotesIfComplete(state: GameState): GameState {
+  if (state.phase !== 'judging' || !isVoteMode(state)) return state;
+  const votes = state.votes ?? {};
+  const eligible = state.submissions
+    .filter((s) => !s.rival)
+    .map((s) => s.playerId);
+  if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
+
+  const tallies: Record<string, number> = {};
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] ?? 0) + 1;
+  }
+  let bestCount = -1;
+  for (const n of Object.values(tallies)) {
+    if (n > bestCount) bestCount = n;
+  }
+  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
+  const withVotes = { ...state, votes };
+  if (tied.length >= 2) {
+    const humans = state.players.filter((p) => !p.isBot).length;
+    if (humans > 2) {
+      return applyVoteSplitAnnul(withVotes, tied);
+    }
+    return applyRoundWinners(withVotes, tied);
+  }
+  if (!tied[0]) {
+    // Defensive: empty tally must not hang in judging
+    return applyVoteSplitAnnul(withVotes, eligible.slice(0, 2));
+  }
+  return applyRoundWinner(withVotes, tied[0]);
+}
 
 
 /**
@@ -890,7 +957,8 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
 /**
  * Vote mode: cast one vote for a submission (cannot vote own).
  * When all eligible voters have voted, tallies majority → applyRoundWinner.
- * Ties (2+): applyRoundWinners — +1 each, no revealOrder tiebreak.
+ * Ties with >2 humans: applyVoteSplitAnnul (no points, «Empate: voto dividido»).
+ * Ties with 2 humans: applyRoundWinners (+1 each; vote2p usually handles 2p).
  */
 export function castVote(
   state: GameState,
@@ -939,21 +1007,8 @@ export function castVote(
     };
   }
 
-  // Tally: majority wins; 2+ tie → applyRoundWinners (no revealOrder tiebreak)
-  const tallies: Record<string, number> = {};
-  for (const target of Object.values(votes)) {
-    tallies[target] = (tallies[target] ?? 0) + 1;
-  }
-  let bestCount = -1;
-  for (const n of Object.values(tallies)) {
-    if (n > bestCount) bestCount = n;
-  }
-  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
-  const withVotes = { ...state, votes };
-  if (tied.length >= 2) {
-    return applyRoundWinners(withVotes, tied);
-  }
-  return applyRoundWinner(withVotes, tied[0]);
+  // Tally via shared helper (annuls >2-player ties; no hang on empty tally)
+  return tallyVotesIfComplete({ ...state, votes });
 }
 
 /** Enter discarding phase before a multiple-of-DISCARD_AT_ROUND round (zar not rotated yet). */
