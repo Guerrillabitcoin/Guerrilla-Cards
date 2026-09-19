@@ -1272,7 +1272,7 @@ export default function PlayScreen() {
                   doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
                   meId={myPlayerId ?? active?.id}
                   verb="responda"
-                />
+             />
                 </>
               ) : null}
             </View>
@@ -1391,6 +1391,7 @@ export default function PlayScreen() {
             </>
           ) : zarSkipsSubmit &&
             (isOnline ? myPlayerId === zar.id : active?.id === zar.id) ? (
+              <>
             <Muted>
               Eres el Zar. Esperando a que contesten
               {submitPendingPlayers.length
@@ -1403,7 +1404,8 @@ export default function PlayScreen() {
               doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
               meId={myPlayerId ?? active?.id}
               verb="responda"
-            />
+         />
+            </>
           ) : (
             <>
               {!isSolo ? (
