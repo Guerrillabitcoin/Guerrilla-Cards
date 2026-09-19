@@ -16,6 +16,8 @@ import {
   Title,
 } from '@/src/components/ui';
 import { NextRoundBar } from '@/src/components/NextRoundBar';
+import { WaitingRoster } from '@/src/components/WaitingRoster';
+import { RoundStandings } from '@/src/components/RoundStandings';
 import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
 import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
@@ -1120,7 +1122,7 @@ export default function PlayScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.sticky}>
-                  <NextRoundBar active={phase === 'reveal'} />
+                  <NextRoundBar active={phase === 'reveal'} onDone={() => continueRoundRef.current?.()} />
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
             {roundLine}
@@ -1358,6 +1360,12 @@ export default function PlayScreen() {
                         .join(', ')}`
                     : ' Esperando…'}
                 </Muted>
+              <WaitingRoster
+                  players={game.players}
+                  doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
+                  meId={myPlayerId ?? active?.id}
+                  verb="responda"
+                />
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
