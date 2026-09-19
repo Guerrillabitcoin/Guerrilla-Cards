@@ -42,6 +42,8 @@ import * as Engine from '@/src/engine/game';
 import { useTheme } from '@/src/store/ThemeContext';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { APP_VERSION_LABEL } from '@/src/version';
+import { ClaimSeat } from '@/src/components/ClaimSeat';
+import type { GameState } from '@/src/engine/types';
 
 function shortPackTitle(id: string, title: string): string {
   const aliases: Record<string, string> = {
@@ -100,6 +102,8 @@ export default function HomeScreen() {
 
   const [nickname, setNickname] = useState(() => randomNickname());
   const [joinCode, setJoinCode] = useState('');
+    const [claimGame, setClaimGame] = useState<GameState | null>(null);
+  const urlParams = useLocalSearchParams<{ code?: string; seat?: string }>();
   const [mode, setMode] = useState<GameMode>('solo');
   const [judgeMode, setJudgeMode] = useState<JudgeMode>('zar');
   const [maxPlayers, setMaxPlayers] = useState(4);
