@@ -1271,6 +1271,7 @@ export default function PlayScreen() {
               <Subtitle>¿Eres {active?.nickname}?</Subtitle>
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
               <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
+              </>
           ) : (
             <>
               <View style={styles.discardCounterBox}>
