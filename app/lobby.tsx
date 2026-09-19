@@ -23,6 +23,7 @@ import { MAX_PLAYERS, MIN_PLAYERS } from '@/src/engine/types';
 import { useGameStore } from '@/src/store/GameContext';
 import {
   getMySeat,
+  getMySeatSync,
   getOnlineFlag,
   joinRoom,
   pullRoom,
@@ -46,19 +47,26 @@ export default function LobbyScreen() {
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
+  const gameCode = code ? String(code).toUpperCase() : '';
   const [nick, setNick] = useState(() => randomNickname());
-  const [myPlayerId, setMyPlayerIdState] = useState<string | null>(null);
+  // Prefer sync cache so host create→lobby does not race into joinRoom.
+  const [myPlayerId, setMyPlayerIdState] = useState<string | null>(() =>
+    gameCode ? getMySeatSync(gameCode) : null
+  );
   const [onlineRoom, setOnlineRoom] = useState(false);
+  const [seatReady, setSeatReady] = useState(() =>
+    gameCode ? getMySeatSync(gameCode) != null : false
+  );
   const nickDirtyRef = useRef(false);
   const [remoteTried, setRemoteTried] = useState(false);
   const joiningRef = useRef(false);
 
-  const gameCode = code ? String(code).toUpperCase() : '';
   const game = ready && gameCode ? getGame(gameCode) : undefined;
 
   useEffect(() => {
     if (!gameCode) return;
     let cancelled = false;
+    setSeatReady(getMySeatSync(gameCode) != null);
     void (async () => {
       const [seat, online] = await Promise.all([
         getMySeat(gameCode),
@@ -67,6 +75,7 @@ export default function LobbyScreen() {
       if (cancelled) return;
       setMyPlayerIdState(seat);
       setOnlineRoom(online);
+      setSeatReady(true);
     })();
     return () => {
       cancelled = true;
@@ -94,9 +103,24 @@ export default function LobbyScreen() {
   }, [ready, gameCode, game, applyRemoteGame]);
 
   useEffect(() => {
-    if (!ready || !game || game.phase !== 'lobby') return;
+    if (!ready || !seatReady || !game || game.phase !== 'lobby') return;
     if (game.mode !== 'async') return;
     if (myPlayerId && game.players.some((p) => p.id === myPlayerId)) return;
+
+    // Host just created the room: reclaim sole host seat — never join as a 2nd player.
+    if (!myPlayerId) {
+      const soleHost = game.players.length === 1 ? game.players[0] : null;
+      if (soleHost?.isHost) {
+        void (async () => {
+          await setMySeat(game.code, soleHost.id);
+          setMyPlayerIdState(soleHost.id);
+          await setOnlineFlag(game.code, true);
+          setOnlineRoom(true);
+        })();
+        return;
+      }
+    }
+
     if (joiningRef.current) return;
     joiningRef.current = true;
     void (async () => {
@@ -114,7 +138,7 @@ export default function LobbyScreen() {
         }
       }
     })();
-  }, [ready, game, myPlayerId, nick, applyRemoteGame]);
+  }, [ready, seatReady, game, myPlayerId, nick, applyRemoteGame]);
 
   useEffect(() => {
     if (!game || !myPlayerId) return;
