@@ -1258,15 +1258,6 @@ export default function PlayScreen() {
             <View style={styles.doneBox}>
               <Text style={styles.doneBadge}>✓ Descarte enviado</Text>
                             {!isSolo ? (
-                <>
-                <Muted>
-                  Enviados {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}.
-                  {submitPendingPlayers.length
-                    ? ` Esperando a que contesten: ${submitPendingPlayers
-                        .map((p) => p.nickname)
-                        .join(', ')}`
-                    : ' Esperando…'}
-                </Muted>
                 <WaitingRoster
                   players={game.players}
                   doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
@@ -1391,14 +1382,6 @@ export default function PlayScreen() {
             </>
           ) : zarSkipsSubmit &&
             (isOnline ? myPlayerId === zar.id : active?.id === zar.id) ? (
-              <>
-            <Muted>
-              Eres el Zar. Esperando a que contesten
-              {submitPendingPlayers.length
-                ? `: ${submitPendingPlayers.map((p) => p.nickname).join(', ')}`
-                : ''}
-              . Enviados: {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}
-            </Muted>
               <WaitingRoster
               players={game.players}
               doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
