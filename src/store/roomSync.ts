@@ -213,6 +213,10 @@ export async function pushRoom(
     if (data.skipped && data.state) {
       return { ok: true, skipped: true, state: coerceGameState(data.state) };
     }
+    // Always surface merged server state (lobby seat union, league fields, …)
+    if (data.state) {
+      return { ok: true, state: coerceGameState(data.state) };
+    }
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'network_error' };

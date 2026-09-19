@@ -12,11 +12,16 @@ import {
 import { EnviarShareButton } from '@/src/components/EnviarShareButton';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fillBlank } from '@/src/engine/deck';
+import { WaitingRoster } from '@/src/components/WaitingRoster';
+import * as Engine from '@/src/engine/game';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
 import {
+  getMySeat,
+  getMySeatSync,
   getOnlineFlag,
   pullRoom,
+  pushRoom,
 } from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
 
@@ -26,8 +31,9 @@ export default function ResultsScreen() {
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
-  const { getGame, restartSameSetup, ready, applyRemoteGame } = useGameStore();
+  const { getGame, restartSameSetup, ready, applyRemoteGame, updateGame } = useGameStore();
   const [onlineRoom, setOnlineRoom] = useState(false);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const {
     recordLeftInHand,
     winningHistory,
@@ -35,6 +41,7 @@ export default function ResultsScreen() {
     toggleFavorite,
   } = useHistoryStore();
   const staleOnceRef = useRef<string | null>(null);
+  const rematchOnceRef = useRef<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
 
@@ -44,9 +51,15 @@ export default function ResultsScreen() {
   useEffect(() => {
     if (!gameCode) return;
     let cancelled = false;
-    void getOnlineFlag(gameCode).then((online) => {
-      if (!cancelled) setOnlineRoom(online);
-    });
+    void (async () => {
+      const [online, seat] = await Promise.all([
+        getOnlineFlag(gameCode),
+        getMySeat(gameCode),
+      ]);
+      if (cancelled) return;
+      setOnlineRoom(online);
+      setMyPlayerId(seat);
+    })();
     return () => {
       cancelled = true;
     };
@@ -170,6 +183,33 @@ export default function ResultsScreen() {
     return [...items].sort((a, b) => (b.round ?? 0) - (a.round ?? 0));
   }, [game, winningHistory]);
 
+  // Auto-start rematch when all humans ready (peer may have been last)
+  useEffect(() => {
+    if (!ready || !game || game.phase !== 'results') return;
+    if (game.mode === 'solo' || !onlineRoom) return;
+    if (!Engine.allHumansRestartReady(game)) return;
+    if ((game.restartReadyIds?.length ?? 0) === 0) return;
+    const stamp = `${game.code}:${(game.restartReadyIds || []).slice().sort().join(',')}`;
+    if (rematchOnceRef.current === stamp) return;
+    rematchOnceRef.current = stamp;
+    const next = restartSameSetup(game.code);
+    if (!next) return;
+    if (next.phase === 'lobby') {
+      router.replace({ pathname: '/lobby', params: { code: next.code } });
+    } else {
+      router.replace({ pathname: '/play', params: { code: next.code } });
+    }
+  }, [
+    ready,
+    game?.code,
+    game?.phase,
+    game?.mode,
+    game?.restartReadyIds,
+    onlineRoom,
+    restartSameSetup,
+    router,
+  ]);
+
   if (!ready) return <Loading />;
 
   if (!game) {
@@ -186,7 +226,7 @@ export default function ResultsScreen() {
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
 
-  const onRestart = () => {
+  const doRestartNow = () => {
     const next = restartSameSetup(game.code);
     if (!next) {
       router.replace('/');
@@ -197,6 +237,42 @@ export default function ResultsScreen() {
     } else {
       router.replace({ pathname: '/play', params: { code: next.code } });
     }
+  };
+
+  const onRestartReady = () => {
+    // Solo: restart immediately (no liga wait)
+    if (game.mode === 'solo' || !onlineRoom) {
+      doRestartNow();
+      return;
+    }
+    if (!myPlayerId) {
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert('Reiniciar: no se encontró tu asiento');
+      }
+      return;
+    }
+    updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
+    void (async () => {
+      const g = getGame(game.code);
+      if (!g) return;
+      await pushRoom(g, myPlayerId);
+      // If everyone ready after our tap, start
+      if (Engine.allHumansRestartReady(g)) {
+        doRestartNow();
+      }
+    })();
+  };
+
+  const onForceRestart = () => {
+    if (!Engine.canForceRestart(game, myPlayerId)) {
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(
+          'Solo el anfitrión o el ganador de la partida pueden forzar el reinicio.'
+        );
+      }
+      return;
+    }
+    doRestartNow();
   };
 
   const onAddToHistory = async () => {
@@ -254,9 +330,79 @@ export default function ResultsScreen() {
       </View>
     ) : null;
 
+  const readyIds = game.restartReadyIds ?? [];
+  const iAmReady = !!(myPlayerId && readyIds.includes(myPlayerId));
+  const canForce = Engine.canForceRestart(game, myPlayerId);
+  const leagueScores = game.leagueScores ?? {};
+  const leagueRanked = [...board]
+    .map((p) => ({
+      ...p,
+      liga: leagueScores[p.id] ?? 0,
+    }))
+    .sort((a, b) => b.liga - a.liga || b.score - a.score);
+
+  const leagueBlock =
+    !isSolo && board.length >= 1 ? (
+      <View style={styles.list}>
+        <Label>Liga (sesión)</Label>
+        <Muted>+1 al ganador de cada partida · se guarda al reiniciar</Muted>
+        {leagueRanked.map((p, i) => (
+          <View
+            key={`liga-${p.id}`}
+            style={[styles.row, i === 0 && p.liga > 0 && styles.rowFirst]}
+          >
+            <View
+              style={[styles.rankBadge, i === 0 && p.liga > 0 && styles.rankBadgeFirst]}
+            >
+              <Text style={styles.rank}>{i + 1}</Text>
+            </View>
+            <Text style={styles.name} numberOfLines={1}>
+              {p.isBot ? '🤖 ' : ''}
+              {p.nickname}
+            </Text>
+            <Text style={[styles.score, i === 0 && p.liga > 0 && styles.scoreFirst]}>
+              {p.liga}
+            </Text>
+          </View>
+        ))}
+      </View>
+    ) : null;
+
   const menuBlock = (
     <View style={styles.menuBlock}>
-      <Button title="Reiniciar partida" onPress={onRestart} />
+      {isSolo || !onlineRoom ? (
+        <Button title="Reiniciar partida" onPress={onRestartReady} />
+      ) : (
+        <>
+          <Button
+            title={
+              iAmReady
+                ? 'Listo ✓ — esperando al resto'
+                : 'Reiniciar partida (listo)'
+            }
+            onPress={onRestartReady}
+            disabled={iAmReady}
+          />
+          <WaitingRoster
+            players={board}
+            doneIds={readyIds}
+            meId={myPlayerId}
+            verb="confirme"
+          />
+          {canForce ? (
+            <Button
+              title="Forzar reinicio (anfitrión/ganador)"
+              variant="outline"
+              onPress={onForceRestart}
+            />
+          ) : (
+            <Muted>
+              Todos deben confirmar, o el anfitrión/ganador puede forzar.
+            </Muted>
+          )}
+        </>
+      )}
+      {leagueBlock}
       <Button
         title="★ Ver respuestas favoritas"
         variant="outline"

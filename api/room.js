@@ -116,6 +116,93 @@ function parseExisting(raw) {
   }
 }
 
+
+/** Snapshot fingerprint so join/upsert can detect mid-flight lobby races. */
+function lobbyStamp(state) {
+  if (!state || typeof state !== 'object') return '';
+  const ids = (state.players || [])
+    .map((p) => (p && p.id ? String(p.id) : ''))
+    .filter(Boolean)
+    .sort()
+    .join(',');
+  return `${state.updatedAt || 0}|${ids}|${state.phase || ''}`;
+}
+
+/**
+ * Atomic-ish lobby join: re-read before SET; retry if another writer won the race.
+ * Prevents host/peer upsert (GET@2 seats → SET) from wiping a concurrent 3rd join.
+ */
+async function joinLobbyAtomic(key, code, nicknameDesired) {
+  const MAX_ATTEMPTS = 5;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const existingData = await kvCommand(['GET', key]);
+    const existing = parseExisting(existingData?.result);
+    if (!existing) {
+      return { status: 404, body: { ok: false, error: 'not_found' } };
+    }
+    if (existing.phase !== 'lobby') {
+      return { status: 409, body: { ok: false, error: 'not_lobby' } };
+    }
+    const players = Array.isArray(existing.players) ? existing.players.slice() : [];
+    const capRaw = Number(existing.maxPlayers);
+    const cap = Math.max(
+      2,
+      Math.min(
+        ASYNC_MAX_PLAYERS,
+        Number.isFinite(capRaw) && capRaw >= 2 ? Math.floor(capRaw) : ASYNC_MAX_PLAYERS
+      )
+    );
+    if (players.length >= cap) {
+      return { status: 409, body: { ok: false, error: 'lobby_full' } };
+    }
+    const before = lobbyStamp(existing);
+    const nickname = uniqueNick(nicknameDesired, players);
+    const playerId = uid('p');
+    const player = {
+      id: playerId,
+      nickname,
+      isHost: false,
+      score: 0,
+      hand: [],
+      isBot: false,
+    };
+    const state = {
+      ...existing,
+      code,
+      phase: 'lobby',
+      players: [...players, player],
+      updatedAt: Date.now(),
+    };
+    const payload = JSON.stringify(state);
+    if (payload.length > MAX_BODY_CHARS) {
+      return { status: 413, body: { ok: false, error: 'state_too_large' } };
+    }
+    // Re-check immediately before write (closes most host-upsert wipe windows)
+    const againData = await kvCommand(['GET', key]);
+    const again = parseExisting(againData?.result);
+    if (!again || lobbyStamp(again) !== before) {
+      continue; // raced — retry with fresh roster
+    }
+    await kvCommand(['SET', key, payload]);
+    // Verify our seat survived a trailing concurrent SET
+    const verifyData = await kvCommand(['GET', key]);
+    const verify = parseExisting(verifyData?.result);
+    const stillThere =
+      verify &&
+      Array.isArray(verify.players) &&
+      verify.players.some((p) => p && p.id === playerId);
+    if (stillThere) {
+      return {
+        status: 200,
+        body: { ok: true, code, playerId, state: verify },
+      };
+    }
+    // Wiped by concurrent upsert — retry join on the survivor roster
+  }
+  return { status: 409, body: { ok: false, error: 'join_busy' } };
+}
+
+
 function mergeLobbyPlayers(existingPlayers, incomingPlayers) {
   const byId = new Map();
   for (const p of existingPlayers || []) {
@@ -677,56 +764,15 @@ async function handler(req, res) {
 
       const action = body.action || 'upsert';
 
-      // Atomic join: server assigns a unique seat + nick
+      // Atomic join: server assigns a unique seat + nick (CAS + verify)
       if (action === 'join') {
         const code = normalizeCode(body.code);
         if (!code || code.length < 3) {
           return res.status(400).json({ ok: false, error: 'bad_code' });
         }
         const key = `${ROOM_PREFIX}${code}`;
-        const existingData = await kvCommand(['GET', key]);
-        const existing = parseExisting(existingData?.result);
-        if (!existing) {
-          return res.status(404).json({ ok: false, error: 'not_found' });
-        }
-        if (existing.phase !== 'lobby') {
-          return res.status(409).json({ ok: false, error: 'not_lobby' });
-        }
-        const players = Array.isArray(existing.players) ? existing.players : [];
-        const capRaw = Number(existing.maxPlayers);
-        const cap = Math.max(
-          2,
-          Math.min(
-            ASYNC_MAX_PLAYERS,
-            Number.isFinite(capRaw) && capRaw >= 2 ? Math.floor(capRaw) : ASYNC_MAX_PLAYERS
-          )
-        );
-        if (players.length >= cap) {
-          return res.status(409).json({ ok: false, error: 'lobby_full' });
-        }
-        const nickname = uniqueNick(body.nickname, players);
-        const playerId = uid('p');
-        const player = {
-          id: playerId,
-          nickname,
-          isHost: false,
-          score: 0,
-          hand: [],
-          isBot: false,
-        };
-        const state = {
-          ...existing,
-          code,
-          phase: 'lobby',
-          players: [...players, player],
-          updatedAt: Date.now(),
-        };
-        const payload = JSON.stringify(state);
-        if (payload.length > MAX_BODY_CHARS) {
-          return res.status(413).json({ ok: false, error: 'state_too_large' });
-        }
-        await kvCommand(['SET', key, payload]);
-        return res.status(200).json({ ok: true, code, playerId, state });
+        const joined = await joinLobbyAtomic(key, code, body.nickname);
+        return res.status(joined.status).json(joined.body);
       }
 
       if (action === 'claim') {
@@ -802,24 +848,39 @@ async function handler(req, res) {
 
         if (matchRestart) {
           state = { ...incoming, code };
+          // Preserve session league totals across rematch
+          if (existing.leagueScores && typeof existing.leagueScores === 'object') {
+            state.leagueScores = {
+              ...existing.leagueScores,
+              ...(incoming.leagueScores || {}),
+            };
+          } else if (incoming.leagueScores) {
+            state.leagueScores = incoming.leagueScores;
+          }
+          if (existing.restartReadyIds && !incoming.restartReadyIds) {
+            state.restartReadyIds = [];
+          }
         } else if (bothLobby) {
           // Concurrent host/joiner pushes: union players by id so neither wipes seats
+          // Re-GET right before compose to catch joins that landed after our first GET.
+          const freshData = await kvCommand(['GET', key]);
+          const fresh = parseExisting(freshData?.result) || existing;
           const mergedPlayers = mergeLobbyPlayers(
-            existing.players,
+            mergeLobbyPlayers(fresh.players, existing.players),
             incoming.players
           );
-          // Also merge hands on lobby seats (usually empty)
           const withHands = mergeHandsByPlayerId(
-            existing.players,
+            fresh.players,
             mergedPlayers
           );
           const base =
-            remoteNewer ||
-            (existing.players?.length ?? 0) > (incoming.players?.length ?? 0)
-              ? existing
+            (fresh.updatedAt ?? 0) >= (incoming.updatedAt ?? 0) ||
+            (fresh.players?.length ?? 0) > (incoming.players?.length ?? 0)
+              ? fresh
               : incoming;
           const nextUpdated = Math.max(
             Date.now(),
+            (fresh.updatedAt ?? 0) + 1,
             (existing.updatedAt ?? 0) + 1,
             (incoming.updatedAt ?? 0) + 1
           );
@@ -833,7 +894,18 @@ async function handler(req, res) {
             mode: base.mode || incoming.mode,
             judgeMode: base.judgeMode || incoming.judgeMode,
             targetScore: base.targetScore ?? incoming.targetScore,
-            submissions: mergeSubmissions(existing, {
+            maxPlayers: base.maxPlayers ?? incoming.maxPlayers,
+            leagueScores: {
+              ...(fresh.leagueScores || {}),
+              ...(existing.leagueScores || {}),
+              ...(incoming.leagueScores || {}),
+            },
+            restartReadyIds:
+              incoming.restartReadyIds ||
+              fresh.restartReadyIds ||
+              existing.restartReadyIds ||
+              [],
+            submissions: mergeSubmissions(fresh, {
               ...incoming,
               phase: 'lobby',
             }),
@@ -887,7 +959,7 @@ async function handler(req, res) {
       }
 
       await kvCommand(['SET', key, payload]);
-      return res.status(200).json({ ok: true, code, state });
+      return res.status(200).json({ ok: true, code, state, merged: true });
     }
 
     return res.status(405).json({ ok: false, error: 'method_not_allowed' });

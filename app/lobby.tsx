@@ -42,6 +42,9 @@ function notify(title: string, message: string) {
   Alert.alert(title, message);
 }
 
+/** Dedupe StrictMode / remount double-joins per room code (module scope). */
+const lobbyJoinInFlight = new Set<string>();
+
 export default function LobbyScreen() {
   const styles = useLobbyStyles();
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -110,24 +113,88 @@ export default function LobbyScreen() {
     // Guests (no seat cookie) must always joinRoom as a NEW seat.
     // Host create already awaits setMySeat before navigating — do NOT reclaim
     // sole host here or invite links steal the host seat when players.length===1.
-    if (joiningRef.current) return;
+    const codeKey = game.code.trim().toUpperCase();
+    if (joiningRef.current || lobbyJoinInFlight.has(codeKey)) return;
     joiningRef.current = true;
+    lobbyJoinInFlight.add(codeKey);
+    let cancelled = false;
     void (async () => {
-      await setOnlineFlag(game.code, true);
-      setOnlineRoom(true);
-      const joined = await joinRoom(game.code, nick);
-      if (joined.ok) {
-        applyRemoteGame(joined.state);
-        await setMySeat(game.code, joined.playerId);
-        setMyPlayerIdState(joined.playerId);
-      } else {
-        joiningRef.current = false;
-        if (joined.error && joined.error !== 'not_web') {
-          notify('Unirse', joined.error);
+      try {
+        await setOnlineFlag(game.code, true);
+        if (cancelled) return;
+        setOnlineRoom(true);
+        // Fresh pull so we don't join on a stale local roster / wrong cap
+        const pulled = await pullRoom(game.code);
+        if (cancelled) return;
+        if (pulled.ok) applyRemoteGame(pulled.state);
+        const live = pulled.ok ? pulled.state : game;
+        if (live.phase !== 'lobby') {
+          joiningRef.current = false;
+          lobbyJoinInFlight.delete(codeKey);
+          return;
         }
+        // Seat cookie from an older session for this code: clear if not in roster
+        if (myPlayerId && !live.players.some((p) => p.id === myPlayerId)) {
+          // fall through to join as new seat
+        }
+        const cap = Math.max(
+          2,
+          Math.min(8, Number(live.maxPlayers) || 8)
+        );
+        if ((live.players?.length ?? 0) >= cap) {
+          joiningRef.current = false;
+          lobbyJoinInFlight.delete(codeKey);
+          notify('Unirse', 'Sala llena');
+          return;
+        }
+        const joined = await joinRoom(game.code, nick);
+        if (cancelled) return;
+        if (joined.ok) {
+          applyRemoteGame(joined.state);
+          await setMySeat(game.code, joined.playerId);
+          setMyPlayerIdState(joined.playerId);
+          // Keep inFlight until seat confirmed in roster (prevents StrictMode double seat)
+          const confirmed = joined.state.players.some(
+            (p) => p.id === joined.playerId
+          );
+          if (!confirmed) {
+            joiningRef.current = false;
+            lobbyJoinInFlight.delete(codeKey);
+          }
+        } else {
+          joiningRef.current = false;
+          lobbyJoinInFlight.delete(codeKey);
+          if (joined.error && joined.error !== 'not_web') {
+            const msg =
+              joined.error === 'lobby_full'
+                ? 'Sala llena'
+                : joined.error === 'join_busy'
+                  ? 'Sala ocupada, reintenta'
+                  : joined.error === 'not_lobby'
+                    ? 'La partida ya empezó'
+                    : joined.error;
+            notify('Unirse', msg);
+          }
+        }
+      } catch {
+        joiningRef.current = false;
+        lobbyJoinInFlight.delete(codeKey);
       }
     })();
+    return () => {
+      cancelled = true;
+      // Do NOT clear inFlight on unmount — StrictMode remount must not double-join.
+      // Clear only after success confirmation or failure (above).
+    };
   }, [ready, seatReady, game, myPlayerId, nick, applyRemoteGame]);
+
+  useEffect(() => {
+    if (!gameCode || !myPlayerId || !game) return;
+    if (game.players.some((p) => p.id === myPlayerId)) {
+      lobbyJoinInFlight.delete(gameCode);
+      joiningRef.current = false;
+    }
+  }, [gameCode, myPlayerId, game?.players]);
 
   useEffect(() => {
     if (!game || !myPlayerId) return;

@@ -705,6 +705,54 @@ export function submitCards(
   };
 }
 
+/** +1 liga point to match winner when entering results (once per match). */
+export function awardLeagueWin(state: GameState, winnerId: string | null): GameState {
+  if (!winnerId || state.mode === 'solo') return state;
+  if (state.leagueAwarded) return state;
+  const leagueScores = { ...(state.leagueScores || {}) };
+  leagueScores[winnerId] = (leagueScores[winnerId] || 0) + 1;
+  return { ...state, leagueScores, leagueAwarded: true };
+}
+
+export function markRestartReady(
+  state: GameState,
+  playerId: string
+): GameState {
+  if (state.phase !== 'results') return state;
+  const ids = new Set(state.restartReadyIds || []);
+  ids.add(playerId);
+  return {
+    ...state,
+    restartReadyIds: Array.from(ids),
+    updatedAt: now(),
+  };
+}
+
+export function clearRestartReady(state: GameState): GameState {
+  return { ...state, restartReadyIds: [], updatedAt: now() };
+}
+
+/** Host or match winner can force rematch without waiting for all humans. */
+export function canForceRestart(
+  state: GameState,
+  actorId: string | null | undefined
+): boolean {
+  if (!actorId) return false;
+  const actor = state.players.find((p) => p.id === actorId);
+  if (!actor || actor.isBot) return false;
+  if (actor.isHost) return true;
+  const humans = state.players.filter((p) => !p.isBot);
+  const ranked = [...humans].sort((a, b) => b.score - a.score);
+  return ranked[0]?.id === actorId;
+}
+
+export function allHumansRestartReady(state: GameState): boolean {
+  const humans = state.players.filter((p) => !p.isBot);
+  if (!humans.length) return true;
+  const ready = new Set(state.restartReadyIds || []);
+  return humans.every((p) => ready.has(p.id));
+}
+
 /** Apply round winner (scoring + reveal/results). Used by judgePick and castVote. */
 function applyRoundWinner(
   state: GameState,
@@ -739,15 +787,18 @@ function applyRoundWinner(
     : 0;
 
   if (winnerIsRealPlayer && winnerScore >= state.targetScore) {
-    return {
-      ...state,
-      players,
-      roundWinnerId: winnerPlayerId,
-      roundWinnerIds: [],
-      phase: 'results',
-      activeSeatId: null,
-      updatedAt: now(),
-    };
+    return awardLeagueWin(
+      {
+        ...state,
+        players,
+        roundWinnerId: winnerPlayerId,
+        roundWinnerIds: [],
+        phase: 'results',
+        activeSeatId: null,
+        updatedAt: now(),
+      },
+      winnerPlayerId
+    );
   }
 
   return {
@@ -795,15 +846,19 @@ export function applyRoundWinners(
     return !!p && p.score >= state.targetScore;
   });
 
-  return {
+  const base = {
     ...state,
     players,
     roundWinnerIds: ids,
     roundWinnerId: ids[0] ?? null,
-    phase: anyHitTarget ? 'results' : 'reveal',
+    phase: (anyHitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: anyHitTarget ? null : state.activeSeatId,
     updatedAt: now(),
   };
+  if (!anyHitTarget) return base;
+  const humans = base.players.filter((p) => !p.isBot);
+  const top = [...humans].sort((a, b) => b.score - a.score)[0];
+  return awardLeagueWin(base, top?.id ?? ids[0] ?? null);
 }
 
 /**
@@ -1253,6 +1308,7 @@ export function nextRound(state: GameState): GameState {
  * decks, round 0 → startGame (phase submitting). Does not permanently rely on
  * discardRoundCompleted — that flag resets here.
  */
+
 export function restartMatch(
   state: GameState,
   opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
@@ -1289,6 +1345,10 @@ export function restartMatch(
     discardRoundCompleted: false,
     discardDonePlayerIds: [],
     lastDiscarded: [],
+    // Keep session liga across rematches; clear ready-up + award latch
+    leagueScores: { ...(state.leagueScores || {}) },
+    leagueAwarded: false,
+    restartReadyIds: [],
     updatedAt: now(),
   };
   return startGame(reset);

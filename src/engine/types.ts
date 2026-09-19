@@ -104,6 +104,15 @@ export interface GameState {
   lastDiscarded?: { playerId: string; cards: Card[] }[];
   /** Multi lobby size the host asked for (2–8). */
   maxPlayers?: number;
+  /**
+   * Session league (Liga): +1 to match winner only, persists across rematches
+   * in the same room. Keyed by playerId.
+   */
+  leagueScores?: Record<string, number>;
+  /** Results-phase rematch ready-up: playerIds who tapped Reiniciar. */
+  restartReadyIds?: string[];
+  /** True after liga +1 was granted for the current finished match. */
+  leagueAwarded?: boolean;
 }
 
 /** Winning round combo persisted in historial */
@@ -193,6 +202,9 @@ export function coerceGameState(g: GameState): GameState {
     discardDonePlayerIds: g.discardDonePlayerIds ?? [],
     lastDiscarded: g.lastDiscarded ?? [],
     maxPlayers: g.maxPlayers ?? (g.mode === 'async' ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS),
+    leagueScores: g.leagueScores ?? {},
+    restartReadyIds: g.restartReadyIds ?? [],
+    leagueAwarded: g.leagueAwarded ?? false,
     usedPromptIds: g.usedPromptIds ?? [],
     promptDeck: g.promptDeck ?? [],
     promptDeckPos: g.promptDeckPos ?? 0,

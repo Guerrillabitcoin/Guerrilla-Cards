@@ -48,16 +48,20 @@ function finishTwoPlayerVotes(
   const isSplit = winners.length > 1;
   const hostId =
     state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
-  return {
+  const base = {
     ...state,
     players,
     votes,
     roundWinnerId: isSplit ? hostId : winners[0] ?? hostId,
     roundWinnerIds: isSplit ? winners : [],
-    phase: hitTarget ? 'results' : 'reveal',
+    phase: (hitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: hitTarget ? null : hostId,
     updatedAt: Date.now(),
   };
+  if (!hitTarget) return base;
+  const humans = base.players.filter((x) => !x.isBot);
+  const top = [...humans].sort((a, b) => b.score - a.score)[0];
+  return Engine.awardLeagueWin(base, top?.id ?? null);
 }
 
 /**

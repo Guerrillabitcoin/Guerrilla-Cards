@@ -1,6 +1,15 @@
-export const APP_VERSION = '0.99.421.15';
+export const APP_VERSION = '0.99.421.16';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.16',
+    date: '2026-09-19',
+    notes: [
+      'Lobby: el 3.º+ jugador ya entra con el mismo enlace (join atómico + sync de asientos)',
+      'Fin de partida: reinicio con listos (WaitingRoster); anfitrión/ganador puede forzar',
+      'Liga de sesión: +1 al ganador de cada partida; se mantiene al reiniciar la misma sala',
+    ],
+  },
   {
     version: '0.99.421.15',
     date: '2026-09-19',
