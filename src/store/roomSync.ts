@@ -50,10 +50,11 @@ export function slimForRoom(
       return redactSubmission(s);
     });
   }
+  // Discarding: never publish peer hands — each device owns its post-discard
+  // hand; publishing all let the 2nd pusher clobber the 1st with a stale snapshot.
   const publishAllHands =
     state.phase === 'lobby' ||
-    ((state.phase === 'submitting' || state.phase === 'discarding') &&
-      (state.submissions?.length ?? 0) === 0);
+    (state.phase === 'submitting' && (state.submissions?.length ?? 0) === 0);
   const players =
     !myPlayerId || publishAllHands
       ? state.players
@@ -71,6 +72,15 @@ export function mergeHandsPreserveLocal(
   const players = remote.players.map((rp) => {
     const lp = localById.get(rp.id);
     if (myPlayerId && rp.id === myPlayerId) {
+      // After we discarded, keep our local hand even if remote still has stale cards
+      if (
+        local.phase === 'discarding' &&
+        (local.discardDonePlayerIds ?? []).includes(myPlayerId) &&
+        lp &&
+        lp.hand.length > 0
+      ) {
+        return { ...rp, hand: lp.hand };
+      }
       if ((!rp.hand || rp.hand.length === 0) && lp && lp.hand.length > 0) {
         return { ...rp, hand: lp.hand };
       }

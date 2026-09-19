@@ -1,6 +1,15 @@
-export const APP_VERSION = '0.99.421.11';
+export const APP_VERSION = '0.99.421.12';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.12',
+    date: '2026-09-19',
+    notes: [
+      'Descarte online: avanza al completar N/N (sync ya no se queda colgado)',
+      'Anfitrión: enlaces de recuperación visibles en partida (esperas)',
+      'Tema/skin: sin parpadeo al cargar (localStorage antes del primer paint)',
+    ],
+  },
   {
     version: '0.99.421.11',
     date: '2026-09-19',

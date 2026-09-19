@@ -51,6 +51,51 @@ export async function copyRecoveryUrl(
   return url;
 }
 
+function notify(title: string, url: string) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(`${title}\n\n${url}`);
+  }
+}
+
+/** Host-only: copy per-player recovery links (lost cookies / new device). */
+export function HostRecoveryLinks({
+  code,
+  players,
+  compact,
+}: {
+  code: string;
+  players: { id: string; nickname: string; isBot?: boolean }[];
+  compact?: boolean;
+}) {
+  const humans = players.filter((p) => !p.isBot);
+  if (!humans.length) return null;
+  return (
+    <View style={[styles.box, compact ? styles.compact : null]}>
+      <Label>Enlaces si alguien pierde las cookies</Label>
+      <Muted>Solo el anfitrión ve esto · cópialo y envíaselo</Muted>
+      <Button
+        title={`Copiar enlace lobby (${code})`}
+        variant="outline"
+        onPress={() => {
+          void copyRecoveryUrl(code).then((url) => notify('Lobby', url));
+        }}
+      />
+      {humans.map((p) => (
+        <Button
+          key={`rec-${p.id}`}
+          title={`Copiar ${p.nickname}`}
+          variant="ghost"
+          onPress={() => {
+            void copyRecoveryUrl(code, p.id).then((url) =>
+              notify(p.nickname, url)
+            );
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   box: {
     borderWidth: 2,
@@ -59,5 +104,9 @@ const styles = StyleSheet.create({
     padding: 10,
     gap: 8,
     marginVertical: 8,
+  },
+  compact: {
+    marginTop: 4,
+    marginBottom: 4,
   },
 });

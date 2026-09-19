@@ -971,11 +971,8 @@ export function startDiscardRound(state: GameState): GameState {
   };
 }
 
-/**
- * Player discards between min(DISCARD_MIN, hand.length) and min(DISCARD_MAX, hand.length) cards.
- * When everyone is done: refill hands, flag completed, beginRound with next zar.
- */
-export function submitDiscard(
+/** Apply one seat's discard without advancing phase (bots / submitDiscard). */
+function applyDiscardOnly(
   state: GameState,
   playerId: string,
   cardIds: string[]
@@ -1023,30 +1020,10 @@ export function submitDiscard(
     ...(state.lastDiscarded ?? []),
     { playerId, cards },
   ];
-
-  const allDone = discardDonePlayerIds.length >= state.players.length;
-
-  if (allDone) {
-    let next: GameState = {
-      ...state,
-      players,
-      answerDeck,
-      answerDeckPos,
-      discardDonePlayerIds,
-      lastDiscarded,
-      discardRoundCompleted: true,
-      updatedAt: now(),
-    };
-    next = dealHands(next);
-    const zarIndex = nextZarIndex(next);
-    return beginRound({ ...next, zarIndex });
-  }
-
   const pending = state.players.filter(
     (p) => p.id !== playerId && !discardDonePlayerIds.includes(p.id)
   );
   const nextSeat = pending.find((p) => !p.isBot) ?? pending[0];
-
   return {
     ...state,
     players,
@@ -1057,6 +1034,44 @@ export function submitDiscard(
     activeSeatId: nextSeat?.id ?? playerId,
     updatedAt: now(),
   };
+}
+
+/**
+ * Player discards between min(DISCARD_MIN, hand.length) and min(DISCARD_MAX, hand.length) cards.
+ * When everyone is done: refill hands, flag completed, beginRound with next zar.
+ */
+export function submitDiscard(
+  state: GameState,
+  playerId: string,
+  cardIds: string[]
+): GameState {
+  return advanceDiscardIfReady(applyDiscardOnly(state, playerId, cardIds));
+}
+
+/**
+ * After sync merges discardDonePlayerIds, finish the discard round when every
+ * human has discarded (bots auto-filled). Mirrors advanceToJudgingIfReady.
+ */
+export function advanceDiscardIfReady(state: GameState): GameState {
+  if (state.phase !== 'discarding') return state;
+  let next = autoDiscardBots(state);
+  if (next.phase !== 'discarding') return next;
+  const done = new Set(next.discardDonePlayerIds ?? []);
+  const humans = next.players.filter((p) => !p.isBot);
+  const required = humans.length ? humans : next.players;
+  if (!required.every((p) => done.has(p.id))) return next;
+  const discardDonePlayerIds = Array.from(
+    new Set([...done, ...next.players.map((p) => p.id)])
+  );
+  next = {
+    ...next,
+    discardDonePlayerIds,
+    discardRoundCompleted: true,
+    updatedAt: now(),
+  };
+  next = dealHands(next);
+  const zarIndex = nextZarIndex(next);
+  return beginRound({ ...next, zarIndex });
 }
 
 /** Auto-discard exactly DISCARD_MIN (or hand length) for pending bots. Kept for back-compat. */
@@ -1070,9 +1085,8 @@ export function autoDiscardBots(state: GameState): GameState {
     const live = next.players.find((x) => x.id === p.id);
     if (!live) continue;
     const need = Math.min(DISCARD_MIN, live.hand.length);
-    const ids =
-      need === 0 ? [] : pickRandomFromHand(live, need);
-    next = submitDiscard(next, live.id, ids);
+    const ids = need === 0 ? [] : pickRandomFromHand(live, need);
+    next = applyDiscardOnly(next, live.id, ids);
   }
   return next;
 }

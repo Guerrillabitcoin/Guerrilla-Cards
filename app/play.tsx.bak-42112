@@ -17,7 +17,6 @@ import {
 } from '@/src/components/ui';
 import { NextRoundBar } from '@/src/components/NextRoundBar';
 import { WaitingRoster } from '@/src/components/WaitingRoster';
-import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
 import { RoundStandings } from '@/src/components/RoundStandings';
 import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
@@ -484,9 +483,6 @@ export default function PlayScreen() {
 
   const human = game.players.find((p) => !p.isBot) ?? game.players[0];
   const isOnline = !isSolo && onlineRoom && !!myPlayerId;
-  const iAmHostPlayer =
-    !!myPlayerId &&
-    !!game.players.find((p) => p.id === myPlayerId && p.isHost);
   const onlineMissingSeat = !isSolo && onlineRoom && !myPlayerId;
   // Solo: human seat. Online: locked seat ONLY (never fall back to shared activeSeatId).
   const active = isSolo
@@ -1246,14 +1242,6 @@ export default function PlayScreen() {
         </Muted>
       ) : null}
 
-      {isOnline && iAmHostPlayer ? (
-        <HostRecoveryLinks
-          code={game.code}
-          players={game.players}
-          compact
-        />
-      ) : null}
-
       {isDiscarding ? (
         <>
           <Subtitle>
@@ -1272,9 +1260,9 @@ export default function PlayScreen() {
                             {!isSolo ? (
                 <WaitingRoster
                   players={game.players}
-                  doneIds={game.discardDonePlayerIds}
+                  doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
                   meId={myPlayerId ?? active?.id}
-                  verb="descarte"
+                  verb="responda"
              />
               ) : null}
             </View>

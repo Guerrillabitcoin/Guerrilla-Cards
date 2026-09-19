@@ -370,7 +370,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         local.phase === remote.phase &&
         (local.submissions?.length ?? 0) >= (remote.submissions?.length ?? 0)
       ) {
-        return false;
+        // Same phase/time: still accept if remote has more discards (online multi)
+        const localDisc = local.discardDonePlayerIds?.length ?? 0;
+        const remoteDisc = remote.discardDonePlayerIds?.length ?? 0;
+        if (
+          !(
+            remote.phase === 'discarding' &&
+            local.phase === 'discarding' &&
+            remoteDisc > localDisc
+          )
+        ) {
+          return false;
+        }
       }
       const seat = getMySeatSync(key);
       remote = mergeHandsPreserveLocal(remote, local, seat);
@@ -402,6 +413,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           discardDonePlayerIds: ids,
           lastDiscarded: Array.from(byDiscard.values()),
         };
+      }
+      // Discarding with full roster (possibly after union): advance like answers→judging
+      if (remote.phase === 'discarding') {
+        remote = Engine.advanceDiscardIfReady(remote);
       }
       // Only re-attach OUR in-progress answer for THIS submitting round+prompt.
       // Never re-inject peers' (or prior-round) answers — that left 2/3 stuck
@@ -451,11 +466,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         [key]: toUiGame(remote),
       }));
       void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
-      // If we just promoted, push so Zar / others see judging
+      // If we just promoted, push so peers see judging / next submitting
       if (
         remote.mode === 'async' &&
         remote.phase === 'judging' &&
         local?.phase === 'submitting'
+      ) {
+        void pushRoom(remote, seat);
+      }
+      if (
+        remote.mode === 'async' &&
+        remote.phase === 'submitting' &&
+        local?.phase === 'discarding'
       ) {
         void pushRoom(remote, seat);
       }
@@ -471,6 +493,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Skip double coerce — ref state is already live
       const prev = cur;
       let next = { ...updater(prev), updatedAt: Date.now() };
+      next = Engine.advanceDiscardIfReady(next);
       next = Engine.advanceToJudgingIfReady(next);
       gamesRef.current = { ...gamesRef.current, [code]: next };
       // Single-key React update (not rebuilding every game)

@@ -429,12 +429,36 @@ function applyPrivacyMerges(existing, incoming) {
     existing.phase === 'discarding' &&
     (Number(existing.round) || 0) === (Number(incoming.round) || 0)
   ) {
+    const doneIds = unionDiscardDone(
+      existing.discardDonePlayerIds,
+      incoming.discardDonePlayerIds
+    );
+    const doneSet = new Set(doneIds);
+    // Prefer post-discard hand from whoever just marked done
+    const exById = new Map((existing.players || []).map((p) => [p.id, p]));
+    const inById = new Map((incoming.players || []).map((p) => [p.id, p]));
+    const mergedPlayers = (state.players || []).map((p) => {
+      if (!p || !p.id || !doneSet.has(p.id)) return p;
+      const inc = inById.get(p.id);
+      const ex = exById.get(p.id);
+      const inHand = inc && Array.isArray(inc.hand) ? inc.hand : [];
+      const exHand = ex && Array.isArray(ex.hand) ? ex.hand : [];
+      const curHand = Array.isArray(p.hand) ? p.hand : [];
+      if (inHand.length > 0 && (incoming.discardDonePlayerIds || []).includes(p.id)) {
+        return { ...p, hand: inHand };
+      }
+      if (exHand.length > 0 && (existing.discardDonePlayerIds || []).includes(p.id)) {
+        return { ...p, hand: exHand };
+      }
+      if (curHand.length > 0) return p;
+      if (inHand.length > 0) return { ...p, hand: inHand };
+      if (exHand.length > 0) return { ...p, hand: exHand };
+      return p;
+    });
     state = {
       ...state,
-      discardDonePlayerIds: unionDiscardDone(
-        existing.discardDonePlayerIds,
-        incoming.discardDonePlayerIds
-      ),
+      players: mergedPlayers,
+      discardDonePlayerIds: doneIds,
       lastDiscarded: mergeLastDiscarded(
         existing.lastDiscarded,
         incoming.lastDiscarded
