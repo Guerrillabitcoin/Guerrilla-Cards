@@ -42,6 +42,13 @@ import * as Engine from '@/src/engine/game';
 import { useTheme } from '@/src/store/ThemeContext';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { APP_VERSION_LABEL } from '@/src/version';
+function notify(title: string, message: string) {
+  if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+    window.alert(`${title}: ${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
 import { ClaimSeat } from '@/src/components/ClaimSeat';
 import type { GameState } from '@/src/engine/types';
 
@@ -320,8 +327,9 @@ export default function HomeScreen() {
     run();
   };
 
-  const onJoin = (codeOverride?: string) => {
+  const onJoin = (codeOverride?: string, seatOverride?: string) => {
     const code = (codeOverride || joinCode).trim().toUpperCase();
+    const wantSeat = (seatOverride || '').trim();
     if (!code) {
       Alert.alert('Código', 'Introduce el código de la partida.');
       return;
@@ -329,6 +337,18 @@ export default function HomeScreen() {
     setJoinCode(code);
     void (async () => {
       try {
+        if (wantSeat) {
+          const claimed = await claimSeat(code, wantSeat);
+          if (claimed.ok) {
+            saveGame(claimed.state, { sync: false });
+            await setOnlineFlag(code, true);
+            await setMySeat(code, claimed.playerId);
+            setClaimGame(null);
+            openGame(claimed.state.code, claimed.state.phase);
+            return;
+          }
+          notify('Asiento', claimed.error || 'No se pudo reclamar');
+        }
         const desiredNick = resolveNick();
         const joined = await joinRoom(code, desiredNick);
         if (joined.ok) {
@@ -364,7 +384,15 @@ export default function HomeScreen() {
               return;
             }
           }
-          Alert.alert('Partida empezada', 'Si ya tenías asiento, vuelve con el mismo código.');
+         const live = await pullRoom(code);
+          if (live.ok) {
+            saveGame(live.state, { sync: false });
+            await setOnlineFlag(code, true);
+            setClaimGame(live.state);
+            notify('Asiento', 'Elige quién eres en la lista de abajo.');
+            return;
+          }
+          notify('Partida empezada', 'Pide al anfitrión tu enlace de jugador.');
           return;
         }
         const remote = await pullRoom(code);
@@ -477,7 +505,13 @@ export default function HomeScreen() {
           )}
           <Label>Código de partida</Label>
           <Input value={joinCode} onChangeText={setJoinCode} placeholder="ABC12" autoCapitalize="characters" maxLength={8} />
-          <Button title="Unirse" onPress={() => onJoin()} variant="outline" />
+           <Button title="Unirse" onPress={() => onJoin()} variant="outline" />
+          {claimGame ? (
+            <ClaimSeat
+              game={claimGame}
+              onPick={(id) => onJoin(claimGame.code, id)}
+            />
+          ) : null}
         </>
       ) : null}
       <Label>{mode === 'solo' ? 'Meta (Puntacos · máx. 10 rondas)' : 'Meta (Puntacos)'}</Label>
