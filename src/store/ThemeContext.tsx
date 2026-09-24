@@ -30,30 +30,23 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-/** Sync read before first paint (web localStorage). Avoids default→saved skin flash. */
 function readThemeIdSync(): ThemeId {
   if (typeof window === 'undefined') return DEFAULT_THEME_ID;
   try {
-    const keys = [
-      THEME_KEY,
-      `@${THEME_KEY}`,
-      `RCTAsyncLocalStorage_${THEME_KEY}`,
-    ];
+    const keys = [THEME_KEY, `@${THEME_KEY}`, `RCTAsyncLocalStorage_${THEME_KEY}`];
     for (const k of keys) {
       const raw = window.localStorage.getItem(k);
       if (!raw) continue;
       if (raw in THEMES) return raw as ThemeId;
       try {
         const parsed = JSON.parse(raw);
-        if (typeof parsed === 'string' && parsed in THEMES) {
-          return parsed as ThemeId;
-        }
+        if (typeof parsed === 'string' && parsed in THEMES) return parsed as ThemeId;
       } catch {
         /* not JSON */
       }
     }
   } catch {
-    /* private mode / blocked */
+    /* private mode */
   }
   return DEFAULT_THEME_ID;
 }
@@ -78,7 +71,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyDomTheme(id);
     return id;
   });
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(() => typeof window !== 'undefined');
 
   useEffect(() => {
     let cancelled = false;
@@ -88,24 +81,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const raw = await AsyncStorage.getItem(THEME_KEY);
         if (raw && raw in THEMES) id = raw as ThemeId;
       } catch {
-        /* keep sync/default */
+        /* keep */
       }
       if (cancelled) return;
       setThemeIdState((cur) => (cur === id ? cur : id));
       applyDomTheme(id);
       try {
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(THEME_KEY, id);
-        }
+        if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, id);
       } catch {
         /* ignore */
       }
       setReady(true);
-      try {
-        document.getElementById('gc-boot')?.remove();
-      } catch {
-        /* ignore */
-      }
     })();
     return () => {
       cancelled = true;
@@ -121,9 +107,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyDomTheme(id);
     void AsyncStorage.setItem(THEME_KEY, id);
     try {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem(THEME_KEY, id);
-      }
+      if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, id);
     } catch {
       /* ignore */
     }
@@ -136,9 +120,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       applyDomTheme(next);
       void AsyncStorage.setItem(THEME_KEY, next);
       try {
-        if (typeof window !== 'undefined') {
-          window.localStorage.setItem(THEME_KEY, next);
-        }
+        if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, next);
       } catch {
         /* ignore */
       }
@@ -147,23 +129,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const theme = THEMES[themeId];
-
   const value = useMemo<ThemeContextValue>(
-    () => ({
-      themeId,
-      theme,
-      colors: theme.colors,
-      fontFamily: theme.fontFamily,
-      setThemeId,
-      cycleTheme,
-      ready,
-    }),
+    () => ({ themeId, theme, colors: theme.colors, fontFamily: theme.fontFamily, setThemeId, cycleTheme, ready }),
     [themeId, theme, setThemeId, cycleTheme, ready]
   );
-
-  return (
-    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme(): ThemeContextValue {
