@@ -1,6 +1,15 @@
-export const APP_VERSION = '0.99.421.17';
+export const APP_VERSION = '0.99.421.18';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.18',
+    date: '2026-09-24',
+    notes: [
+      'Lobby: cada ventana/navegador es un asiento nuevo (el enlace ya no clona al anfitrión)',
+      'Zar: las jugadas anónimas dejan de intercambiarse en cada sync',
+      'Otra manga: 2–8 jugadores (ya no exige exactamente 4)',
+    ],
+  },
   {
     version: '0.99.421.17',
     date: '2026-09-24',
