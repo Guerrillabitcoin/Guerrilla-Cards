@@ -36,7 +36,6 @@ function readThemeIdSync(): ThemeId {
   try {
     const keys = [
       THEME_KEY,
-      // Some AsyncStorage web builds prefix keys
       `@${THEME_KEY}`,
       `RCTAsyncLocalStorage_${THEME_KEY}`,
     ];
@@ -79,25 +78,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyDomTheme(id);
     return id;
   });
-  // Web: sync read already done → ready immediately. Native: wait for AsyncStorage.
-  const [ready, setReady] = useState(
-    () => typeof window !== 'undefined'
-  );
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      let id = readThemeIdSync();
       try {
         const raw = await AsyncStorage.getItem(THEME_KEY);
-        if (!cancelled && raw && raw in THEMES) {
-          const id = raw as ThemeId;
-          setThemeIdState((cur) => (cur === id ? cur : id));
-          applyDomTheme(id);
-        }
+        if (raw && raw in THEMES) id = raw as ThemeId;
       } catch {
         /* keep sync/default */
-      } finally {
-        if (!cancelled) setReady(true);
+      }
+      if (cancelled) return;
+      setThemeIdState((cur) => (cur === id ? cur : id));
+      applyDomTheme(id);
+      try {
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem(THEME_KEY, id);
+        }
+      } catch {
+        /* ignore */
+      }
+      setReady(true);
+      try {
+        document.getElementById('gc-boot')?.remove();
+      } catch {
+        /* ignore */
       }
     })();
     return () => {
