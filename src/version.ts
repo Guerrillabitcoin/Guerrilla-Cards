@@ -1,11 +1,20 @@
-export const APP_VERSION = '0.99.421.19';
+export const APP_VERSION = '0.99.421.20';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.20',
+    date: '2026-09-24',
+    notes: [
+      'Servidor: tira respuestas de rondas viejas y congela el orden del Zar',
+      'Sin overlay negro en el inicio; la skin se pinta en html/body',
+      'Otra manga 2–8 y liga al llegar a la meta',
+    ],
+  },
   {
     version: '0.99.421.19',
     date: '2026-09-24',
     notes: [
-      'Zar ronda 10: se tiran respuestas viejas y se congela el orden (sin swap)',
+      'Zar ronda 10: se tiran respuestas de rondas viejas y se congela el orden (sin swap)',
       'Al llegar a la meta: pantalla final +1 liga y Otra manga con los mismos',
       'Inicio: la skin se aplica antes de pintar (sin flash de color)',
     ],
