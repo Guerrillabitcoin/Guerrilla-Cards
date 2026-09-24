@@ -1,6 +1,15 @@
-export const APP_VERSION = '0.99.421.16';
+export const APP_VERSION = '0.99.421.17';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.17',
+    date: '2026-09-24',
+    notes: [
+      'Otra manga: 2–8 jugadores (ya no exige 4 para reiniciar la misma sala)',
+      'Liga: el +1 no se pega a la manga nueva; clasificación final + liga de sesión',
+      'Lobby: error en pantalla y reintento si el join se queda bloqueado',
+    ],
+  },
   {
     version: '0.99.421.16',
     date: '2026-09-19',

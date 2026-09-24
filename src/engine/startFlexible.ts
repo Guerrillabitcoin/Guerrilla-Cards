@@ -31,8 +31,8 @@ export function addPlayerFlexible(state: GameState, nickname: string): GameState
 }
 
 /**
- * startGame() still requires exactly 4 in async mode.
- * Temporarily run the live start path (2–8), then keep mode async.
+ * startGame() now accepts 2–maxPlayers in async too.
+ * Still run the live start path so older snapshots stay compatible.
  */
 export function startFlexible(state: GameState): GameState {
   if (state.mode === 'solo') {
