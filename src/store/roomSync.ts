@@ -50,8 +50,6 @@ export function slimForRoom(
       return redactSubmission(s);
     });
   }
-  // Discarding: never publish peer hands — each device owns its post-discard
-  // hand; publishing all let the 2nd pusher clobber the 1st with a stale snapshot.
   const publishAllHands =
     state.phase === 'lobby' ||
     (state.phase === 'submitting' && (state.submissions?.length ?? 0) === 0);
@@ -72,7 +70,6 @@ export function mergeHandsPreserveLocal(
   const players = remote.players.map((rp) => {
     const lp = localById.get(rp.id);
     if (myPlayerId && rp.id === myPlayerId) {
-      // After we discarded, keep our local hand even if remote still has stale cards
       if (
         local.phase === 'discarding' &&
         (local.discardDonePlayerIds ?? []).includes(myPlayerId) &&
@@ -86,12 +83,16 @@ export function mergeHandsPreserveLocal(
       }
       return rp;
     }
-        if (rp.hand && rp.hand.length > 0) {
+    if (rp.hand && rp.hand.length > 0) {
       /* keep rp */
     } else if (lp && lp.hand.length > 0) {
       rp = { ...rp, hand: lp.hand };
     }
-    if (lp) {
+    const rematchIncoming =
+      (remote.round ?? 0) <= 1 &&
+      (remote.phase === 'submitting' || remote.phase === 'discarding') &&
+      (local.phase === 'results' || (local.round ?? 0) > 1);
+    if (lp && !rematchIncoming) {
       const score = Math.max(Number(rp.score) || 0, Number(lp.score) || 0);
       if (score !== (Number(rp.score) || 0)) rp = { ...rp, score };
     }
@@ -124,9 +125,6 @@ export function mergeHandsPreserveLocal(
     }
   }
 
-  // Union votes by voterId whenever same round+prompt and either side is
-  // judging (or still holds ballots). Prefer remote value on conflict, but
-  // never drop a peer vote that only exists locally.
   let votes = { ...(remote.votes ?? {}) };
   if (
     local &&
@@ -140,7 +138,6 @@ export function mergeHandsPreserveLocal(
     votes = { ...(local.votes ?? {}), ...(remote.votes ?? {}) };
   }
 
-  // Same submitting round: union submissions by playerId (prefer real text).
   if (
     local &&
     remote.phase === 'submitting' &&
@@ -167,8 +164,6 @@ export function mergeHandsPreserveLocal(
   return resolveVotesIfComplete({ ...remote, players, submissions, votes });
 }
 
-
-/** True when `a` has any voterId that `b` lacks (richer ballot map). */
 export function hasRicherVotes(
   a: GameState | null | undefined,
   b: GameState | null | undefined
@@ -220,7 +215,6 @@ export async function pushRoom(
     if (data.skipped && data.state) {
       return { ok: true, skipped: true, state: coerceGameState(data.state) };
     }
-    // Always surface merged server state (lobby seat union, league fields, …)
     if (data.state) {
       return { ok: true, state: coerceGameState(data.state) };
     }
