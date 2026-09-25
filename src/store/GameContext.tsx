@@ -438,8 +438,15 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         for (const p of local.players || []) {
           if (p?.id) byId.set(p.id, p);
         }
-        for (const p of remote.players || []) {
-          if (p?.id) byId.set(p.id, { ...(byId.get(p.id) || {}), ...p });
+                for (const p of remote.players || []) {
+          if (!p?.id) continue;
+          const prev = byId.get(p.id);
+          const own = !!seat && p.id === seat;
+          const nickname =
+            own && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)
+              ? prev?.nickname || p.nickname
+              : p.nickname || prev?.nickname;
+          byId.set(p.id, { ...(prev || {}), ...p, nickname });
         }
         remote = { ...remote, players: Array.from(byId.values()) };
       }
