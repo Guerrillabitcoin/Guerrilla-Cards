@@ -16,6 +16,7 @@ import {
   Title,
 } from '@/src/components/ui';
 import { NextRoundBar } from '@/src/components/NextRoundBar';
+import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
 import { WaitingRoster } from '@/src/components/WaitingRoster';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
 import { RoundStandings } from '@/src/components/RoundStandings';
@@ -1156,7 +1157,14 @@ export default function PlayScreen() {
     ? `Descarte · ${discardCountLabel}`
     : soloSkipMode
       ? `Descarte · ${soloSkipCountLabel}`
-    : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
+        : !voteMode &&
+        phase === 'submitting' &&
+        zar &&
+        myPlayerId === zar.id
+      ? `ZAR · Ronda ${game.round} · ${game.code}`
+      : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
+          isSolo ? 'Solo' : game.code
+        }`;
         isSolo ? 'Solo' : game.code
       }`;
   const scoreLine = isSolo
@@ -1168,7 +1176,15 @@ export default function PlayScreen() {
   return (
     <View style={styles.root}>
       <View style={styles.sticky}>
-                  <NextRoundBar active={phase === 'reveal'} onDone={() => continueRoundRef.current?.()} />
+                  <NextRoundBar
+                    active={phase === 'reveal'}
+                    deadlineAt={
+                      phase === 'reveal' && game.updatedAt
+                        ? game.updatedAt + 8000
+                        : null
+                    }
+                    onDone={() => continueRoundRef.current?.()}
+                  />
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
             {roundLine}
@@ -1883,16 +1899,10 @@ export default function PlayScreen() {
                           : `Esperando a que ${winnerName} (Zar) empiece la siguiente ronda…`}
                       </Muted>
                     ) : null}
-                    {isSolo || iAmNextZar || !isOnline ? (
-                      <Button
-                        title={
-                          isSolo
-                            ? '→  Siguiente ronda'
-                            : iAmNextZar
-                              ? 'Empezar siguiente ronda (eres el Zar)'
-                              : '→  Siguiente ronda'
-                        }
-                        variant="success"
+                                       {isSolo || iAmNextZar || !isOnline ? (
+                      <AdvanceRoundButton
+                        isSolo={!!isSolo}
+                        isZar={!!iAmNextZar}
                         onPress={() => continueRound()}
                       />
                     ) : null}
