@@ -33,8 +33,7 @@ import {
 } from '@/src/store/roomSync';
 import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { LobbyShareCard } from '@/src/components/LobbyShareCard';
-import { renameRoom } from '@/src/store/renameRoom';import { LobbyShareCard } from '@/src/components/LobbyShareCard';
-import { useTheme } from '@/src/store/ThemeContext';
+import { renameRoom } from '@/src/store/renameRoom';import { useTheme } from '@/src/store/ThemeContext';
 
 function notify(title: string, message: string) {
   if (typeof window !== 'undefined' && typeof window.alert === 'function') {
@@ -403,40 +402,36 @@ export default function LobbyScreen() {
               setNick(randomNickname(nick));
             }}
           />
-          <Button
+                  <Button
             title="Guardar nombre"
             variant="outline"
             onPress={() => {
-              try {
-                const nextNick = nick.trim() || randomNickname();
-                updateGame(game.code, (g) =>
-                  Engine.renamePlayer(g, myPlayerId, nextNick)
-                );
-                setNick(nextNick);
-                nickDirtyRef.current = false;
-                void (async () => {
-                  const g = getGame(game.code);
-                  if (!g) return;
-                  await pushRoom(g, await getMySeat(game.code));
-                })();
-              } catch (e) {
-                notify(
-                  'Nombre',
-                  e instanceof Error ? e.message : 'No se pudo guardar'
-                );
-              }
+              void (async () => {
+                try {
+                  const nextNick = nick.trim() || randomNickname();
+                  const renamed = await renameRoom(
+                    game.code,
+                    myPlayerId,
+                    nextNick
+                  );
+                  if (!renamed.ok) {
+                    notify('Nombre', renamed.error);
+                    return;
+                  }
+                  applyRemoteGame(renamed.state);
+                  setNick(nextNick);
+                  nickDirtyRef.current = false;
+                } catch (e) {
+                  notify(
+                    'Nombre',
+                    e instanceof Error ? e.message : 'No se pudo guardar'
+                  );
+                }
+              })();
             }}
           />
-          {iAmHost ? (
+                    {iAmHost ? (
             <>
-              <LobbyShareCard
-                code={game.code}
-                onCopy={() => {
-                  void copyRecoveryUrl(game.code).then((url) =>
-                    notify('Lobby', url)
-                  );
-                }}
-              />
               <Label>Enlaces si alguien pierde las cookies</Label>
               {game.players
                 .filter((p) => !p.isBot)
