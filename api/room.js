@@ -16,6 +16,7 @@ const {
   freezeRevealOrder,
   currentRoundSubs,
   sortSubsByPlayerId,
+  mergeLeagueMaps,
 } = require('./sanitizeRoom');
 function uid(prefix) {
   return (
@@ -722,6 +723,11 @@ function applyPrivacyMerges(existing, incoming) {
       incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;
     state = resolveVotesIfCompleteServer(state);
   }
+    state.leagueScores = mergeLeagueMaps(
+    existing && existing.leagueScores,
+    incoming && incoming.leagueScores,
+    state.leagueScores
+  );
   return sanitizeRoomState(promoteJudgingIfReady(state));
 }
 async function handler(req, res) {
@@ -752,7 +758,12 @@ async function handler(req, res) {
       } catch {
         return res.status(500).json({ ok: false, error: 'corrupt_state' });
       }
-      state = sanitizeRoomState(state);
+     state = sanitizeRoomState(state);
+      state.leagueScores = mergeLeagueMaps(
+        existing && existing.leagueScores,
+        incoming && incoming.leagueScores,
+        state.leagueScores
+      );
       return res.status(200).json({ ok: true, state });
     }
 
