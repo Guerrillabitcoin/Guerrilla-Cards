@@ -529,11 +529,9 @@ function dealHands(state: GameState): GameState {
 }
 
 export function startGame(state: GameState): GameState {
-  if (state.mode === 'async') {
-    if (state.players.length !== ASYNC_TARGET_PLAYERS) {
-      throw new Error(
-        `Async necesita exactamente ${ASYNC_TARGET_PLAYERS} jugadores.`
-      );
+    if (state.mode === 'solo') {
+    if (state.players.length < 1) {
+      throw new Error('Haz falta al menos 1 jugador.');
     }
   } else {
     const minPlayers = state.mode === 'solo' ? 1 : MIN_PLAYERS;
