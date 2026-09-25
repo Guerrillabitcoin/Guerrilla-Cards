@@ -964,7 +964,8 @@ export default function PlayScreen() {
           const iAmHost = !!cur.players.find(
             (p) => p.id === myPlayerId && p.isHost
           );
-          const mayAdvance = true;
+                    const mayAdvance =
+            iAmNextZar || (!!opts?.hostFallback && iAmHost);
           if (!mayAdvance) {
             advancingLockRef.current = false;
             return;
