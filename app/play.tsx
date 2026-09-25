@@ -1153,19 +1153,19 @@ export default function PlayScreen() {
   // Solo “tirar 2 y saltar”: always n/2
   const soloSkipCountLabel = `${Math.min(picked.length, pickNeed)}/${pickNeed}`;
 
-  const roundLine = isDiscarding
+ const roundLine = isDiscarding
     ? `Descarte · ${discardCountLabel}`
     : soloSkipMode
       ? `Descarte · ${soloSkipCountLabel}`
-        : !voteMode &&
-        phase === 'submitting' &&
-        zar &&
-        myPlayerId === zar.id
-      ? `ZAR · Ronda ${game.round} · ${game.code}`
-      : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
-          isSolo ? 'Solo' : game.code
-        }`;
-        isSolo ? 'Solo' : game.code
+      : !voteMode &&
+          phase === 'submitting' &&
+          zar &&
+          myPlayerId === zar.id
+        ? `ZAR · Ronda ${game.round} · ${game.code}`
+        : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
+            isSolo ? 'Solo' : game.code
+          }`;
+  const scoreLine = isSolo
       }`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
