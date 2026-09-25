@@ -1169,8 +1169,7 @@ export default function PlayScreen() {
     ? `${human?.score ?? 0}/${game.targetScore}`
     : voteMode
       ? `Voto · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`
-      : `Zar ${zar?.nickname} · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
-
+      : `${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
   return (
     <View style={styles.root}>
       <View style={styles.sticky}>
@@ -1422,8 +1421,9 @@ export default function PlayScreen() {
                   players={game.players}
                   doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
                   meId={myPlayerId ?? active?.id}
-                  verb="responda"
-                />
+                                verb="responda"
+                mineWaitLabel="esperando respuestas"
+         />
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
