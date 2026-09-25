@@ -454,6 +454,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             return out;
           })(),
           leagueAwarded: !!(local.leagueAwarded || remote.leagueAwarded),
+          currentPrompt:
+            local.currentPrompt &&
+            remote.currentPrompt &&
+            (local.round ?? 0) === (remote.round ?? 0) &&
+            local.phase !== 'results' &&
+            remote.phase !== 'results'
+              ? local.currentPrompt
+              : remote.currentPrompt,
           restartReadyIds: Array.from(
             new Set([
               ...(local.phase === remote.phase
