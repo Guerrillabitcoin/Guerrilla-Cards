@@ -19,6 +19,7 @@ const {
   mergeLeagueMaps,
   mergePlayerScores,
 } = require('./sanitizeRoom');
+const { applyHostAuthority } = require('./hostGate');
 function uid(prefix) {
   return (
     prefix +
@@ -831,12 +832,25 @@ async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'missing_state' });
       }
 
-      const incoming = { ...body.state, code };
+            let incoming = { ...body.state, code };
+      const actorId = String(body.actorId || '').trim();
       const key = `${ROOM_PREFIX}${code}`;
 
       // Load existing for merge / stale skip
       const existingData = await kvCommand(['GET', key]);
       const existing = parseExisting(existingData?.result);
+      if (existing && typeof existing === 'object') {
+        const auth = applyHostAuthority(existing, incoming, actorId);
+        if (auth.reject) {
+          return res.status(200).json({
+            ok: true,
+            skipped: true,
+            state: existing,
+            code,
+          });
+        }
+        incoming = auth.state;
+      }
 
       let state = incoming;
 
