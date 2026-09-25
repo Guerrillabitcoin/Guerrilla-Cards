@@ -197,9 +197,9 @@ export default function ResultsScreen() {
     if (game.mode === 'solo' || !onlineRoom) return;
     if (!Engine.allHumansRestartReady(game)) return;
     if ((game.restartReadyIds?.length ?? 0) === 0) return;
-    const iAmStarter = Engine.canForceRestart(game, myPlayerId);
-    if (!iAmStarter) return;
-    const stamp = `${game.code}:${(game.restartReadyIds || []).slice().sort().join(',')}`;
+        const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+    if (!iAmHost) return;
+    const stamp = `${game.code}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
     const next = restartSameSetup(game.code);
@@ -236,7 +236,10 @@ export default function ResultsScreen() {
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
 
-  const doRestartNow = () => {
+    const doRestartNow = () => {
+    const stamp = `${game.code}:dealt`;
+    if (rematchOnceRef.current === stamp) return;
+    rematchOnceRef.current = stamp;
     const next = restartSameSetup(game.code);
     if (!next) {
       router.replace('/');
@@ -267,8 +270,10 @@ export default function ResultsScreen() {
       if (!g) return;
       await pushRoom(g, myPlayerId);
       // If everyone ready after our tap, start
-      if (Engine.allHumansRestartReady(g) && Engine.canForceRestart(g, myPlayerId)) {
+            const iAmHost = !!g.players.find((p) => p.id === myPlayerId && p.isHost);
+      if (Engine.allHumansRestartReady(g) && iAmHost) {
         doRestartNow();
+      }
       }
     })();
   };
