@@ -353,6 +353,15 @@ export async function getMySeat(code: string): Promise<string | null> {
 
 export async function setMySeat(code: string, playerId: string): Promise<void> {
   const key = normalizeCode(code);
+  if (!playerId) {
+    delete seatCache[key];
+    try {
+      await AsyncStorage.removeItem(SEAT_KEY(code));
+    } catch {
+      /* ignore */
+    }
+    return;
+  }
   seatCache[key] = playerId;
   try {
     await AsyncStorage.setItem(SEAT_KEY(code), playerId);
