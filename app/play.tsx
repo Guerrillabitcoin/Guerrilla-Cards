@@ -1162,11 +1162,9 @@ export default function PlayScreen() {
           zar &&
           myPlayerId === zar.id
         ? `ZAR · Ronda ${game.round} · ${game.code}`
-        : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
+                : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
             isSolo ? 'Solo' : game.code
           }`;
-  const scoreLine = isSolo
-      }`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
     : voteMode
