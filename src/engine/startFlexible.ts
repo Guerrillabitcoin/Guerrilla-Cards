@@ -19,7 +19,6 @@ export function withSeatCap(state: GameState, n: number): GameState {
   };
 }
 
-/** addPlayer() still caps async rooms at 4. Use live path, then restore mode. */
 export function addPlayerFlexible(state: GameState, nickname: string): GameState {
   const cap = capOf(state);
   if (state.phase !== 'lobby') throw new Error('La partida ya empezó.');
@@ -30,10 +29,6 @@ export function addPlayerFlexible(state: GameState, nickname: string): GameState
   return { ...next, mode: state.mode, maxPlayers: cap };
 }
 
-/**
- * startGame() now accepts 2–maxPlayers in async too.
- * Still run the live start path so older snapshots stay compatible.
- */
 export function startFlexible(state: GameState): GameState {
   if (state.mode === 'solo') {
     return Engine.startGame(state);
@@ -54,4 +49,27 @@ export function startFlexible(state: GameState): GameState {
 
   const started = Engine.startGame({ ...next, mode: 'live' });
   return { ...started, mode: next.mode, maxPlayers: cap, judgeMode: next.judgeMode };
+}
+
+/** Rematch without the old async===4 gate inside startGame. */
+export function restartFlexible(
+  state: GameState,
+  opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
+): GameState {
+  const mode = state.mode;
+  const cap = capOf(state);
+  const judgeMode = state.judgeMode;
+  const started = Engine.restartMatch(
+    { ...state, mode: mode === 'async' ? 'live' : mode },
+    opts
+  );
+  return {
+    ...started,
+    mode,
+    maxPlayers: cap,
+    judgeMode,
+    leagueScores: state.leagueScores || started.leagueScores,
+    leagueAwarded: false,
+    restartReadyIds: [],
+  };
 }
