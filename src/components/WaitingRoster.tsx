@@ -6,11 +6,13 @@ export function WaitingRoster({
   doneIds,
   meId,
   verb = 'responda',
+  mineWaitLabel,
 }: {
   players: { id: string; nickname: string; isBot?: boolean }[];
   doneIds: string[];
   meId?: string | null;
   verb?: string;
+  mineWaitLabel?: string;
 }) {
   const { colors, fontFamily } = useTheme();
   const humans = players.filter((p) => !p.isBot);
@@ -46,7 +48,11 @@ export function WaitingRoster({
               style={[styles.tag, { color: colors.textMuted, fontFamily }]}
               numberOfLines={1}
             >
-              {ok ? 'listo' : `espera que ${verb}`}
+              {ok
+                ? 'listo'
+                : meId === p.id && mineWaitLabel
+                  ? mineWaitLabel
+                  : `espera que ${verb}`}
             </Text>
           </View>
         );
