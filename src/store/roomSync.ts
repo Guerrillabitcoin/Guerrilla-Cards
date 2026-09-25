@@ -86,8 +86,15 @@ export function mergeHandsPreserveLocal(
       }
       return rp;
     }
-    if (rp.hand && rp.hand.length > 0) return rp;
-    if (lp && lp.hand.length > 0) return { ...rp, hand: lp.hand };
+        if (rp.hand && rp.hand.length > 0) {
+      /* keep rp */
+    } else if (lp && lp.hand.length > 0) {
+      rp = { ...rp, hand: lp.hand };
+    }
+    if (lp) {
+      const score = Math.max(Number(rp.score) || 0, Number(lp.score) || 0);
+      if (score !== (Number(rp.score) || 0)) rp = { ...rp, score };
+    }
     return rp;
   });
   let submissions = remote.submissions ?? [];
