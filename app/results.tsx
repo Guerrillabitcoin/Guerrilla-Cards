@@ -198,9 +198,7 @@ export default function ResultsScreen() {
     if (game.mode === 'solo' || !onlineRoom) return;
     if (!Engine.allHumansRestartReady(game)) return;
     if ((game.restartReadyIds?.length ?? 0) === 0) return;
-        const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
-    if (!iAmHost) return;
-    const stamp = `${game.code}:dealt`;
+            const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
     const next = restartSameSetup(game.code);
@@ -238,7 +236,7 @@ export default function ResultsScreen() {
   const winner = ranked[0];
 
     const doRestartNow = () => {
-    const stamp = `${game.code}:dealt`;
+        const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
     const next = restartSameSetup(game.code);
@@ -270,8 +268,7 @@ export default function ResultsScreen() {
       const g = getGame(game.code);
       if (!g) return;
       await pushRoom(g, myPlayerId);
-      const iAmHost = !!g.players.find((p) => p.id === myPlayerId && p.isHost);
-      if (Engine.allHumansRestartReady(g) && iAmHost) {
+          if (Engine.allHumansRestartReady(g)) {
         doRestartNow();
       }
     })();
