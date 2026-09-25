@@ -1,6 +1,7 @@
 import type { GameState } from './types';
 import { MAX_PLAYERS, MIN_PLAYERS } from './types';
 import * as Engine from './game';
+import { leagueFromState, mergeLeague, writeLeague } from '../store/leagueSession';
 
 function capOf(state: GameState): number {
   return Math.max(
@@ -51,7 +52,6 @@ export function startFlexible(state: GameState): GameState {
   return { ...started, mode: next.mode, maxPlayers: cap, judgeMode: next.judgeMode };
 }
 
-/** Rematch: award liga first, then new deal without the async===4 gate. */
 export function restartFlexible(
   state: GameState,
   opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
@@ -59,22 +59,30 @@ export function restartFlexible(
   const mode = state.mode;
   const cap = capOf(state);
   const judgeMode = state.judgeMode;
-  let src = state;
+  let src = {
+    ...state,
+    leagueScores: leagueFromState(state),
+  };
   if (src.phase === 'results' && !src.leagueAwarded && src.mode !== 'solo') {
     const humans = src.players.filter((x) => !x.isBot);
     const top = [...humans].sort((a, b) => b.score - a.score)[0];
     if (top) src = Engine.awardLeagueWin(src, top.id);
   }
+  const kept = mergeLeague(src.leagueScores);
+  writeLeague(state.code, kept);
   const started = Engine.restartMatch(
-    { ...src, mode: mode === 'async' ? 'live' : mode },
+    { ...src, mode: mode === 'async' ? 'live' : mode, leagueScores: kept },
     opts
   );
+  const leagueScores = mergeLeague(kept, started.leagueScores);
+  writeLeague(state.code, leagueScores);
   return {
     ...started,
     mode,
     maxPlayers: cap,
     judgeMode,
-    leagueScores: { ...(src.leagueScores || {}), ...(started.leagueScores || {}) },
+    currentPrompt: started.currentPrompt,
+    leagueScores,
     leagueAwarded: false,
     restartReadyIds: [],
   };
