@@ -211,7 +211,7 @@ async function joinLobbyAtomic(key, code, nicknameDesired) {
 }
 
 
-function mergeLobbyPlayers(existingPlayers, incomingPlayers) {
+function mergeLobbyPlayers(existingPlayers, incomingPlayers, actorId) {
   const byId = new Map();
   for (const p of existingPlayers || []) {
     if (p && p.id) byId.set(p.id, { ...p });
@@ -223,13 +223,20 @@ function mergeLobbyPlayers(existingPlayers, incomingPlayers) {
       byId.set(p.id, p);
       continue;
     }
-    // Rename is authoritative from the renaming client (incoming)
     const incomingNick =
       p.nickname != null ? String(p.nickname).trim() : '';
+    let nickname = prev.nickname;
+    if (actorId && String(actorId) === String(p.id) && incomingNick) {
+      nickname = incomingNick;
+    } else if (!nickname && incomingNick) {
+      nickname = incomingNick;
+    } else if (!actorId && incomingNick) {
+      nickname = incomingNick;
+    }
     byId.set(p.id, {
       ...prev,
       ...p,
-      nickname: incomingNick || prev.nickname,
+      nickname: nickname || incomingNick || prev.nickname,
     });
   }
   const merged = Array.from(byId.values());
@@ -922,9 +929,10 @@ async function handler(req, res) {
           // Re-GET right before compose to catch joins that landed after our first GET.
           const freshData = await kvCommand(['GET', key]);
           const fresh = parseExisting(freshData?.result) || existing;
-          const mergedPlayers = mergeLobbyPlayers(
+                    const mergedPlayers = mergeLobbyPlayers(
             mergeLobbyPlayers(fresh.players, existing.players),
-            incoming.players
+            incoming.players,
+            actorId
           );
           const withHands = mergeHandsByPlayerId(
             fresh.players,
