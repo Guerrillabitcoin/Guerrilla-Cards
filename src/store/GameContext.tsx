@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react';
 import * as Engine from '../engine/game';
+import { dropStaleRemote } from './remoteGate';
 import {
   buildPreShuffledAnswerDeck,
   buildVariedPromptDeck,
@@ -370,7 +371,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         (remote.restartReadyIds?.length ?? 0) !==
           (local.restartReadyIds?.length ?? 0);
       // Keep local if we already moved to the next cycle and remote is stale reveal
-      if (local && localProg > remoteProg && !isMatchRestart && !richerLobbyRoster) {
+            if (dropStaleRemote(local, remote)) {
         return false;
       }
       if (
@@ -710,7 +711,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       const others = { ...gamesRef.current };
       delete others[key];
-      const state = Engine.restartMatch(old, {
+      const state = restartFlexible(old, {
         avoidPromptIds: collectAvoidPromptIds(
           recentPromptsRef.current,
           others
