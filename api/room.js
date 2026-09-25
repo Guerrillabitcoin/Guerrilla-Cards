@@ -759,13 +759,7 @@ async function handler(req, res) {
         return res.status(500).json({ ok: false, error: 'corrupt_state' });
       }
      state = sanitizeRoomState(state);
-      state.leagueScores = mergeLeagueMaps(
-        existing && existing.leagueScores,
-        incoming && incoming.leagueScores,
-        state.leagueScores
-      );
       return res.status(200).json({ ok: true, state });
-    }
 
     if (req.method === 'POST') {
       let body = {};
@@ -969,6 +963,11 @@ async function handler(req, res) {
       state = promoteJudgingIfReady(state);
       state = resolveVotesIfCompleteServer(state);
       state = sanitizeRoomState(state);
+      state.leagueScores = mergeLeagueMaps(
+        existing && existing.leagueScores,
+        incoming && incoming.leagueScores,
+        state.leagueScores
+      );
 
       const payload = JSON.stringify(state);
       if (payload.length > MAX_BODY_CHARS) {
