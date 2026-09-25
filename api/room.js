@@ -17,6 +17,7 @@ const {
   currentRoundSubs,
   sortSubsByPlayerId,
   mergeLeagueMaps,
+  mergePlayerScores,
 } = require('./sanitizeRoom');
 function uid(prefix) {
   return (
@@ -728,6 +729,7 @@ function applyPrivacyMerges(existing, incoming) {
     incoming && incoming.leagueScores,
     state.leagueScores
   );
+  state.players = mergePlayerScores(existing && existing.players, state.players);
   return sanitizeRoomState(promoteJudgingIfReady(state));
 }
 async function handler(req, res) {
