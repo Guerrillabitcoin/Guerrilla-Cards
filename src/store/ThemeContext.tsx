@@ -30,17 +30,23 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+function isThemeId(v: unknown): v is ThemeId {
+  return v === 'guerrilla' || v === 'classic' || v === 'oscuro';
+}
+
 function readThemeIdSync(): ThemeId {
   if (typeof window === 'undefined') return DEFAULT_THEME_ID;
   try {
+    const fromDom = document.documentElement?.dataset?.theme;
+    if (isThemeId(fromDom)) return fromDom;
     const keys = [THEME_KEY, `@${THEME_KEY}`, `RCTAsyncLocalStorage_${THEME_KEY}`];
     for (const k of keys) {
       const raw = window.localStorage.getItem(k);
       if (!raw) continue;
-      if (raw in THEMES) return raw as ThemeId;
+      if (isThemeId(raw)) return raw;
       try {
         const parsed = JSON.parse(raw);
-        if (typeof parsed === 'string' && parsed in THEMES) return parsed as ThemeId;
+        if (isThemeId(parsed)) return parsed;
       } catch {
         /* not JSON */
       }
@@ -65,6 +71,15 @@ function applyDomTheme(id: ThemeId) {
   }
 }
 
+function persistTheme(id: ThemeId) {
+  void AsyncStorage.setItem(THEME_KEY, id);
+  try {
+    if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, id);
+  } catch {
+    /* ignore */
+  }
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeId, setThemeIdState] = useState<ThemeId>(() => {
     const id = readThemeIdSync();
@@ -74,28 +89,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(() => typeof window !== 'undefined');
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      let id = readThemeIdSync();
-      try {
-        const raw = await AsyncStorage.getItem(THEME_KEY);
-        if (raw && raw in THEMES) id = raw as ThemeId;
-      } catch {
-        /* keep */
-      }
-      if (cancelled) return;
-      setThemeIdState((cur) => (cur === id ? cur : id));
-      applyDomTheme(id);
-      try {
-        if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, id);
-      } catch {
-        /* ignore */
-      }
-      setReady(true);
-    })();
-    return () => {
-      cancelled = true;
-    };
+    const id = readThemeIdSync();
+    setThemeIdState((cur) => (cur === id ? cur : id));
+    applyDomTheme(id);
+    persistTheme(id);
+    setReady(true);
   }, []);
 
   useEffect(() => {
@@ -105,12 +103,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setThemeId = useCallback((id: ThemeId) => {
     setThemeIdState(id);
     applyDomTheme(id);
-    void AsyncStorage.setItem(THEME_KEY, id);
-    try {
-      if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, id);
-    } catch {
-      /* ignore */
-    }
+    persistTheme(id);
   }, []);
 
   const cycleTheme = useCallback(() => {
@@ -118,19 +111,22 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const i = THEME_ORDER.indexOf(cur);
       const next = THEME_ORDER[(i + 1) % THEME_ORDER.length];
       applyDomTheme(next);
-      void AsyncStorage.setItem(THEME_KEY, next);
-      try {
-        if (typeof window !== 'undefined') window.localStorage.setItem(THEME_KEY, next);
-      } catch {
-        /* ignore */
-      }
+      persistTheme(next);
       return next;
     });
   }, []);
 
   const theme = THEMES[themeId];
   const value = useMemo<ThemeContextValue>(
-    () => ({ themeId, theme, colors: theme.colors, fontFamily: theme.fontFamily, setThemeId, cycleTheme, ready }),
+    () => ({
+      themeId,
+      theme,
+      colors: theme.colors,
+      fontFamily: theme.fontFamily,
+      setThemeId,
+      cycleTheme,
+      ready,
+    }),
     [themeId, theme, setThemeId, cycleTheme, ready]
   );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
