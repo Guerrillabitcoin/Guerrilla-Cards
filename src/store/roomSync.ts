@@ -193,9 +193,10 @@ export async function pushRoom(
   const url = roomApiUrl();
   if (!url) return { ok: false, error: 'not_web' };
   try {
-    const body = JSON.stringify({
+        const body = JSON.stringify({
       action: 'upsert',
       code: state.code,
+      actorId: myPlayerId || undefined,
       state: slimForRoom(state, myPlayerId),
     });
     const res = await fetch(url, {
