@@ -1,42 +1,86 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../store/ThemeContext';
 
 export function LobbyShareCard({
   code,
+  seated,
+  cap,
   onCopy,
 }: {
   code: string;
+  seated?: number;
+  cap?: number;
   onCopy: () => void;
 }) {
   const { colors, fontFamily } = useTheme();
   return (
     <Pressable
       onPress={onCopy}
-      style={[
-        {
-          backgroundColor: colors.zar || '#6A1B9A',
-          borderColor: colors.accent,
-          borderWidth: 3,
-          borderRadius: 8,
-          paddingVertical: 16,
-          paddingHorizontal: 14,
-          gap: 4,
-          marginBottom: 10,
-        },
-      ]}
+      style={[styles.box, { backgroundColor: colors.zar || '#4A148C', borderColor: colors.accent }]}
     >
-      <Text style={{ color: '#FFE082', fontFamily, fontWeight: '900', fontSize: 11, letterSpacing: 1.4 }}>
-        1. COMPARTE ESTO PRIMERO
-      </Text>
-      <Text style={{ color: '#FFFFFF', fontFamily, fontWeight: '900', fontSize: 22 }}>
-        Copiar enlace lobby
-      </Text>
-      <Text style={{ color: '#FFF8E1', fontFamily, fontWeight: '900', fontSize: 28, letterSpacing: 3 }}>
-        {code}
-      </Text>
-      <Text style={{ color: '#E1BEE7', fontFamily, fontWeight: '700', fontSize: 13, marginTop: 2 }}>
-        Quien abra el enlace entra como jugador nuevo
-      </Text>
+      <View style={styles.row}>
+        <View style={styles.badge}>
+          <Text style={styles.silhouette}>👤</Text>
+          <View style={styles.plus}>
+            <Text style={styles.plusTxt}>+1</Text>
+          </View>
+        </View>
+        <View style={styles.texts}>
+          <Text style={[styles.kicker, { fontFamily }]}>Invitar · sumar gente</Text>
+          <Text style={[styles.title, { fontFamily }]}>Lobby {code}</Text>
+          <Text style={[styles.hint, { fontFamily }]}>
+            Toca para copiar el enlace
+            {seated != null && cap != null ? ` · ${seated}/${cap}` : ''}
+          </Text>
+        </View>
+      </View>
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  box: {
+    borderWidth: 3,
+    borderRadius: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  badge: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#311B92',
+    borderWidth: 2,
+    borderColor: '#FFE082',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  silhouette: { fontSize: 26 },
+  plus: {
+    position: 'absolute',
+    right: -4,
+    bottom: -4,
+    backgroundColor: '#00C853',
+    borderRadius: 10,
+    minWidth: 22,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#FFF',
+  },
+  plusTxt: { color: '#FFF', fontWeight: '900', fontSize: 11 },
+  texts: { flex: 1 },
+  kicker: {
+    color: '#FFE082',
+    fontWeight: '900',
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  title: { color: '#FFFFFF', fontWeight: '900', fontSize: 26, letterSpacing: 1 },
+  hint: { color: '#E1BEE7', fontWeight: '700', fontSize: 13, marginTop: 2 },
+});
