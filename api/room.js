@@ -228,9 +228,7 @@ function mergeLobbyPlayers(existingPlayers, incomingPlayers, actorId) {
     let nickname = prev.nickname;
     if (actorId && String(actorId) === String(p.id) && incomingNick) {
       nickname = incomingNick;
-    } else if (!nickname && incomingNick) {
-      nickname = incomingNick;
-    } else if (!actorId && incomingNick) {
+   } else if (!nickname && incomingNick) {
       nickname = incomingNick;
     }
     byId.set(p.id, {
@@ -800,6 +798,27 @@ async function handler(req, res) {
         const key = `${ROOM_PREFIX}${code}`;
         const joined = await joinLobbyAtomic(key, code, body.nickname);
         return res.status(joined.status).json(joined.body);
+      }
+
+      if (action === 'rename') {
+        const code = normalizeCode(body.code);
+        const playerId = String(body.playerId || '').trim();
+        const nickname = String(body.nickname || '').trim();
+        if (!code || !playerId || !nickname) {
+          return res.status(400).json({ ok: false, error: 'bad_rename' });
+        }
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvCommand(['GET', key]);
+        const existing = parseExisting(existingData?.result);
+        if (!existing) {
+          return res.status(404).json({ ok: false, error: 'missing_room' });
+        }
+        const players = (existing.players || []).map((p) =>
+          p && p.id === playerId ? { ...p, nickname } : p
+        );
+        const state = { ...existing, players, code, updatedAt: Date.now() };
+        await kvCommand(['SET', key, JSON.stringify(state)]);
+        return res.status(200).json({ ok: true, code, state });
       }
 
       if (action === 'claim') {
