@@ -37,11 +37,15 @@ export function WaitingRoster({
                 styles.name,
                 { color: colors.text, fontFamily, opacity: ok ? 0.7 : 1 },
               ]}
+              numberOfLines={1}
             >
               {p.nickname}
               {meId === p.id ? ' · tú' : ''}
             </Text>
-            <Text style={[styles.tag, { color: colors.textMuted, fontFamily }]}>
+            <Text
+              style={[styles.tag, { color: colors.textMuted, fontFamily }]}
+              numberOfLines={1}
+            >
               {ok ? 'listo' : `espera que ${verb}`}
             </Text>
           </View>
@@ -49,9 +53,9 @@ export function WaitingRoster({
       })}
       <Text style={[styles.foot, { color: colors.textMuted, fontFamily }]}>
         {pending.length
-          ? `Falta${pending.length === 1 ? '' : 'n'}: ${
-              pending.map((p) => p.nickname).join(', ')}
-            `
+          ? `Falta${pending.length === 1 ? '' : 'n'}: ${pending
+              .map((x) => x.nickname)
+              .join(', ')}`
           : 'Todos listos'}
       </Text>
     </View>
@@ -66,9 +70,27 @@ const styles = StyleSheet.create({
     marginTop: 8,
     gap: 6,
   },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    width: '100%',
+  },
   mark: { width: 16, fontWeight: '900', fontSize: 16 },
-  name: { flex: 1, fontWeight: '800', fontSize: 15 },
-  tag: { fontSize: 12, fontWeight: '700' },
+  name: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    fontWeight: '800',
+    fontSize: 15,
+  },
+  tag: {
+    flexGrow: 0,
+    flexShrink: 0,
+    minWidth: 96,
+    textAlign: 'right',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   foot: { marginTop: 4, fontSize: 13, fontWeight: '700' },
 });

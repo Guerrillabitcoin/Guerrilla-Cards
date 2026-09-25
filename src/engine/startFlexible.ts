@@ -51,7 +51,7 @@ export function startFlexible(state: GameState): GameState {
   return { ...started, mode: next.mode, maxPlayers: cap, judgeMode: next.judgeMode };
 }
 
-/** Rematch without the old async===4 gate inside startGame. */
+/** Rematch: award liga first, then new deal without the async===4 gate. */
 export function restartFlexible(
   state: GameState,
   opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
@@ -59,8 +59,14 @@ export function restartFlexible(
   const mode = state.mode;
   const cap = capOf(state);
   const judgeMode = state.judgeMode;
+  let src = state;
+  if (src.phase === 'results' && !src.leagueAwarded && src.mode !== 'solo') {
+    const humans = src.players.filter((x) => !x.isBot);
+    const top = [...humans].sort((a, b) => b.score - a.score)[0];
+    if (top) src = Engine.awardLeagueWin(src, top.id);
+  }
   const started = Engine.restartMatch(
-    { ...state, mode: mode === 'async' ? 'live' : mode },
+    { ...src, mode: mode === 'async' ? 'live' : mode },
     opts
   );
   return {
@@ -68,7 +74,7 @@ export function restartFlexible(
     mode,
     maxPlayers: cap,
     judgeMode,
-    leagueScores: state.leagueScores || started.leagueScores,
+    leagueScores: { ...(src.leagueScores || {}), ...(started.leagueScores || {}) },
     leagueAwarded: false,
     restartReadyIds: [],
   };

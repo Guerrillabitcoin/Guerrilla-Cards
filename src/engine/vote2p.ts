@@ -1,7 +1,6 @@
 import type { GameState } from './types';
 import * as Engine from './game';
 
-/** True when vote mode has exactly 2 human players (special 2p scoring). */
 export function isTwoPlayerVote(state: GameState): boolean {
   const humans = state.players.filter((p) => !p.isBot).length;
   return (
@@ -20,11 +19,6 @@ export function votesFor(state: GameState, playerId: string): number {
   return Object.values(votes).filter((id) => id === playerId).length;
 }
 
-/**
- * 2-player vote finish: each gets +votesReceived (not annul).
- * Split ties keep roundWinnerIds; roundWinnerId falls back to host for advance.
- * Solo is never routed here.
- */
 function finishTwoPlayerVotes(
   state: GameState,
   votes: Record<string, string>
@@ -37,22 +31,24 @@ function finishTwoPlayerVotes(
   for (const target of Object.values(votes)) {
     tallies[target] = (tallies[target] ?? 0) + 1;
   }
-  const players = state.players.map((p) =>
-    p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
-  );
-  const hitTarget = players.some((p) => p.score >= state.targetScore);
   const best = Math.max(0, ...Object.values(tallies));
   const winners = eligible.filter(
     (id) => (tallies[id] ?? 0) === best && best > 0
   );
   const isSplit = winners.length > 1;
+  const players = isSplit
+    ? state.players
+    : state.players.map((p) =>
+        p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
+      );
+  const hitTarget = players.some((p) => p.score >= state.targetScore);
   const hostId =
     state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
   const base = {
     ...state,
     players,
     votes,
-    roundWinnerId: isSplit ? hostId : winners[0] ?? hostId,
+    roundWinnerId: isSplit ? null : winners[0] ?? hostId,
     roundWinnerIds: isSplit ? winners : [],
     phase: (hitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: hitTarget ? null : hostId,
@@ -64,12 +60,6 @@ function finishTwoPlayerVotes(
   return Engine.awardLeagueWin(base, top?.id ?? null);
 }
 
-/**
- * After room merge: if all votes are in, finalize.
- * - 2p: special scoring (unchanged).
- * - >2p: Engine.tallyVotesIfComplete (annuls ties).
- * Prevents hang when the last vote arrived via sync rather than local castVote.
- */
 export function resolveVotesIfComplete(state: GameState): GameState {
   if ((state.judgeMode ?? 'zar') !== 'vote' || state.mode === 'solo') {
     return state;
@@ -132,7 +122,6 @@ export function castVoteFlexible(
   return finishTwoPlayerVotes(state, votes);
 }
 
-/** 2p vote UI may show own answer among options. */
 export function showOwnAnswerWhenVoting(state: GameState): boolean {
   return twoPlayerVote(state);
 }
