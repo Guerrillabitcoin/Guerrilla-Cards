@@ -90,9 +90,14 @@ export default function ResultsScreen() {
     }
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
-  useEffect(() => {
-    if (!game || game.phase !== 'results') return;
-    const key = `${game.code}:stale`;
+    useEffect(() => {
+    if (!game || game.phase !== 'results' || game.mode === 'solo') return;
+    if (game.leagueAwarded) return;
+    const humans = game.players.filter((p) => !p.isBot);
+    const top = [...humans].sort((a, b) => b.score - a.score)[0];
+    if (!top) return;
+    updateGame(game.code, (g) => Engine.awardLeagueWin(g, top.id));
+  }, [game?.code, game?.phase, game?.leagueAwarded, game?.mode, updateGame]);
     if (staleOnceRef.current === key) return;
     staleOnceRef.current = key;
     const left = game.players
