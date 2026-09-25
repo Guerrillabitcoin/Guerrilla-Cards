@@ -24,8 +24,7 @@ import {
   pushRoom,
 } from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
-import { leagueFromState, writeLeague } from '@/src/store/leagueSession';
-
+import { leagueFromState, leagueMatchCountOf, writeLeague } from '@/src/store/leagueSession';
 export default function ResultsScreen() {
   const styles = useResultsStyles();
 
@@ -361,7 +360,13 @@ export default function ResultsScreen() {
     !isSolo && board.length >= 1 ? (
       <View style={styles.list}>
         <Label>Liga</Label>
-        <Muted>+1 al ganador de cada partida · se guarda al reiniciar</Muted>
+        <Muted>
+          {leagueMatchCountOf(game)} partida{leagueMatchCountOf(game) === 1 ? '' : 's'}
+          {' · '}
+          ronda {game.round} de la última
+          {' · '}
+          +1 al ganador de cada final
+        </Muted>
         {leagueRanked.map((p, i) => (
           <View
             key={`liga-${p.id}`}
