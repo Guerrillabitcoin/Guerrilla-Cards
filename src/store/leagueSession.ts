@@ -34,7 +34,8 @@ export function readLeague(code: string): Record<string, number> {
 export function writeLeague(code: string, scores: Record<string, number>): void {
   if (typeof window === 'undefined' || !code) return;
   try {
-    window.localStorage.setItem(keyFor(code), JSON.stringify(mergeLeague(scores)));
+    const next = mergeLeague(readLeague(code), scores);
+    window.localStorage.setItem(keyFor(code), JSON.stringify(next));
   } catch {
     /* quota */
   }
@@ -42,4 +43,22 @@ export function writeLeague(code: string, scores: Record<string, number>): void 
 
 export function leagueFromState(state: GameState): Record<string, number> {
   return mergeLeague(readLeague(state.code), state.leagueScores);
+}
+
+export function awardLeaguePersistent(
+  state: GameState,
+  winnerId: string | null
+): GameState {
+  if (!winnerId || state.mode === 'solo') return state;
+  const base = leagueFromState(state);
+  if (state.leagueAwarded) {
+    writeLeague(state.code, base);
+    return { ...state, leagueScores: base, leagueAwarded: true };
+  }
+  const leagueScores = {
+    ...base,
+    [winnerId]: (base[winnerId] || 0) + 1,
+  };
+  writeLeague(state.code, leagueScores);
+  return { ...state, leagueScores, leagueAwarded: true };
 }

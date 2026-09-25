@@ -70,6 +70,20 @@ function freezeRevealOrder(existingOrder, incomingOrder, n) {
   return Array.from({ length: n }, (_, i) => i);
 }
 
+function mergeLeagueMaps() {
+  const out = {};
+  for (let i = 0; i < arguments.length; i++) {
+    const m = arguments[i];
+    if (!m || typeof m !== 'object') continue;
+    Object.keys(m).forEach((id) => {
+      if (!id) return;
+      const v = Number(m[id]) || 0;
+      out[id] = Math.max(out[id] || 0, v);
+    });
+  }
+  return out;
+}
+
 function sanitizeRoomState(state) {
   if (!state || typeof state !== 'object') return state;
   const phase = state.phase;
@@ -97,4 +111,5 @@ module.exports = {
   currentRoundSubs,
   freezeRevealOrder,
   sanitizeRoomState,
+  mergeLeagueMaps,
 };
