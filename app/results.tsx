@@ -91,7 +91,8 @@ export default function ResultsScreen() {
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
     useEffect(() => {
-    if (!game || game.phase !== 'results' || game.mode === 'solo') return;
+        if (!game || game.phase !== 'results' || game.mode === 'solo') return;
+    if ((game.round ?? 0) <= 1 && (game.players[0]?.score ?? 0) === 0) return;
     const humans = game.players.filter((p) => !p.isBot);
     const top = [...humans].sort((a, b) => b.score - a.score)[0];
     if (!top) return;
