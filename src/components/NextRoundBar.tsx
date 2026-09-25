@@ -1,41 +1,52 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 const SECONDS = 8;
 
 export function NextRoundBar({
   active,
+  deadlineAt,
   onDone,
 }: {
   active: boolean;
+  deadlineAt?: number | null;
   onDone?: () => void;
 }) {
-  const [left, setLeft] = useState(SECONDS);
+  const fired = useRef(false);
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     if (!active) {
-      setLeft(SECONDS);
+      fired.current = false;
       return;
     }
-    setLeft(SECONDS);
-    const id = setInterval(() => {
-      setLeft((n) => {
-        if (n <= 1) {
-          clearInterval(id);
-          onDone?.();
-          return 0;
-        }
-        return n - 1;
-      });
-    }, 1000);
+    const id = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(id);
-  }, [active, onDone]);
+  }, [active]);
+
+  useEffect(() => {
+    if (!active) return;
+    const end = deadlineAt || 0;
+    if (!end) return;
+    if (now < end) return;
+    if (fired.current) return;
+    fired.current = true;
+    onDoneRef.current?.();
+  }, [active, deadlineAt, now]);
 
   if (!active) return null;
 
+  const end = deadlineAt || now + SECONDS * 1000;
+  const left = Math.max(0, Math.ceil((end - now) / 1000));
+  const starting = left <= 0;
+
   return (
-    <View style={styles.box}>
-      <Text style={styles.text}>Siguiente ronda {left}s</Text>
+    <View style={[styles.box, starting && styles.boxGo]}>
+      <Text style={styles.text}>
+        {starting ? 'Empezando nueva ronda' : `Siguiente ronda ${left}s`}
+      </Text>
     </View>
   );
 }
@@ -50,6 +61,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     alignItems: 'center',
     marginBottom: 6,
+  },
+  boxGo: {
+    backgroundColor: '#0D47A1',
+    borderColor: '#64B5F6',
   },
   text: {
     color: '#C8E6C9',

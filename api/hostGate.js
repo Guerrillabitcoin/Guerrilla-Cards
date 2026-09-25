@@ -1,7 +1,7 @@
 /**
- * Host is the escape valve: rematch, prompt lock, league latch.
- * Guests may still upsert answers/votes; they cannot deal a new prompt
- * or start Otra manga.
+ * Technical host only: rematch + prompt lock.
+ * League totals always max-merge; rematch clears the award latch
+ * so the next match can add +1.
  */
 function hostIdOf(state) {
   const list = (state && state.players) || [];
@@ -12,6 +12,19 @@ function hostIdOf(state) {
 function isHostActor(state, actorId) {
   if (!actorId) return false;
   return hostIdOf(state) === String(actorId);
+}
+
+function maxLeague(a, b) {
+  const out = {};
+  for (const m of [a, b]) {
+    if (!m || typeof m !== 'object') continue;
+    Object.keys(m).forEach((id) => {
+      if (!id) return;
+      const v = Number(m[id]) || 0;
+      out[id] = Math.max(out[id] || 0, v);
+    });
+  }
+  return out;
 }
 
 function applyHostAuthority(existing, incoming, actorId) {
@@ -46,12 +59,17 @@ function applyHostAuthority(existing, incoming, actorId) {
     state = { ...state, currentPrompt: existing.currentPrompt };
   }
 
-  if (existing.leagueAwarded) {
+  const leagueScores = maxLeague(existing.leagueScores, state.leagueScores);
+  if (incomingRematch) {
+    state = { ...state, leagueScores, leagueAwarded: false };
+  } else if (incoming.phase === 'results' && existing.phase === 'results') {
     state = {
       ...state,
-      leagueAwarded: true,
-      leagueScores: existing.leagueScores || state.leagueScores,
+      leagueScores,
+      leagueAwarded: !!(existing.leagueAwarded || incoming.leagueAwarded),
     };
+  } else {
+    state = { ...state, leagueScores };
   }
   return { reject: false, state };
 }
