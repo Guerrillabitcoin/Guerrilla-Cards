@@ -9,6 +9,7 @@ import React, {
   useState,
 } from 'react';
 import * as Engine from '../engine/game';
+import { restartFlexible } from '../engine/startFlexible';
 import { dropStaleRemote } from './remoteGate';
 import {
   buildPreShuffledAnswerDeck,
