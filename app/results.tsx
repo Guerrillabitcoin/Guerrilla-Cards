@@ -92,7 +92,6 @@ export default function ResultsScreen() {
 
     useEffect(() => {
     if (!game || game.phase !== 'results' || game.mode === 'solo') return;
-    if (game.leagueAwarded) return;
     const humans = game.players.filter((p) => !p.isBot);
     const top = [...humans].sort((a, b) => b.score - a.score)[0];
     if (!top) return;
@@ -356,7 +355,7 @@ export default function ResultsScreen() {
   const leagueBlock =
     !isSolo && board.length >= 1 ? (
       <View style={styles.list}>
-        <Label>Liga (sesión)</Label>
+        <Label>Liga</Label>
         <Muted>+1 al ganador de cada partida · se guarda al reiniciar</Muted>
         {leagueRanked.map((p, i) => (
           <View
