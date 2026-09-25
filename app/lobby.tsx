@@ -33,7 +33,7 @@ import {
 } from '@/src/store/roomSync';
 import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { LobbyShareCard } from '@/src/components/LobbyShareCard';
-import { renameRoom } from '@/src/store/renameRoom';import { useTheme } from '@/src/store/ThemeContext';
+import { LobbyJoinBar } from '@/src/components/LobbyJoinBar';import { renameRoom } from '@/src/store/renameRoom';import { useTheme } from '@/src/store/ThemeContext';
 
 function notify(title: string, message: string) {
   if (typeof window !== 'undefined' && typeof window.alert === 'function') {
@@ -182,10 +182,10 @@ export default function LobbyScreen() {
         lobbyJoinInFlight.delete(codeKey);
       }
     })();
-    return () => {
+        return () => {
       cancelled = true;
-      // Do NOT clear inFlight on unmount — StrictMode remount must not double-join.
-      // Clear only after success confirmation or failure (above).
+      joiningRef.current = false;
+      lobbyJoinInFlight.delete(codeKey);
     };
   }, [ready, seatReady, game, myPlayerId, nick, applyRemoteGame]);
 
@@ -363,8 +363,30 @@ export default function LobbyScreen() {
       <Label>
         Jugadores ({game.players.length}/{seatMax})
       </Label>
-      {game.players.map((p) => (
-        <View key={p.id} style={styles.seat}>
+      {(!myPlayerId ||
+        !game.players.some((p) => p.id === myPlayerId)) &&
+      game.phase === 'lobby' ? (
+        <LobbyJoinBar
+          onJoin={() => {
+            void (async () => {
+              const joined = await joinRoom(game.code, nick);
+              if (!joined.ok) {
+                notify(
+                  'Unirse',
+                  joined.error === 'lobby_full'
+                    ? 'Sala llena — el anfitrión puede subir el número'
+                    : joined.error
+                );
+                return;
+              }
+              applyRemoteGame(joined.state);
+              await setMySeat(game.code, joined.playerId);
+              setMyPlayerIdState(joined.playerId);
+            })();
+          }}
+        />
+      ) : null}
+      {game.players.map((p) => (        <View key={p.id} style={styles.seat}>
           <Text style={styles.seatName}>
             {p.nickname}
             {p.isHost ? ' · anfitrión' : ''}
