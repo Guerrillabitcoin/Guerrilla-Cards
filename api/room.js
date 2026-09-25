@@ -843,10 +843,26 @@ async function handler(req, res) {
         const incomingProg = gameProgress(incoming);
 
         // Rematch from results resets round/progress; newer updatedAt wins.
-        const matchRestart =
-          existing.phase === 'results' &&
+                const incomingRematch =
           incoming.phase !== 'results' &&
+          incoming.phase !== 'lobby' &&
+          (Number(incoming.round) || 0) <= 1 &&
+          existing.phase === 'results';
+        const existingRematch =
+          existing.phase !== 'results' &&
+          existing.phase !== 'lobby' &&
+          (Number(existing.round) || 0) <= 1;
+        const matchRestart =
+          incomingRematch &&
           (incoming.updatedAt ?? 0) >= (existing.updatedAt ?? 0);
+        if (existingRematch && incoming.phase === 'results') {
+          return res.status(200).json({
+            ok: true,
+            skipped: true,
+            state: existing,
+            code,
+          });
+        }
 
         // Stale only when remote is strictly ahead in round/phase progress.
         // reveal → next submitting/discarding is FORWARD (higher gameProgress).
