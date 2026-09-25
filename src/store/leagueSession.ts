@@ -6,9 +6,6 @@ function keyFor(code: string): string {
 function genKey(code: string): string {
   return `gc_liga_gen_${String(code || '').trim().toUpperCase()}`;
 }
-function tokKey(code: string): string {
-  return `gc_liga_tok_${String(code || '').trim().toUpperCase()}`;
-}
 
 export function mergeLeague(
   ...maps: Array<Record<string, number> | null | undefined>
@@ -40,15 +37,14 @@ export function readLeague(code: string): Record<string, number> {
 export function writeLeague(code: string, scores: Record<string, number>): void {
   if (typeof window === 'undefined' || !code) return;
   try {
-    const next = mergeLeague(readLeague(code), scores);
-    window.localStorage.setItem(keyFor(code), JSON.stringify(next));
+    window.localStorage.setItem(keyFor(code), JSON.stringify(mergeLeague(scores)));
   } catch {
     /* quota */
   }
 }
 
 export function leagueFromState(state: GameState): Record<string, number> {
-  return mergeLeague(readLeague(state.code), state.leagueScores);
+  return mergeLeague(state.leagueScores, readLeague(state.code));
 }
 
 export function currentLeagueDeal(code: string): number {
@@ -71,22 +67,14 @@ export function bumpLeagueDeal(code: string): number {
   return n;
 }
 
+/** +1 once per match. If the room already awarded, only copy the totals. */
 export function awardLeaguePersistent(
   state: GameState,
   winnerId: string | null
 ): GameState {
   if (!winnerId || state.mode === 'solo') return state;
-  const base = leagueFromState(state);
-  const token = `${currentLeagueDeal(state.code)}:${state.phase}:${winnerId}`;
-  let prev = '';
-  if (typeof window !== 'undefined') {
-    try {
-      prev = window.localStorage.getItem(tokKey(state.code)) || '';
-    } catch {
-      prev = '';
-    }
-  }
-  if (prev === token) {
+  const base = mergeLeague(state.leagueScores, readLeague(state.code));
+  if (state.leagueAwarded) {
     writeLeague(state.code, base);
     return { ...state, leagueScores: base, leagueAwarded: true };
   }
@@ -95,12 +83,5 @@ export function awardLeaguePersistent(
     [winnerId]: (base[winnerId] || 0) + 1,
   };
   writeLeague(state.code, leagueScores);
-  if (typeof window !== 'undefined') {
-    try {
-      window.localStorage.setItem(tokKey(state.code), token);
-    } catch {
-      /* quota */
-    }
-  }
   return { ...state, leagueScores, leagueAwarded: true };
 }
