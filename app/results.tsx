@@ -264,16 +264,14 @@ export default function ResultsScreen() {
       }
       return;
     }
-    updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
+       updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
     void (async () => {
       const g = getGame(game.code);
       if (!g) return;
       await pushRoom(g, myPlayerId);
-      // If everyone ready after our tap, start
-            const iAmHost = !!g.players.find((p) => p.id === myPlayerId && p.isHost);
+      const iAmHost = !!g.players.find((p) => p.id === myPlayerId && p.isHost);
       if (Engine.allHumansRestartReady(g) && iAmHost) {
         doRestartNow();
-      }
       }
     })();
   };
