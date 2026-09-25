@@ -729,7 +729,13 @@ function applyPrivacyMerges(existing, incoming) {
     incoming && incoming.leagueScores,
     state.leagueScores
   );
-  state.players = mergePlayerScores(existing && existing.players, state.players);
+    const mergingRematch =
+    state &&
+    (Number(state.round) || 0) <= 1 &&
+    (state.phase === 'submitting' || state.phase === 'discarding');
+  if (!mergingRematch) {
+    state.players = mergePlayerScores(existing && existing.players, state.players);
+  }
   return sanitizeRoomState(promoteJudgingIfReady(state));
 }
 async function handler(req, res) {
@@ -875,8 +881,16 @@ async function handler(req, res) {
           });
         }
 
-        if (matchRestart) {
+               if (matchRestart) {
           state = { ...incoming, code };
+          state.players = (state.players || []).map((p) =>
+            p ? { ...p, score: 0 } : p
+          );
+          state.submissions = [];
+          state.votes = {};
+          state.roundWinnerId = null;
+          state.roundWinnerIds = [];
+          // Preserve session league totals across rematch
           // Preserve session league totals across rematch
           if (existing.leagueScores && typeof existing.leagueScores === 'object') {
             state.leagueScores = {
