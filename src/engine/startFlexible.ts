@@ -1,7 +1,7 @@
 import type { GameState } from './types';
 import { MAX_PLAYERS, MIN_PLAYERS } from './types';
 import * as Engine from './game';
-import { leagueFromState, mergeLeague, writeLeague } from '../store/leagueSession';
+import { bumpLeagueDeal, leagueFromState, mergeLeague, writeLeague } from '../store/leagueSession';
 
 function capOf(state: GameState): number {
   return Math.max(
@@ -63,7 +63,7 @@ export function restartFlexible(
     ...state,
     leagueScores: leagueFromState(state),
   };
-  if (src.phase === 'results' && !src.leagueAwarded && src.mode !== 'solo') {
+  if (src.phase === 'results' && src.mode !== 'solo') {
     const humans = src.players.filter((x) => !x.isBot);
     const top = [...humans].sort((a, b) => b.score - a.score)[0];
     if (top) src = Engine.awardLeagueWin(src, top.id);
@@ -76,6 +76,7 @@ export function restartFlexible(
   );
   const leagueScores = mergeLeague(kept, started.leagueScores);
   writeLeague(state.code, leagueScores);
+  bumpLeagueDeal(state.code);
   return {
     ...started,
     mode,
