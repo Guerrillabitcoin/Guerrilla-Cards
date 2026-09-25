@@ -22,29 +22,71 @@ export function mergeLeague(
   return out;
 }
 
-export function readLeague(code: string): Record<string, number> {
-  if (typeof window === 'undefined' || !code) return {};
+type Pack = { scores: Record<string, number>; matches: number };
+
+function parsePack(raw: string | null): Pack {
+  if (!raw) return { scores: {}, matches: 0 };
   try {
-    const raw = window.localStorage.getItem(keyFor(code));
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, number>;
-    return parsed && typeof parsed === 'object' ? mergeLeague(parsed) : {};
+    const parsed = JSON.parse(raw) as Pack | Record<string, number>;
+    if (parsed && typeof parsed === 'object' && 'scores' in parsed) {
+      const p = parsed as Pack;
+      return {
+        scores: mergeLeague(p.scores),
+        matches: Math.max(0, Number(p.matches) || 0),
+      };
+    }
+    const scores = mergeLeague(parsed as Record<string, number>);
+    const inferred = Object.values(scores).reduce((a, b) => a + b, 0);
+    return { scores, matches: inferred };
   } catch {
-    return {};
+    return { scores: {}, matches: 0 };
   }
 }
 
-export function writeLeague(code: string, scores: Record<string, number>): void {
+export function readLeaguePack(code: string): Pack {
+  if (typeof window === 'undefined' || !code) return { scores: {}, matches: 0 };
+  try {
+    return parsePack(window.localStorage.getItem(keyFor(code)));
+  } catch {
+    return { scores: {}, matches: 0 };
+  }
+}
+
+export function readLeague(code: string): Record<string, number> {
+  return readLeaguePack(code).scores;
+}
+
+export function writeLeaguePack(
+  code: string,
+  scores: Record<string, number>,
+  matches: number
+): void {
   if (typeof window === 'undefined' || !code) return;
   try {
-    window.localStorage.setItem(keyFor(code), JSON.stringify(mergeLeague(scores)));
+    window.localStorage.setItem(
+      keyFor(code),
+      JSON.stringify({
+        scores: mergeLeague(scores),
+        matches: Math.max(0, Number(matches) || 0),
+      })
+    );
   } catch {
     /* quota */
   }
 }
 
+export function writeLeague(code: string, scores: Record<string, number>): void {
+  const prev = readLeaguePack(code);
+  writeLeaguePack(code, scores, prev.matches);
+}
+
 export function leagueFromState(state: GameState): Record<string, number> {
   return mergeLeague(state.leagueScores, readLeague(state.code));
+}
+
+export function leagueMatchCountOf(state: GameState): number {
+  const stored = readLeaguePack(state.code).matches;
+  return Math.max(Number(state.leagueMatchCount) || 0, stored);
 }
 
 export function currentLeagueDeal(code: string): number {
@@ -67,21 +109,33 @@ export function bumpLeagueDeal(code: string): number {
   return n;
 }
 
-/** +1 once per match. If the room already awarded, only copy the totals. */
 export function awardLeaguePersistent(
   state: GameState,
   winnerId: string | null
 ): GameState {
   if (!winnerId || state.mode === 'solo') return state;
-  const base = mergeLeague(state.leagueScores, readLeague(state.code));
+  const pack = readLeaguePack(state.code);
+  const base = mergeLeague(state.leagueScores, pack.scores);
+  const matchesNow = Math.max(Number(state.leagueMatchCount) || 0, pack.matches);
   if (state.leagueAwarded) {
-    writeLeague(state.code, base);
-    return { ...state, leagueScores: base, leagueAwarded: true };
+    writeLeaguePack(state.code, base, matchesNow);
+    return {
+      ...state,
+      leagueScores: base,
+      leagueAwarded: true,
+      leagueMatchCount: matchesNow,
+    };
   }
   const leagueScores = {
     ...base,
     [winnerId]: (base[winnerId] || 0) + 1,
   };
-  writeLeague(state.code, leagueScores);
-  return { ...state, leagueScores, leagueAwarded: true };
+  const matches = matchesNow + 1;
+  writeLeaguePack(state.code, leagueScores, matches);
+  return {
+    ...state,
+    leagueScores,
+    leagueAwarded: true,
+    leagueMatchCount: matches,
+  };
 }
