@@ -32,6 +32,7 @@ import {
   setOnlineFlag,
 } from '@/src/store/roomSync';
 import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
+import { LobbyShareCard } from '@/src/components/LobbyShareCard';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function notify(title: string, message: string) {
@@ -421,10 +422,9 @@ export default function LobbyScreen() {
           />
           {iAmHost ? (
             <>
-              <Button
-                title={`Copiar enlace lobby (${game.code})`}
-                variant="outline"
-                onPress={() => {
+              <LobbyShareCard
+                code={game.code}
+                onCopy={() => {
                   void copyRecoveryUrl(game.code).then((url) =>
                     notify('Lobby', url)
                   );
