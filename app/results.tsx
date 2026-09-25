@@ -24,7 +24,7 @@ import {
   pushRoom,
 } from '@/src/store/roomSync';
 import { useTheme } from '@/src/store/ThemeContext';
-
+import { leagueFromState, writeLeague } from '@/src/store/leagueSession';
 
 export default function ResultsScreen() {
   const styles = useResultsStyles();
@@ -198,6 +198,8 @@ export default function ResultsScreen() {
     if (game.mode === 'solo' || !onlineRoom) return;
     if (!Engine.allHumansRestartReady(game)) return;
     if ((game.restartReadyIds?.length ?? 0) === 0) return;
+    const iAmStarter = Engine.canForceRestart(game, myPlayerId);
+    if (!iAmStarter) return;
     const stamp = `${game.code}:${(game.restartReadyIds || []).slice().sort().join(',')}`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
@@ -266,7 +268,7 @@ export default function ResultsScreen() {
       if (!g) return;
       await pushRoom(g, myPlayerId);
       // If everyone ready after our tap, start
-      if (Engine.allHumansRestartReady(g)) {
+      if (Engine.allHumansRestartReady(g) && Engine.canForceRestart(g, myPlayerId)) {
         doRestartNow();
       }
     })();
@@ -325,7 +327,7 @@ export default function ResultsScreen() {
             style={[styles.row, i === 0 && styles.rowFirst]}
           >
             <View style={[styles.rankBadge, i === 0 && styles.rankBadgeFirst]}>
-              <Text style={styles.rank}>{i + 1}</Text>
+              <Text style={[styles.rank, i === 0 && styles.rankOnAccent]}>{i + 1}</Text>
             </View>
             <Text style={styles.name} numberOfLines={1}>
               {p.isBot ? '🤖 ' : ''}
@@ -342,7 +344,8 @@ export default function ResultsScreen() {
   const readyIds = game.restartReadyIds ?? [];
   const iAmReady = !!(myPlayerId && readyIds.includes(myPlayerId));
   const canForce = Engine.canForceRestart(game, myPlayerId);
-  const leagueScores = game.leagueScores ?? {};
+  const leagueScores = leagueFromState(game);
+  if (typeof window !== 'undefined') writeLeague(game.code, leagueScores);
   const leagueRanked = [...board]
     .map((p) => ({
       ...p,
@@ -363,7 +366,7 @@ export default function ResultsScreen() {
             <View
               style={[styles.rankBadge, i === 0 && p.liga > 0 && styles.rankBadgeFirst]}
             >
-              <Text style={styles.rank}>{i + 1}</Text>
+              <Text style={[styles.rank, i === 0 && styles.rankOnAccent]}>{i + 1}</Text>
             </View>
             <Text style={styles.name} numberOfLines={1}>
               {p.isBot ? '🤖 ' : ''}
@@ -619,6 +622,7 @@ function useResultsStyles() {
     backgroundColor: colors.zar,
   },
   rank: { color: colors.text, fontWeight: '900', fontSize: 14 },
+  rankOnAccent: { color: '#FFFFFF' },
   name: { color: colors.text, fontWeight: '700', flex: 1, fontSize: 16 },
   score: { color: colors.textMuted, fontWeight: '800', fontSize: 18 },
   scoreFirst: { color: colors.zar },
