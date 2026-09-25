@@ -4,7 +4,7 @@ import { useTheme } from '../store/ThemeContext';
 
 const HIT: Record<string, { bg: string; fg: string }> = {
   guerrilla: { bg: '#FFC857', fg: '#1A0A00' },
-  classic: { bg: '#111111', fg: '#FFFFFF' },
+  classic: { bg: '#C45A12', fg: '#FFFFFF' },
   oscuro: { bg: '#5CFF9E', fg: '#04140A' },
 };
 
