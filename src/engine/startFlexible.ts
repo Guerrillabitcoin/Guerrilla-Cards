@@ -1,7 +1,13 @@
 import type { GameState } from './types';
 import { MAX_PLAYERS, MIN_PLAYERS } from './types';
 import * as Engine from './game';
-import { bumpLeagueDeal, leagueFromState, mergeLeague, writeLeague } from '../store/leagueSession';
+import {
+  bumpLeagueDeal,
+  leagueFromState,
+  leagueMatchCountOf,
+  mergeLeague,
+  writeLeague,
+} from '../store/leagueSession';
 
 function capOf(state: GameState): number {
   return Math.max(
@@ -34,7 +40,6 @@ export function startFlexible(state: GameState): GameState {
   if (state.mode === 'solo') {
     return Engine.startGame(state);
   }
-
   const cap = capOf(state);
   if (state.players.length < MIN_PLAYERS) {
     throw new Error(`Haz falta al menos ${MIN_PLAYERS} jugadores.`);
@@ -42,12 +47,10 @@ export function startFlexible(state: GameState): GameState {
   if (state.players.length > cap) {
     throw new Error(`Máximo ${cap} jugadores.`);
   }
-
   let next = state;
   if (next.players.length === 2 || cap === 2) {
     next = { ...next, judgeMode: 'vote', maxPlayers: cap === 2 ? 2 : next.maxPlayers };
   }
-
   const started = Engine.startGame({ ...next, mode: 'live' });
   return { ...started, mode: next.mode, maxPlayers: cap, judgeMode: next.judgeMode };
 }
@@ -69,6 +72,7 @@ export function restartFlexible(
     if (top) src = Engine.awardLeagueWin(src, top.id);
   }
   const kept = mergeLeague(src.leagueScores);
+  const matches = leagueMatchCountOf(src);
   writeLeague(state.code, kept);
   const started = Engine.restartMatch(
     { ...src, mode: mode === 'async' ? 'live' : mode, leagueScores: kept },
@@ -84,6 +88,7 @@ export function restartFlexible(
     judgeMode,
     currentPrompt: started.currentPrompt,
     leagueScores,
+    leagueMatchCount: matches,
     leagueAwarded: false,
     restartReadyIds: [],
   };
