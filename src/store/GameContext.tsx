@@ -11,7 +11,7 @@ import React, {
 import * as Engine from '../engine/game';
 import { restartFlexible } from '../engine/startFlexible';
 import { dropStaleRemote } from './remoteGate';
-import {
+import { roomPaintKey } from './roomSnap';import {
   buildPreShuffledAnswerDeck,
   buildVariedPromptDeck,
   loadCombinedDeck,
@@ -343,8 +343,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const applyRemoteGame = useCallback(
     (state: GameState) => {
       const key = state.code.trim().toUpperCase();
-      let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
+            let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
+      if (local && roomPaintKey(local) === roomPaintKey(remote)) {
+        return false;
+      }
       const localProg = gameProgress(local);
       const remoteProg = gameProgress(remote);
       // Progress is round-aware: reveal → next submitting is forward, not a downgrade
