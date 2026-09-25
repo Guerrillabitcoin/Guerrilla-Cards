@@ -28,6 +28,7 @@ import {
   type Player,
   type Submission,
 } from './types';
+import { awardLeaguePersistent } from '../store/leagueSession';
 
 export {
   ASYNC_TARGET_PLAYERS,
@@ -705,11 +706,7 @@ export function submitCards(
 
 /** +1 liga point to match winner when entering results (once per match). */
 export function awardLeagueWin(state: GameState, winnerId: string | null): GameState {
-  if (!winnerId || state.mode === 'solo') return state;
-  if (state.leagueAwarded) return state;
-  const leagueScores = { ...(state.leagueScores || {}) };
-  leagueScores[winnerId] = (leagueScores[winnerId] || 0) + 1;
-  return { ...state, leagueScores, leagueAwarded: true };
+  return awardLeaguePersistent(state, winnerId);
 }
 
 export function markRestartReady(
