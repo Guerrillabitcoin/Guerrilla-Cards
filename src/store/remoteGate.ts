@@ -1,10 +1,16 @@
 import type { GameState } from '../engine/types';
 import { gameProgress } from '../engine/syncProgress';
 
-/**
- * Fin de partida: cualquier asiento (2–8) debe aceptar results.
- * Solo se ignora si ese dispositivo ya está en results o ya arrancó Otra manga.
- */
+function rematchLive(g?: GameState | null): boolean {
+  if (!g) return false;
+  const r = Number(g.round) || 0;
+  return (
+    r <= 1 &&
+    (g.phase === 'submitting' || g.phase === 'discarding')
+  );
+}
+
+/** Fin de partida: aceptar results salvo si este dispositivo ya reinició. */
 export function incomingMatchOver(
   remote: GameState,
   local?: GameState | null
@@ -12,11 +18,8 @@ export function incomingMatchOver(
   if (!remote || remote.phase !== 'results') return false;
   if (!local) return true;
   if (local.phase === 'results' || local.phase === 'lobby') return false;
-  const rematchStarted =
-    (local.phase === 'submitting' || local.phase === 'discarding') &&
-    (local.round ?? 0) <= 1 &&
-    (local.updatedAt ?? 0) > (remote.updatedAt ?? 0);
-  return !rematchStarted;
+  if (rematchLive(local)) return false;
+  return true;
 }
 
 export function dropStaleRemote(
@@ -24,6 +27,8 @@ export function dropStaleRemote(
   remote: GameState
 ): boolean {
   if (!local) return false;
+  // Live rematch must ignore leftover results (high gameProgress, old match).
+  if (rematchLive(local) && remote.phase === 'results') return true;
   if (incomingMatchOver(remote, local)) return false;
   const rematch =
     local.phase === 'results' &&
