@@ -98,6 +98,10 @@ export default function ResultsScreen() {
     if (!top) return;
     updateGame(game.code, (g) => Engine.awardLeagueWin(g, top.id));
   }, [game?.code, game?.phase, game?.leagueAwarded, game?.mode, updateGame]);
+
+  useEffect(() => {
+    if (!game || game.phase !== 'results') return;
+    const key = `${game.code}:stale`;
     if (staleOnceRef.current === key) return;
     staleOnceRef.current = key;
     const left = game.players
