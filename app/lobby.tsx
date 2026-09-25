@@ -33,6 +33,7 @@ import {
 } from '@/src/store/roomSync';
 import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { LobbyShareCard } from '@/src/components/LobbyShareCard';
+import { renameRoom } from '@/src/store/renameRoom';import { LobbyShareCard } from '@/src/components/LobbyShareCard';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function notify(title: string, message: string) {
@@ -324,8 +325,14 @@ export default function LobbyScreen() {
 
   return (
     <Screen>
-      <Title>Lobby {game.code}</Title>
-      <Subtitle>
+      <LobbyShareCard
+        code={game.code}
+        seated={game.players.length}
+        cap={seatMax}
+        onCopy={() => {
+          void copyRecoveryUrl(game.code).then((url) => notify('Lobby', url));
+        }}
+      />      <Subtitle>
         Modo {modeLabel}
         {isAsync ? ` · juez ${judgeLabel}` : ''} · Packs:{' '}
         {game.packIds.join(', ')} · Meta: {game.targetScore} Puntacos
