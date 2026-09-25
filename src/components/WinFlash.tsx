@@ -1,5 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { useTheme } from '../store/ThemeContext';
+
+const HIT: Record<string, { bg: string; fg: string }> = {
+  guerrilla: { bg: '#FFC857', fg: '#1A0A00' },
+  classic: { bg: '#111111', fg: '#FFFFFF' },
+  oscuro: { bg: '#5CFF9E', fg: '#04140A' },
+};
 
 export function WinFlash({
   active,
@@ -8,6 +15,8 @@ export function WinFlash({
   active: boolean;
   children: React.ReactNode;
 }) {
+  const { themeId } = useTheme();
+  const hit = HIT[themeId] || HIT.guerrilla;
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     if (!active) {
@@ -17,7 +26,7 @@ export function WinFlash({
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 0.2,
+          toValue: 0.18,
           duration: 55,
           useNativeDriver: true,
         }),
@@ -34,7 +43,9 @@ export function WinFlash({
   }, [active, pulse]);
   if (!active) return <View>{children}</View>;
   return (
-    <Animated.View style={[styles.hit, { opacity: pulse }]}>
+    <Animated.View
+      style={[styles.hit, { opacity: pulse, backgroundColor: hit.bg }]}
+    >
       {children}
     </Animated.View>
   );
@@ -42,7 +53,6 @@ export function WinFlash({
 
 const styles = StyleSheet.create({
   hit: {
-    backgroundColor: '#00E676',
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 2,
