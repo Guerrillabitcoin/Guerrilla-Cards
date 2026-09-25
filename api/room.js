@@ -758,8 +758,9 @@ async function handler(req, res) {
       } catch {
         return res.status(500).json({ ok: false, error: 'corrupt_state' });
       }
-     state = sanitizeRoomState(state);
+        state = sanitizeRoomState(state);
       return res.status(200).json({ ok: true, state });
+    }
 
     if (req.method === 'POST') {
       let body = {};
