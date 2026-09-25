@@ -16,7 +16,7 @@ import {
   Title,
 } from '@/src/components/ui';
 import { NextRoundBar } from '@/src/components/NextRoundBar';
-import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
+import { leagueMatchCountOf } from '@/src/store/leagueSession';import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
 import { WaitingRoster } from '@/src/components/WaitingRoster';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
 import { RoundStandings } from '@/src/components/RoundStandings';
@@ -1137,9 +1137,9 @@ export default function PlayScreen() {
       phase === 'judging' ||
       phase === 'reveal');
 
-  const stickyPromptAnswers =
-    phase === 'reveal' && submittedAnswerTexts.length
-      ? submittedAnswerTexts
+   const stickyPromptAnswers =
+    phase === 'reveal'
+      ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
       : phase === 'judging'
         ? stickyAnswers.length
           ? stickyAnswers
@@ -1162,14 +1162,10 @@ export default function PlayScreen() {
           zar &&
           myPlayerId === zar.id
         ? `ZAR · Ronda ${game.round} · ${game.code}`
-                : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
-            isSolo ? 'Solo' : game.code
-          }`;
+                                : `Partida ${(leagueMatchCountOf(game) || 0) + (game.phase === 'results' ? 0 : 1)} · Ronda ${game.round}`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
-    : voteMode
-      ? `Voto · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`
-      : `${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
+    : '';
   return (
     <View style={styles.root}>
       <View style={styles.sticky}>
@@ -1816,12 +1812,10 @@ export default function PlayScreen() {
                         ? ` · próximo Zar: ${winnerName}`
                         : ''}
                     </Subtitle>
-                    <Muted>
-                      {isTie
-                        ? (game.roundWinnerId
-                          ? `Empate · +1 cada una. Meta: ${game.targetScore} Puntacos.`
-                          : `Empate: voto dividido · ronda anulada. Meta: ${game.targetScore} Puntacos.`)
-                        : `+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
+                                        <Muted>
+                      {iWon
+                        ? 'Tu respuesta ha ganado'
+                        : `Ganó ${winnerName}`}
                     </Muted>
                     {isTie
                       ? tiedSubs.map((sub) => {
