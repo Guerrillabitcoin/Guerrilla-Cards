@@ -11,7 +11,12 @@
 const ROOM_PREFIX = 'gc:room:';
 const MAX_BODY_CHARS = 900_000;
 const ASYNC_MAX_PLAYERS = 8;
-
+const {
+  sanitizeRoomState,
+  freezeRevealOrder,
+  currentRoundSubs,
+  sortSubsByPlayerId,
+} = require('./sanitizeRoom');
 function uid(prefix) {
   return (
     prefix +
@@ -429,7 +434,8 @@ function promoteJudgingIfReady(state) {
   return {
     ...state,
     submissions: subs,
-    revealOrder: shuffleIndices(subs.length),
+    revealOrder: freezeRevealOrder(state.revealOrder, null, sortSubsByPlayerId(subs).length),
+submissions: sortSubsByPlayerId(subs),
     votes: {},
     phase: 'judging',
     activeSeatId: voteMode
@@ -706,20 +712,18 @@ function applyPrivacyMerges(existing, incoming) {
     }
   }
   if (phase === 'judging') {
-    state.revealOrder =
-      (incoming.revealOrder &&
-      incoming.revealOrder.length === submissions.length
-        ? incoming.revealOrder
-        : null) ||
-      existing.revealOrder ||
-      shuffleIndices(submissions.length);
+    state.submissions = currentRoundSubs(state);
+    state.revealOrder = freezeRevealOrder(
+      existing.revealOrder,
+      incoming.revealOrder,
+      state.submissions.length
+    );
     state.activeSeatId =
       incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;
     state = resolveVotesIfCompleteServer(state);
   }
-  return promoteJudgingIfReady(state);
+  return sanitizeRoomState(promoteJudgingIfReady(state));
 }
-
 async function handler(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') {
@@ -748,6 +752,7 @@ async function handler(req, res) {
       } catch {
         return res.status(500).json({ ok: false, error: 'corrupt_state' });
       }
+      state = sanitizeRoomState(state);
       return res.status(200).json({ ok: true, state });
     }
 
@@ -952,6 +957,7 @@ async function handler(req, res) {
 
       state = promoteJudgingIfReady(state);
       state = resolveVotesIfCompleteServer(state);
+      state = sanitizeRoomState(state);
 
       const payload = JSON.stringify(state);
       if (payload.length > MAX_BODY_CHARS) {
