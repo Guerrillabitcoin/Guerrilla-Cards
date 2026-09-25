@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { GameState, Player } from '../engine/types';
 import { votesFor } from '../engine/vote2p';
+import { WinFlash } from './WinFlash';
 
 function humanCount(game: GameState): number {
   return game.players.filter((p) => !p.isBot).length;
@@ -54,17 +55,19 @@ export function RoundStandings({
           })
         : null}
       {now.map((r, i) => (
-        <View key={r.p.id} style={[styles.row, i === 0 && styles.lead]}>
-          <Text style={styles.pos}>{i + 1}</Text>
-          <Text style={styles.name} numberOfLines={1}>
-            {r.p.nickname}
-            {meId === r.p.id ? ' · tú' : ''}
-          </Text>
-          <Text style={[styles.delta, r.d > 0 ? styles.plus : styles.zero]}>
-            {r.d > 0 ? `+${r.d}` : '+0'}
-          </Text>
-          <Text style={styles.total}>{r.p.score}</Text>
-        </View>
+        <WinFlash key={r.p.id} active={r.d > 0}>
+          <View style={[styles.row, i === 0 && styles.lead]}>
+            <Text style={styles.pos}>{i + 1}</Text>
+            <Text style={styles.name} numberOfLines={1}>
+              {r.p.nickname}
+              {meId === r.p.id ? ' · tú' : ''}
+            </Text>
+            <Text style={[styles.delta, r.d > 0 ? styles.plus : styles.zero]}>
+              {r.d > 0 ? `+${r.d}` : '+0'}
+            </Text>
+            <Text style={styles.total}>{r.p.score}</Text>
+          </View>
+        </WinFlash>
       ))}
       <Text style={styles.hint}>
         {split
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
   pos: { width: 18, color: '#FFF8E1', fontWeight: '900' },
   name: { flex: 1, color: '#FFF', fontWeight: '800', fontSize: 16 },
   delta: { fontWeight: '900', fontSize: 18, minWidth: 36, textAlign: 'right' },
-  plus: { color: '#69F0AE' },
+  plus: { color: '#003300' },
   zero: { color: '#757575' },
   total: {
     color: '#FFE082',
