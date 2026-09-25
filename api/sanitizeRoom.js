@@ -70,6 +70,24 @@ function freezeRevealOrder(existingOrder, incomingOrder, n) {
   return Array.from({ length: n }, (_, i) => i);
 }
 
+function mergePlayerScores(existingPlayers, incomingPlayers) {
+  const best = {};
+  for (const list of [existingPlayers, incomingPlayers]) {
+    for (const p of list || []) {
+      if (!p || !p.id) continue;
+      const n = Number(p.score);
+      best[p.id] = Math.max(best[p.id] || 0, Number.isFinite(n) ? n : 0);
+    }
+  }
+  const base =
+    incomingPlayers && incomingPlayers.length
+      ? incomingPlayers
+      : existingPlayers || [];
+  return base.map((p) =>
+    p && p.id && best[p.id] != null ? { ...p, score: best[p.id] } : p
+  );
+}
+
 function mergeLeagueMaps() {
   const out = {};
   for (let i = 0; i < arguments.length; i++) {
@@ -112,4 +130,5 @@ module.exports = {
   freezeRevealOrder,
   sanitizeRoomState,
   mergeLeagueMaps,
+  mergePlayerScores,
 };
