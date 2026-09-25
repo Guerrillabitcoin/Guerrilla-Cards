@@ -13,7 +13,10 @@ export function roomPaintKey(g?: GameState | null): string {
     (g.revealOrder || []).join(','),
     Object.keys(votes).length,
     (g.players || [])
-      .map((p) => `${p.id}:${p.score}:${(p.hand || []).length}`)
+      .map(
+        (p) =>
+          `${p.id}:${p.nickname || ''}:${p.score}:${(p.hand || []).length}`
+      )
       .join('|'),
     (g.restartReadyIds || []).length,
     Object.keys(liga)
@@ -21,5 +24,6 @@ export function roomPaintKey(g?: GameState | null): string {
       .map((id) => `${id}:${liga[id]}`)
       .join(','),
     g.roundWinnerId ?? '',
+    String(g.maxPlayers ?? ''),
   ].join('~');
 }
