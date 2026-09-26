@@ -730,11 +730,13 @@ function applyPrivacyMerges(existing, incoming) {
       incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;
     state = resolveVotesIfCompleteServer(state);
   }
-    state.leagueScores = mergeLeagueMaps(
-    existing && existing.leagueScores,
-    incoming && incoming.leagueScores,
-    state.leagueScores
-  );
+        state.leagueScores = mergeLeagueMaps(
+      existing && existing.leagueScores,
+      incoming && incoming.leagueScores,
+      state.leagueScores
+    );
+    const { awardOnResults } = require('./awardOnResults');
+    state = awardOnResults(state);
     const mergingRematch =
     state &&
     (Number(state.round) || 0) <= 1 &&
