@@ -543,8 +543,11 @@ export function startGame(state: GameState): GameState {
       throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
     }
   }
-  let next = dealHands({ ...state, zarIndex: 0, round: 0 });
-  next = beginRound(next);
+  const z = Math.max(
+    0,
+    Math.min((state.players.length || 1) - 1, Number(state.zarIndex) || 0)
+  );
+  let next = dealHands({ ...state, zarIndex: z, round: 0 });  next = beginRound(next);
   return { ...next, updatedAt: now() };
 }
 
