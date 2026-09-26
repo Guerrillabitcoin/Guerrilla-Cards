@@ -31,7 +31,7 @@ import {
   setMySeat,
   setOnlineFlag,
 } from '@/src/store/roomSync';
-import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
+import { useRoomPoll } from '@/src/store/useRoomPoll';import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { LobbyShareCard } from '@/src/components/LobbyShareCard';
 import { LobbyJoinBar } from '@/src/components/LobbyJoinBar';import { renameRoom } from '@/src/store/renameRoom';import { useTheme } from '@/src/store/ThemeContext';
 
@@ -204,14 +204,13 @@ export default function LobbyScreen() {
     if (me?.nickname) setNick(me.nickname);
   }, [game?.code, myPlayerId, game?.players]);
 
-  useEffect(() => {
-    if (!ready || !gameCode || !onlineRoom) return;
-    let cancelled = false;
-    const tick = async () => {
-      const res = await pullRoom(gameCode);
-      if (cancelled || !res.ok) return;
-      applyRemoteGame(res.state);
-    };
+   useRoomPoll({
+    ready,
+    code: gameCode,
+    enabled: onlineRoom,
+    phase: game?.phase,
+    applyRemoteGame,
+  });
     void tick();
     const id = setInterval(tick, 2500);
     return () => {
