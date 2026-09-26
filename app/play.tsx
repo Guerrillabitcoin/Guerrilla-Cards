@@ -1132,9 +1132,13 @@ export default function PlayScreen() {
       phase === 'reveal');
 
    const stickyPromptAnswers =
-   phase === 'reveal' || phase === 'judging'
+   phase === 'reveal'
       ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
-      : stickyAnswers;
+      : phase === 'judging' && myPlayerId
+        ? (game.submissions.find((s) => s.playerId === myPlayerId && !s.rival)
+            ?.cards.map((c) => c.text) ??
+          Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______'))
+        : stickyAnswers;
 
   const discardCountLabel =
     picked.length <= discardMin
@@ -1207,7 +1211,9 @@ export default function PlayScreen() {
                 ? `Descartar ${soloSkipCountLabel}`
                 : pickNeed > 1 && phase === 'submitting' && !alreadyAnswered
                   ? `Elige ${pickNeed} (${picked.length}/${pickNeed})`
-                  : 'Pregunta'}
+                                  : phase === 'judging'
+                    ? 'Tu respuesta'
+                    : 'Pregunta'}
             </Text>
             {!soloSkipMode ? (
               <FilledPromptText
@@ -1543,20 +1549,6 @@ export default function PlayScreen() {
                 meId={myPlayerId ?? active?.id}
                 verb="vote"
               />
-              {myPlayerId && game.currentPrompt
-                ? (() => {
-                    const mine = game.submissions.find(
-                      (s) => s.playerId === myPlayerId && !s.rival
-                    );
-                    if (!mine) return null;
-                    return (
-                      <TuRespuesta
-                        promptText={game.currentPrompt.text}
-                        answers={mine.cards.map((c) => c.text)}
-                      />
-                    );
-                  })()
-                : null}
               {active && votesMap[active.id] ? (
                 <Muted>
                   {isOnline
