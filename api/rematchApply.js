@@ -41,6 +41,7 @@ function applyRematch(existing) {
       zarIndex,
       phase: 'submitting',
       round: 1,
+      currentPrompt: null,
       submissions: [],
       votes: {},
       revealOrder: [],
