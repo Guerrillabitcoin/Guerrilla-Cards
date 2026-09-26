@@ -52,7 +52,7 @@ export default function PlayScreen() {
 
   const { code, seat: seatParam } = useLocalSearchParams<{ code: string; seat?: string }>();
   const router = useRouter();
-  const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
+  const { getGame, updateGame, ready, applyRemoteGame, restartSameSetup } = useGameStore();
   const {
     appendWinner,
     toggleFavorite,
@@ -91,6 +91,7 @@ export default function PlayScreen() {
   const greenFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const favAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancingLockRef = useRef(false);
+  const redealRanRef = useRef<string | null>(null);
   const engineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordedRoundRef = useRef<string | null>(null);
   const discardRecordedRef = useRef<string | null>(null);
@@ -160,6 +161,35 @@ export default function PlayScreen() {
       cancelled = true;
     };
   }, [ready, gameCode, seatParam, applyRemoteGame]);
+
+  // Host recovery: rematch left submitting with currentPrompt=null (624TH hang).
+  // Only anfitrión re-deals once; guests wait for poll/push.
+  useEffect(() => {
+    if (!ready || !game || !onlineRoom || !myPlayerId) return;
+    if (game.phase !== 'submitting') return;
+    if (game.currentPrompt) return;
+    // Only rematch-shaped hangs (round 1, scores cleared) — never mid-manga.
+    if ((game.round ?? 0) > 1) return;
+    if (game.players.some((p) => (p.score ?? 0) > 0)) return;
+    const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+    if (!iAmHost) return;
+    const key = `${game.code}:redeal:r${game.round}:m${game.leagueMatchCount ?? 0}`;
+    if (redealRanRef.current === key) return;
+    redealRanRef.current = key;
+    restartSameSetup(game.code);
+  }, [
+    ready,
+    game?.code,
+    game?.phase,
+    game?.currentPrompt,
+    game?.round,
+    game?.leagueMatchCount,
+    game?.players,
+    onlineRoom,
+    myPlayerId,
+    restartSameSetup,
+  ]);
+
 
      useRoomPoll({
     ready,

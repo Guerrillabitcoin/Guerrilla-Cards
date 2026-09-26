@@ -470,12 +470,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           leagueAwarded:
             remote.phase === 'results'
               ? !!(local.leagueAwarded || remote.leagueAwarded)
-              : !!remote.leagueAwarded,                   currentPrompt:
-            local.currentPrompt &&
-            remote.currentPrompt &&
-            local.currentPrompt.id === remote.currentPrompt.id
-              ? local.currentPrompt
-              : remote.currentPrompt,
+              : !!remote.leagueAwarded,
+          // Rematch race: bare server rematch has currentPrompt=null until host deals.
+          // Never overwrite a local dealt prompt with null on the same round.
+          currentPrompt: (() => {
+            const lp = local.currentPrompt;
+            const rp = remote.currentPrompt;
+            if (lp && rp && lp.id === rp.id) return lp;
+            if (
+              lp &&
+              !rp &&
+              (remote.phase === 'submitting' || remote.phase === 'discarding') &&
+              (local.phase === 'submitting' || local.phase === 'discarding') &&
+              (local.round ?? 0) === (remote.round ?? 0)
+            ) {
+              return lp;
+            }
+            return rp ?? lp ?? null;
+          })(),
           restartReadyIds: Array.from(
             new Set([
               ...(local.phase === remote.phase

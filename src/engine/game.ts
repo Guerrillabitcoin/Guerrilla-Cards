@@ -810,8 +810,8 @@ function applyRoundWinner(
 }
 
 /**
- * Vote ties for exactly 2 humans (legacy / fallback): +1 each real player,
- * roundWinnerIds=tied, roundWinnerId=tied[0]. Prefer vote2p for 2p online.
+ * Legacy multi-winner award (+1 each). Prefer applyVoteSplitAnnul for vote ties
+ * (incl. 1v1 split → 0). Kept for non-vote callers / tests.
  * No revealOrder tiebreak. Results if any hits targetScore.
  */
 export function applyRoundWinners(
@@ -889,9 +889,8 @@ export function applyVoteSplitAnnul(
 }
 
 /**
- * Tally completed votes. Majority → applyRoundWinner.
- * Tie + >2 humans → applyVoteSplitAnnul (no points).
- * Tie + 2 humans → applyRoundWinners (+1 each; vote2p usually handles 2p).
+ * Tally completed votes. Majority → applyRoundWinner (+1).
+ * Any vote tie (2p or >2) → applyVoteSplitAnnul (0 points).
  * Safe no-op if not all eligible have voted.
  */
 export function tallyVotesIfComplete(state: GameState): GameState {
@@ -913,11 +912,7 @@ export function tallyVotesIfComplete(state: GameState): GameState {
   const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
   const withVotes = { ...state, votes };
   if (tied.length >= 2) {
-    const humans = state.players.filter((p) => !p.isBot).length;
-    if (humans > 2) {
-      return applyVoteSplitAnnul(withVotes, tied);
-    }
-    return applyRoundWinners(withVotes, tied);
+    return applyVoteSplitAnnul(withVotes, tied);
   }
   if (!tied[0]) {
     // Defensive: empty tally must not hang in judging
@@ -1010,8 +1005,8 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
 /**
  * Vote mode: cast one vote for a submission (cannot vote own).
  * When all eligible voters have voted, tallies majority → applyRoundWinner.
- * Ties with >2 humans: applyVoteSplitAnnul (no points, «Empate: voto dividido»).
- * Ties with 2 humans: applyRoundWinners (+1 each; vote2p usually handles 2p).
+ * Ties (any size): applyVoteSplitAnnul (no points, «Empate: voto dividido»).
+ * 2p clear winner: vote2p awards exactly +1 (not +vote count).
  */
 export function castVote(
   state: GameState,
