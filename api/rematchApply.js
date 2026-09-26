@@ -25,6 +25,10 @@ function applyRematch(existing) {
     leagueScores[winner.id] = (Number(leagueScores[winner.id]) || 0) + 1;
     leagueMatchCount += 1;
   }
+  const zarIndex = Math.max(
+    0,
+    playersIn.findIndex((p) => p && winner && p.id === winner.id)
+  );
   const players = playersIn.map((p) => ({
     ...p,
     score: 0,
@@ -34,6 +38,7 @@ function applyRematch(existing) {
     state: {
       ...existing,
       players,
+      zarIndex,
       phase: 'submitting',
       round: 1,
       submissions: [],

@@ -1,9 +1,9 @@
-export const APP_VERSION = '0.99.421.47';
+export const APP_VERSION = '0.99.421.48';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
   {
-    version: '0.99.421.47',
+    version: '0.99.421.48',
     date: '2026-09-26',
-    notes: ['Zar/Voto visibles; flash solo +1; pregunta = servidor'],
+    notes: ['Al reiniciar, Zar = ganador de la manga'],
   },
 ] as const;

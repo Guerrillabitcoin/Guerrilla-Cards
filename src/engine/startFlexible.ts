@@ -66,16 +66,25 @@ export function restartFlexible(
     ...state,
     leagueScores: leagueFromState(state),
   };
-  if (src.phase === 'results' && src.mode !== 'solo') {
-    const humans = src.players.filter((x) => !x.isBot);
-    const top = [...humans].sort((a, b) => b.score - a.score)[0];
-    if (top) src = Engine.awardLeagueWin(src, top.id);
+  const humans = src.players.filter((x) => !x.isBot);
+  const top = [...humans].sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  if (src.phase === 'results' && src.mode !== 'solo' && top) {
+    src = Engine.awardLeagueWin(src, top.id);
   }
+  const zarIndex = Math.max(
+    0,
+    src.players.findIndex((p) => top && p.id === top.id)
+  );
   const kept = mergeLeague(src.leagueScores);
   const matches = leagueMatchCountOf(src);
   writeLeague(state.code, kept);
   const started = Engine.restartMatch(
-    { ...src, mode: mode === 'async' ? 'live' : mode, leagueScores: kept },
+    {
+      ...src,
+      zarIndex,
+      mode: mode === 'async' ? 'live' : mode,
+      leagueScores: kept,
+    },
     opts
   );
   const leagueScores = mergeLeague(kept, started.leagueScores);
@@ -86,6 +95,7 @@ export function restartFlexible(
     mode,
     maxPlayers: cap,
     judgeMode,
+    zarIndex,
     currentPrompt: started.currentPrompt,
     leagueScores,
     leagueMatchCount: matches,
