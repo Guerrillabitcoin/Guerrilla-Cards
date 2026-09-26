@@ -266,12 +266,15 @@ export default function ResultsScreen() {
       }
       return;
     }
-       updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
+          updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
     void (async () => {
+      const local = getGame(game.code);
+      if (local) await pushRoom(local, myPlayerId);
+      const pulled = await pullRoom(game.code);
+      if (pulled.ok) applyRemoteGame(pulled.state);
       const g = getGame(game.code);
-      if (!g) return;
-      await pushRoom(g, myPlayerId);
-          if (Engine.allHumansRestartReady(g)) {
+      if (g && Engine.allHumansRestartReady(g)) {
+        rematchOnceRef.current = null;
         doRestartNow();
       }
     })();
