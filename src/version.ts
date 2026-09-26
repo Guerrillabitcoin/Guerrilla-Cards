@@ -1,6 +1,17 @@
-export const APP_VERSION = '0.99.421.56';
+export const APP_VERSION = '0.99.421.57';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.57',
+    date: '2026-09-26',
+    notes: [
+      'Fix: restaura results.tsx (commits probe lo habían vaciado)',
+      'Rematch: solo el anfitrión baraja; invitados aplican remoto',
+      'Listo colaborativo = mismo camino que Forzar',
+      'Liga +1 solo al cerrar manga; sin doble conteo en rematch',
+      'Voto dividido / Zar faltan / sin fantasma ya contestaste / HUD corto',
+    ],
+  },
   {
     version: '0.99.421.56',
     date: '2026-09-26',
