@@ -537,18 +537,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const remoteSubs = (remote.submissions ?? []).filter(
           (s) => s.round == null || s.round === remoteRound
         );
-        if (
-          localMine &&
-          (localMine.round == null || localMine.round === remoteRound) &&
-          !remoteSubs.some((s) => s.playerId === seat)
-        ) {
-          remote = {
-            ...remote,
-            submissions: [...remoteSubs, { ...localMine, round: remoteRound }],
-          };
-        } else {
-          remote = { ...remote, submissions: remoteSubs };
-        }
+               remote = { ...remote, submissions: remoteSubs };
       } else if (remote.phase === 'submitting') {
         const remoteRound = remote.round;
         remote = {
