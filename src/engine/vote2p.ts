@@ -36,11 +36,13 @@ function finishTwoPlayerVotes(
     (id) => (tallies[id] ?? 0) === best && best > 0
   );
   const isSplit = winners.length > 1;
-  const players = isSplit
-    ? state.players
-    : state.players.map((p) =>
-        p.id in tallies ? { ...p, score: p.score + (tallies[p.id] ?? 0) } : p
-      );
+  // Norma: exactamente +1 al ganador claro; empate 1–1 → 0 (no +votos).
+  const winnerId = !isSplit ? winners[0] ?? null : null;
+  const players = winnerId
+    ? state.players.map((p) =>
+        p.id === winnerId ? { ...p, score: p.score + 1 } : p
+      )
+    : state.players;
   const hitTarget = players.some((p) => p.score >= state.targetScore);
   const hostId =
     state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
@@ -48,7 +50,7 @@ function finishTwoPlayerVotes(
     ...state,
     players,
     votes,
-    roundWinnerId: isSplit ? null : winners[0] ?? hostId,
+    roundWinnerId: isSplit ? null : winnerId ?? hostId,
     roundWinnerIds: isSplit ? winners : [],
     phase: (hitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: hitTarget ? null : hostId,
