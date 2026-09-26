@@ -521,11 +521,38 @@ export default function ResultsScreen() {
                     </Text>
                   </Pressable>
                 </View>
-                <FilledPromptText
+                                <FilledPromptText
                   small={!isFirst}
                   promptText={item.promptText}
-                  answers={item.answers}
+                  answers={
+                    item.answers?.length
+                      ? item.answers
+                      : item.filledText
+                        ? [item.filledText]
+                        : []
+                  }
                 />
+                {isFirst &&
+                myPlayerId &&
+                game.roundWinnerId &&
+                myPlayerId !== game.roundWinnerId
+                  ? (() => {
+                      const mine = game.submissions.find(
+                        (s) => s.playerId === myPlayerId
+                      );
+                      if (!mine) return null;
+                      return (
+                        <>
+                          <Muted>no ganador</Muted>
+                          <FilledPromptText
+                            small
+                            promptText={item.promptText}
+                            answers={mine.cards.map((c) => c.text)}
+                          />
+                        </>
+                      );
+                    })()
+                  : null}
                 <View style={styles.cardFooterRight}>
                   <EnviarShareButton
                     onPress={() =>
