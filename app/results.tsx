@@ -25,8 +25,10 @@ import {
 } from '@/src/store/roomSync';
 import { useRoomPoll } from '@/src/store/useRoomPoll';
 import { useTheme } from '@/src/store/ThemeContext';
+import { WinnerScreenFlash } from '@/src/components/WinFlash';
 import { leagueFromState, leagueMatchCountOf, writeLeague } from '@/src/store/leagueSession';
-import { rematchRoom } from '@/src/store/rematchRoom';export default function ResultsScreen() {
+import { rematchRoom } from '@/src/store/rematchRoom';
+import { WinnerScreenFlash } from '@/src/components/WinFlash'; export default function ResultsScreen() {
   const styles = useResultsStyles();
 
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -430,8 +432,12 @@ import { rematchRoom } from '@/src/store/rematchRoom';export default function Re
     </View>
   );
 
-  return (
+    return (
     <Screen>
+      <WinnerScreenFlash
+        active={!!myPlayerId && winner?.id === myPlayerId}
+        variant="match"
+      />
       <View style={styles.heroCompact}>
         <Text style={styles.brand}>FIN DE PARTIDA</Text>
         <View style={styles.heroRow}>
