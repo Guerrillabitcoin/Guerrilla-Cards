@@ -66,20 +66,13 @@ import { rematchRoom } from '@/src/store/rematchRoom';export default function Re
   }, [gameCode]);
 
   // Poll remote room while on results (async online rematch)
-   useRoomPoll({
+  useRoomPoll({
     ready,
     code: gameCode,
     enabled: onlineRoom,
-    phase: game?.phase,
+    phase: game?.phase ?? 'results',
     applyRemoteGame,
   });
-    void tick();
-    const id = setInterval(tick, 2500);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   // Guest: when host (or anyone) restarts, leave results → play
   useEffect(() => {
