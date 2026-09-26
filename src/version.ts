@@ -1,9 +1,9 @@
-export const APP_VERSION = '0.99.421.52';
+export const APP_VERSION = '0.99.421.53';
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 export const APP_VERSION_NOTES = [
   {
-    version: '0.99.421.52',
+    version: '0.99.421.53',
     date: '2026-09-26',
-    notes: ['Voto: tu respuesta arriba; espera 0/X y nombres a los 5s'],
+    notes: ['Los Listo de rematch se suman, no se pisan'],
   },
 ] as const;
