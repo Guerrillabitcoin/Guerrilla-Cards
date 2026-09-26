@@ -28,8 +28,9 @@ import { useTheme } from '@/src/store/ThemeContext';
 import { WinnerScreenFlash } from '@/src/components/WinFlash';
 import { leagueFromState, leagueMatchCountOf, writeLeague } from '@/src/store/leagueSession';
 import { rematchRoom } from '@/src/store/rematchRoom';
-import { WinnerScreenFlash } from '@/src/components/WinFlash';
-export default function ResultsScreen() {  const styles = useResultsStyles();
+
+export default function ResultsScreen() {
+  const styles = useResultsStyles();
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
