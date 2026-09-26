@@ -26,7 +26,7 @@ import {
 import { useRoomPoll } from '@/src/store/useRoomPoll';
 import { useTheme } from '@/src/store/ThemeContext';
 import { leagueFromState, leagueMatchCountOf, writeLeague } from '@/src/store/leagueSession';
-export default function ResultsScreen() {
+import { rematchRoom } from '@/src/store/rematchRoom';export default function ResultsScreen() {
   const styles = useResultsStyles();
 
   const { code } = useLocalSearchParams<{ code: string }>();
@@ -234,20 +234,24 @@ export default function ResultsScreen() {
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
 
-    const doRestartNow = () => {
+       const doRestartNow = () => {
         const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
-    const next = restartSameSetup(game.code);
-    if (!next) {
-      router.replace('/');
-      return;
-    }
-    if (next.phase === 'lobby') {
-      router.replace({ pathname: '/lobby', params: { code: next.code } });
-    } else {
-      router.replace({ pathname: '/play', params: { code: next.code } });
-    }
+    void (async () => {
+      const awarded = await rematchRoom(game.code, myPlayerId);
+      if (awarded.ok) applyRemoteGame(awarded.state);
+      const next = restartSameSetup(game.code);
+      if (!next) {
+        router.replace('/');
+        return;
+      }
+      if (next.phase === 'lobby') {
+        router.replace({ pathname: '/lobby', params: { code: next.code } });
+      } else {
+        router.replace({ pathname: '/play', params: { code: next.code } });
+      }
+    })();
   };
 
   const onRestartReady = () => {
