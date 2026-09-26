@@ -6,7 +6,7 @@
 function hostIdOf(state) {
   const list = (state && state.players) || [];
   const host = list.find((p) => p && p.isHost);
-  return host && host.id ? String(host.id) : null;
+  return host && host.id ? String(host.id) : '';
 }
 
 function isHostActor(state, actorId) {
@@ -56,7 +56,10 @@ function applyHostAuthority(existing, incoming, actorId) {
     incoming.currentPrompt &&
     existing.currentPrompt.id !== incoming.currentPrompt.id
   ) {
-    state = { ...state, currentPrompt: existing.currentPrompt };
+    state = {
+      ...state,
+      currentPrompt: host ? incoming.currentPrompt : existing.currentPrompt,
+    };
   }
 
   const leagueScores = maxLeague(existing.leagueScores, state.leagueScores);

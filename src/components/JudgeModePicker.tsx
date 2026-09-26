@@ -11,34 +11,42 @@ export function JudgeModePicker({
   onChange?: (mode: JudgeMode) => void;
   canEdit: boolean;
 }) {
-  const { colors, fontFamily } = useTheme();
+  const { colors, fontFamily, themeId } = useTheme();
   const vote = mode === 'vote';
+  const onInk = themeId === 'classic' ? '#FFFFFF' : '#1A0A00';
+  const offInk = colors.text;
+  const zarBg = !vote ? colors.accent : colors.bgCard;
+  const voteBg = vote ? colors.accent : colors.bgCard;
+  const zarInk = !vote ? '#FFFFFF' : offInk;
+  const voteInk = vote ? '#FFFFFF' : offInk;
   return (
     <View style={[styles.box, { borderColor: colors.border, backgroundColor: colors.bgElevated }]}>
-      <Text style={[styles.label, { color: colors.textMuted, fontFamily }]}>Cómo se elige el ganador</Text>
+      <Text style={[styles.label, { color: colors.text, fontFamily }]}>
+        Cómo se elige el ganador
+      </Text>
       <View style={styles.row}>
         <Pressable
           disabled={!canEdit}
           onPress={() => onChange?.('zar')}
-          style={[styles.chip, { borderColor: colors.border }, !vote && { backgroundColor: colors.zar || '#FFC857' }]}
+          style={[styles.chip, { borderColor: colors.accent, backgroundColor: zarBg }]}
         >
-          <Text style={[styles.chipTxt, { fontFamily, color: !vote ? '#1A0A00' : colors.text }]}>Zar</Text>
+          <Text style={[styles.chipTxt, { fontFamily, color: zarInk }]}>Zar</Text>
         </Pressable>
         <Pressable
           disabled={!canEdit}
           onPress={() => onChange?.('vote')}
-          style={[styles.chip, { borderColor: colors.border }, vote && { backgroundColor: colors.accent }]}
+          style={[styles.chip, { borderColor: colors.accent, backgroundColor: voteBg }]}
         >
-          <Text style={[styles.chipTxt, { fontFamily, color: vote ? '#FFF' : colors.text }]}>Voto</Text>
+          <Text style={[styles.chipTxt, { fontFamily, color: voteInk }]}>Voto</Text>
         </Pressable>
       </View>
-      <Text style={[styles.help, { color: colors.textMuted, fontFamily }]}>
+      <Text style={[styles.help, { color: colors.text, fontFamily }]}>
         {vote
           ? 'Voto: todos tiran carta y todos votan. Nadie es juez. Empate a 2-3 = voto dividido (0 puntos).'
           : 'Zar: un jugador no tira. Elige la frase ganadora. El ganador será el siguiente Zar.'}
       </Text>
       {!canEdit ? (
-        <Text style={[styles.help, { color: colors.textDim, fontFamily }]}>
+        <Text style={[styles.help, { color: colors.textMuted, fontFamily }]}>
           Solo el anfitrión lo cambia antes de Empezar.
         </Text>
       ) : null}
