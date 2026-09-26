@@ -1,1 +1,1 @@
-dGVzdA==
+file:///home/box/.cursor/projects/workspace/agent-tools/234ea737-b844-40e8-9a41-e446a3d65828.txt
