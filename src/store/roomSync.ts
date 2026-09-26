@@ -101,6 +101,8 @@ export function mergeHandsPreserveLocal(
   let submissions = remote.submissions ?? [];
   const remoteRound = remote.round;
   submissions = submissions.filter((s) => s.round == null || s.round === remoteRound);
+  // Un-redact MY submission text if the server already has my seat.
+  // Never add a local-only submission the server lacks (ghost «ya contestaste»).
   if (
     myPlayerId &&
     shouldRedactSubmissionTexts(remote.phase) &&
@@ -114,13 +116,13 @@ export function mergeHandsPreserveLocal(
       (s) => s.playerId === myPlayerId && !s.rival && (s.round == null || s.round === remoteRound)
     );
     if (localSub && localSub.cards.some((c) => !isRedactedCardText(c.text))) {
-      submissions = submissions.map((s) => {
-        if (s.playerId !== myPlayerId) return s;
-        const remoteRedacted = s.cards.every((c) => isRedactedCardText(c.text));
-        return remoteRedacted ? { ...localSub, round: remoteRound } : s;
-      });
-      if (!submissions.some((s) => s.playerId === myPlayerId)) {
-        submissions = [...submissions, { ...localSub, round: remoteRound }];
+      const serverHasMine = submissions.some((s) => s.playerId === myPlayerId && !s.rival);
+      if (serverHasMine) {
+        submissions = submissions.map((s) => {
+          if (s.playerId !== myPlayerId || s.rival) return s;
+          const remoteRedacted = s.cards.every((c) => isRedactedCardText(c.text));
+          return remoteRedacted ? { ...localSub, round: remoteRound } : s;
+        });
       }
     }
   }
@@ -136,29 +138,6 @@ export function mergeHandsPreserveLocal(
       Object.keys(remote.votes ?? {}).length > 0)
   ) {
     votes = { ...(local.votes ?? {}), ...(remote.votes ?? {}) };
-  }
-
-  if (
-    local &&
-    remote.phase === 'submitting' &&
-    local.phase === 'submitting' &&
-    (local.round ?? 0) === (remote.round ?? 0) &&
-    (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null)
-  ) {
-    const byId = new Map<string, Submission>();
-    for (const s of [...(local.submissions ?? []), ...submissions]) {
-      if (!s?.playerId || s.rival) continue;
-      if (s.round != null && s.round !== remoteRound) continue;
-      const prev = byId.get(s.playerId);
-      if (!prev) {
-        byId.set(s.playerId, s);
-        continue;
-      }
-      const sReal = s.cards.some((c) => !isRedactedCardText(c.text));
-      const pReal = prev.cards.some((c) => !isRedactedCardText(c.text));
-      byId.set(s.playerId, sReal || !pReal ? s : prev);
-    }
-    submissions = Array.from(byId.values());
   }
 
   return resolveVotesIfComplete({ ...remote, players, submissions, votes });
