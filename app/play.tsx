@@ -1408,13 +1408,16 @@ export default function PlayScreen() {
                 />
               ) : null}
               {!isSolo ? (
-              <WaitingRoster
+                           <WaitingRoster
                   players={game.players}
-                  doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
+                  doneIds={[
+                    ...roundSubs.filter((s) => !s.rival).map((s) => s.playerId),
+                    ...(!voteMode && zar ? [zar.id] : []),
+                  ]}
                   meId={myPlayerId ?? active?.id}
-                                verb="responda"
-                mineWaitLabel="esperando respuestas"
-         />
+                  verb="responda"
+                  mineWaitLabel="esperando respuestas"
+              />
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
