@@ -93,8 +93,14 @@ export function mergeHandsPreserveLocal(
       (remote.phase === 'submitting' || remote.phase === 'discarding') &&
       (local.phase === 'results' || (local.round ?? 0) > 1);
     if (lp && !rematchIncoming) {
-      const score = Math.max(Number(rp.score) || 0, Number(lp.score) || 0);
-      if (score !== (Number(rp.score) || 0)) rp = { ...rp, score };
+      // After scoring, trust remote (server/client resolve). Math.max was
+      // re-inflating split (+1+1) / clear-win (+2) bugs across peers.
+      if (remote.phase === 'reveal' || remote.phase === 'results') {
+        /* keep rp.score */
+      } else {
+        const score = Math.max(Number(rp.score) || 0, Number(lp.score) || 0);
+        if (score !== (Number(rp.score) || 0)) rp = { ...rp, score };
+      }
     }
     return rp;
   });
@@ -170,7 +176,7 @@ export async function pushRoom(
   myPlayerId?: string | null
 ): Promise<PushResult> {
   const url = roomApiUrl();
-  if (!url) return { ok: false, error: 'not_web' };
+  if (!url) return { ok: false; error: 'not_web' };
   try {
         const body = JSON.stringify({
       action: 'upsert',
