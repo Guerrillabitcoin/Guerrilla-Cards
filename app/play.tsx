@@ -18,6 +18,8 @@ import {
 import { NextRoundBar } from '@/src/components/NextRoundBar';
 import { leagueMatchCountOf } from '@/src/store/leagueSession';import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
 import { WaitingRoster } from '@/src/components/WaitingRoster';
+import { TuRespuesta } from '@/src/components/TuRespuesta';
+import { SubmitWaitMenu } from '@/src/components/SubmitWaitMenu';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
 import { RoundStandings } from '@/src/components/RoundStandings';
 import { WinnerScreenFlash } from '@/src/components/WinFlash';import { TelegramPlane } from '@/src/components/TelegramPlane';
@@ -1404,15 +1406,19 @@ export default function PlayScreen() {
                 />
               ) : null}
               {!isSolo ? (
-                           <WaitingRoster
+                <SubmitWaitMenu
                   players={game.players}
                   doneIds={[
                     ...roundSubs.filter((s) => !s.rival).map((s) => s.playerId),
                     ...(!voteMode && zar ? [zar.id] : []),
                   ]}
+                  expected={
+                    voteMode
+                      ? game.players.filter((p) => !p.isBot).length
+                      : Math.max(0, game.players.filter((p) => !p.isBot).length - 1)
+                  }
                   meId={myPlayerId ?? active?.id}
-                  verb="responda"
-                  mineWaitLabel="esperando respuestas"
+                  since={game.updatedAt}
               />
               ) : null}
             </View>
@@ -1531,12 +1537,26 @@ export default function PlayScreen() {
                       .join(', ')}`
                   : ''}
              </Muted>
-              <WaitingRoster
+                           <WaitingRoster
                 players={game.players}
                 doneIds={Object.keys(votesMap)}
                 meId={myPlayerId ?? active?.id}
                 verb="vote"
               />
+              {myPlayerId && game.currentPrompt
+                ? (() => {
+                    const mine = game.submissions.find(
+                      (s) => s.playerId === myPlayerId && !s.rival
+                    );
+                    if (!mine) return null;
+                    return (
+                      <TuRespuesta
+                        promptText={game.currentPrompt.text}
+                        answers={mine.cards.map((c) => c.text)}
+                      />
+                    );
+                  })()
+                : null}
               {active && votesMap[active.id] ? (
                 <Muted>
                   {isOnline
