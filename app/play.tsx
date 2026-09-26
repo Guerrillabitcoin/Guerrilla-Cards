@@ -951,14 +951,14 @@ export default function PlayScreen() {
             advancingLockRef.current = false;
             return;
           }
-          const vote = (cur.judgeMode ?? 'zar') === 'vote';
-          const iAmNextZar =
+                   const iAmNextZar =
             !!cur.roundWinnerId && myPlayerId === cur.roundWinnerId;
           const iAmHost = !!cur.players.find(
             (p) => p.id === myPlayerId && p.isHost
           );
-                    const mayAdvance =
-            iAmNextZar || (!!opts?.hostFallback && iAmHost);
+          const votoDividido = !cur.roundWinnerId;
+          const mayAdvance =
+            iAmNextZar || iAmHost || votoDividido || !!opts?.hostFallback;
           if (!mayAdvance) {
             advancingLockRef.current = false;
             return;
