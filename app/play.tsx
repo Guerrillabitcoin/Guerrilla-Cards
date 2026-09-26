@@ -35,7 +35,7 @@ import {
   setMySeat,
   setOnlineFlag,
 } from '@/src/store/roomSync';
-import { useHistoryStore } from '@/src/store/HistoryContext';
+import { useRoomPoll } from '@/src/store/useRoomPoll';import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function rivalLabel(playerId: string): string {
