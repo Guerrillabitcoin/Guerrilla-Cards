@@ -5,12 +5,12 @@ import { useTheme } from '../store/ThemeContext';
 const ROUND: Record<string, string> = {
   guerrilla: '#FFC857',
   classic: '#C45A12',
-  oscuro: '#5CFF9E',
+  oscuro: '#123D28',
 };
 const MATCH: Record<string, string> = {
   guerrilla: '#E040FB',
   classic: '#FFD54F',
-  oscuro: '#40C4FF',
+  oscuro: '#0D3A4A',
 };
 
 export function WinFlash({
@@ -33,13 +33,13 @@ export function WinFlash({
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 0.25,
-          duration: 70,
+          toValue: 0.55,
+          duration: 80,
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 1,
-          duration: 70,
+          duration: 80,
           useNativeDriver: true,
         }),
       ]),
@@ -74,7 +74,7 @@ export function WinnerScreenFlash({
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 0.55,
+          toValue: 0.4,
           duration: 90,
           useNativeDriver: true,
         }),
