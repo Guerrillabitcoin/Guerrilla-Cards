@@ -23,6 +23,7 @@ import {
   pullRoom,
   pushRoom,
 } from '@/src/store/roomSync';
+import { useRoomPoll } from '@/src/store/useRoomPoll';
 import { useTheme } from '@/src/store/ThemeContext';
 import { leagueFromState, leagueMatchCountOf, writeLeague } from '@/src/store/leagueSession';
 export default function ResultsScreen() {
@@ -65,14 +66,13 @@ export default function ResultsScreen() {
   }, [gameCode]);
 
   // Poll remote room while on results (async online rematch)
-  useEffect(() => {
-    if (!ready || !gameCode || !onlineRoom) return;
-    let cancelled = false;
-    const tick = async () => {
-      const res = await pullRoom(gameCode);
-      if (cancelled || !res.ok) return;
-      applyRemoteGame(res.state);
-    };
+   useRoomPoll({
+    ready,
+    code: gameCode,
+    enabled: onlineRoom,
+    phase: game?.phase,
+    applyRemoteGame,
+  });
     void tick();
     const id = setInterval(tick, 2500);
     return () => {
