@@ -815,7 +815,22 @@ async function handler(req, res) {
         return res.status(200).json({ ok: true, code, state: out.state });
       }
 
-      if (action === 'rename') {        const code = normalizeCode(body.code);
+      if (action === 'rematch') {
+        const { applyRematch } = require('./rematchApply');
+        const code = normalizeCode(body.code);
+        if (!code) return res.status(400).json({ ok: false, error: 'bad_code' });
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvCommand(['GET', key]);
+        const existing = parseExisting(existingData?.result);
+        const out = applyRematch(existing);
+        if (out.reject) {
+          return res.status(400).json({ ok: false, error: out.error });
+        }
+        await kvCommand(['SET', key, JSON.stringify(out.state)]);
+        return res.status(200).json({ ok: true, code, state: out.state });
+      }
+
+      if (action === 'rename') {       const code = normalizeCode(body.code);
         const playerId = String(body.playerId || '').trim();
         const nickname = String(body.nickname || '').trim();
         if (!code || !playerId || !nickname) {
