@@ -208,16 +208,9 @@ export default function LobbyScreen() {
     ready,
     code: gameCode,
     enabled: onlineRoom,
-    phase: game?.phase,
+    phase: game?.phase ?? 'lobby',
     applyRemoteGame,
   });
-    void tick();
-    const id = setInterval(tick, 2500);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   useEffect(() => {
     if (!ready || !game || game.mode !== 'solo' || game.phase !== 'lobby') return;
