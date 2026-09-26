@@ -33,7 +33,7 @@ import {
 } from '@/src/store/roomSync';
 import { useRoomPoll } from '@/src/store/useRoomPoll';import { copyRecoveryUrl } from '@/src/components/ClaimSeat';
 import { LobbyShareCard } from '@/src/components/LobbyShareCard';
-import { LobbyJoinBar } from '@/src/components/LobbyJoinBar';import { renameRoom } from '@/src/store/renameRoom';import { useTheme } from '@/src/store/ThemeContext';
+import { JudgeModePicker } from '@/src/components/JudgeModePicker';import { LobbyJoinBar } from '@/src/components/LobbyJoinBar';import { renameRoom } from '@/src/store/renameRoom';import { useTheme } from '@/src/store/ThemeContext';
 
 function notify(title: string, message: string) {
   if (typeof window !== 'undefined' && typeof window.alert === 'function') {
@@ -335,8 +335,23 @@ export default function LobbyScreen() {
 
       {iAmHost ? (
         <>
-          <Label>Esta sala es para</Label>
-          <View style={styles.capRow}>
+          <JudgeModePicker
+            mode={game.judgeMode ?? 'zar'}
+            canEdit={iAmHost && game.players.length !== 2}
+            onChange={(mode) => {
+              if (!iAmHost) return;
+              updateGame(game.code, (g) => ({
+                ...g,
+                judgeMode: mode,
+                updatedAt: Date.now(),
+              }));
+              void (async () => {
+                const g = getGame(game.code);
+                if (g) await pushRoom(g, await getMySeat(game.code));
+              })();
+            }}
+          />
+          <Label>Esta sala es para</Label>          <View style={styles.capRow}>
             {[2, 3, 4, 5, 6, 7, 8].map((n) => (
               <Chip
                 key={n}
