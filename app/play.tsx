@@ -20,7 +20,7 @@ import { leagueMatchCountOf } from '@/src/store/leagueSession';import { AdvanceR
 import { WaitingRoster } from '@/src/components/WaitingRoster';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
 import { RoundStandings } from '@/src/components/RoundStandings';
-import { TelegramPlane } from '@/src/components/TelegramPlane';
+import { WinnerScreenFlash } from '@/src/components/WinFlash';import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
 import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
 import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, type Card } from '@/src/engine/types';
@@ -1160,7 +1160,10 @@ export default function PlayScreen() {
     : '';
   return (
     <View style={styles.root}>
-      <View style={styles.sticky}>
+      <WinnerScreenFlash
+        active={phase === 'reveal' && !isSolo && !!myPlayerId && myPlayerId === game.roundWinnerId}
+        variant="round"
+      />      <View style={styles.sticky}>
                   <NextRoundBar
                     active={phase === 'reveal'}
                     deadlineAt={
