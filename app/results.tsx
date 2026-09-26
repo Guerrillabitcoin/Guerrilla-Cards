@@ -191,18 +191,22 @@ export default function ResultsScreen() {
   useEffect(() => {
     if (!ready || !game || game.phase !== 'results') return;
     if (game.mode === 'solo' || !onlineRoom) return;
-    if (!Engine.allHumansRestartReady(game)) return;
+        if (!Engine.allHumansRestartReady(game)) return;
     if ((game.restartReadyIds?.length ?? 0) === 0) return;
-            const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
+    const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
-    const next = restartSameSetup(game.code);
-    if (!next) return;
-    if (next.phase === 'lobby') {
-      router.replace({ pathname: '/lobby', params: { code: next.code } });
-    } else {
-      router.replace({ pathname: '/play', params: { code: next.code } });
-    }
+    void (async () => {
+      const awarded = await rematchRoom(game.code, myPlayerId);
+      if (awarded.ok) applyRemoteGame(awarded.state);
+      const next = restartSameSetup(game.code);
+      if (!next) return;
+      if (next.phase === 'lobby') {
+        router.replace({ pathname: '/lobby', params: { code: next.code } });
+      } else {
+        router.replace({ pathname: '/play', params: { code: next.code } });
+      }
+    })();
   }, [
     ready,
     game?.code,
