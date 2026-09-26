@@ -12,22 +12,31 @@ import {
 import { EnviarShareButton } from '@/src/components/EnviarShareButton';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fillBlank } from '@/src/engine/deck';
+import { WaitingRoster } from '@/src/components/WaitingRoster';
+import * as Engine from '@/src/engine/game';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
 import {
+  getMySeat,
+  getMySeatSync,
   getOnlineFlag,
   pullRoom,
+  pushRoom,
 } from '@/src/store/roomSync';
+import { useRoomPoll } from '@/src/store/useRoomPoll';
 import { useTheme } from '@/src/store/ThemeContext';
-
+import { WinnerScreenFlash } from '@/src/components/WinFlash';
+import { leagueFromState, leagueMatchCountOf, writeLeague } from '@/src/store/leagueSession';
+import { rematchRoom } from '@/src/store/rematchRoom';
 
 export default function ResultsScreen() {
   const styles = useResultsStyles();
 
   const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
-  const { getGame, restartSameSetup, ready, applyRemoteGame } = useGameStore();
+  const { getGame, restartSameSetup, ready, applyRemoteGame, updateGame } = useGameStore();
   const [onlineRoom, setOnlineRoom] = useState(false);
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
   const {
     recordLeftInHand,
     winningHistory,
@@ -35,6 +44,7 @@ export default function ResultsScreen() {
     toggleFavorite,
   } = useHistoryStore();
   const staleOnceRef = useRef<string | null>(null);
+  const rematchOnceRef = useRef<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
 
@@ -44,30 +54,28 @@ export default function ResultsScreen() {
   useEffect(() => {
     if (!gameCode) return;
     let cancelled = false;
-    void getOnlineFlag(gameCode).then((online) => {
-      if (!cancelled) setOnlineRoom(online);
-    });
+    void (async () => {
+      const [online, seat] = await Promise.all([
+        getOnlineFlag(gameCode),
+        getMySeat(gameCode),
+      ]);
+      if (cancelled) return;
+      setOnlineRoom(online);
+      setMyPlayerId(seat);
+    })();
     return () => {
       cancelled = true;
     };
   }, [gameCode]);
 
   // Poll remote room while on results (async online rematch)
-  useEffect(() => {
-    if (!ready || !gameCode || !onlineRoom) return;
-    let cancelled = false;
-    const tick = async () => {
-      const res = await pullRoom(gameCode);
-      if (cancelled || !res.ok) return;
-      applyRemoteGame(res.state);
-    };
-    void tick();
-    const id = setInterval(tick, 2500);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
+  useRoomPoll({
+    ready,
+    code: gameCode,
+    enabled: onlineRoom,
+    phase: game?.phase ?? 'results',
+    applyRemoteGame,
+  });
 
   // Guest: when host (or anyone) restarts, leave results → play
   useEffect(() => {
@@ -76,6 +84,15 @@ export default function ResultsScreen() {
       router.replace({ pathname: '/play', params: { code: game.code } });
     }
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
+
+    useEffect(() => {
+        if (!game || game.phase !== 'results' || game.mode === 'solo') return;
+  if (game.leagueAwarded) return;
+    const humans = game.players.filter((p) => !p.isBot);
+    const top = [...humans].sort((a, b) => b.score - a.score)[0];
+    if (!top) return;
+    updateGame(game.code, (g) => Engine.awardLeagueWin(g, top.id));
+  }, [game?.code, game?.phase, game?.leagueAwarded, game?.mode, updateGame]);
 
   useEffect(() => {
     if (!game || game.phase !== 'results') return;
@@ -170,6 +187,49 @@ export default function ResultsScreen() {
     return [...items].sort((a, b) => (b.round ?? 0) - (a.round ?? 0));
   }, [game, winningHistory]);
 
+  // Auto-start rematch when all humans ready (peer may have been last).
+  // ONLY host deals (restartSameSetup + push). Guests: applyRemote → /play.
+  useEffect(() => {
+    if (!ready || !game || game.phase !== 'results') return;
+    if (game.mode === 'solo' || !onlineRoom) return;
+    if (!Engine.allHumansRestartReady(game)) return;
+    if ((game.restartReadyIds?.length ?? 0) === 0) return;
+    const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
+    if (rematchOnceRef.current === stamp) return;
+    rematchOnceRef.current = stamp;
+    void (async () => {
+      const awarded = await rematchRoom(game.code, myPlayerId);
+      if (awarded.ok) applyRemoteGame(awarded.state);
+      const iAmHost = !!game.players.find(
+        (p) => p.id === myPlayerId && p.isHost
+      );
+      if (!iAmHost) {
+        router.replace({ pathname: '/play', params: { code: game.code } });
+        return;
+      }
+      const next = restartSameSetup(game.code);
+      if (!next) return;
+      if (next.phase === 'lobby') {
+        router.replace({ pathname: '/lobby', params: { code: next.code } });
+      } else {
+        router.replace({ pathname: '/play', params: { code: next.code } });
+      }
+    })();
+  }, [
+    ready,
+    game?.code,
+    game?.phase,
+    game?.mode,
+    game?.restartReadyIds,
+    game?.leagueMatchCount,
+    game?.players,
+    myPlayerId,
+    onlineRoom,
+    applyRemoteGame,
+    restartSameSetup,
+    router,
+  ]);
+
   if (!ready) return <Loading />;
 
   if (!game) {
@@ -186,17 +246,63 @@ export default function ResultsScreen() {
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
 
-  const onRestart = () => {
-    const next = restartSameSetup(game.code);
-    if (!next) {
-      router.replace('/');
+         const doRestartNow = () => {
+    const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
+    if (rematchOnceRef.current === stamp) return;
+    rematchOnceRef.current = stamp;
+    void (async () => {
+      const awarded = await rematchRoom(game.code, myPlayerId);
+      if (awarded.ok) applyRemoteGame(awarded.state);
+      const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+      if (!iAmHost) {
+        router.replace({ pathname: '/play', params: { code: game.code } });
+        return;
+      }
+      const next = restartSameSetup(game.code);
+      if (!next) {
+        router.replace('/');
+        return;
+      }
+      router.replace({ pathname: '/play', params: { code: next.code } });
+    })();
+  };
+
+  const onRestartReady = () => {
+    // Solo: restart immediately (no liga wait)
+    if (game.mode === 'solo' || !onlineRoom) {
+      doRestartNow();
       return;
     }
-    if (next.phase === 'lobby') {
-      router.replace({ pathname: '/lobby', params: { code: next.code } });
-    } else {
-      router.replace({ pathname: '/play', params: { code: next.code } });
+    if (!myPlayerId) {
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert('Reiniciar: no se encontró tu asiento');
+      }
+      return;
     }
+          updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
+    void (async () => {
+      const local = getGame(game.code);
+      if (local) await pushRoom(local, myPlayerId);
+      const pulled = await pullRoom(game.code);
+      if (pulled.ok) applyRemoteGame(pulled.state);
+      const g = getGame(game.code);
+      if (g && Engine.allHumansRestartReady(g)) {
+        rematchOnceRef.current = null;
+        doRestartNow();
+      }
+    })();
+  };
+  const onForceRestart = () => {
+    rematchOnceRef.current = null;
+    if (!Engine.canForceRestart(game, myPlayerId)) {
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert(
+          'Solo el anfitrión o el ganador de la partida pueden forzar el reinicio.'
+        );
+      }
+      return;
+    }
+    doRestartNow();
   };
 
   const onAddToHistory = async () => {
@@ -240,7 +346,7 @@ export default function ResultsScreen() {
             style={[styles.row, i === 0 && styles.rowFirst]}
           >
             <View style={[styles.rankBadge, i === 0 && styles.rankBadgeFirst]}>
-              <Text style={styles.rank}>{i + 1}</Text>
+              <Text style={[styles.rank, i === 0 && styles.rankOnAccent]}>{i + 1}</Text>
             </View>
             <Text style={styles.name} numberOfLines={1}>
               {p.isBot ? '🤖 ' : ''}
@@ -254,9 +360,86 @@ export default function ResultsScreen() {
       </View>
     ) : null;
 
+  const readyIds = game.restartReadyIds ?? [];
+  const iAmReady = !!(myPlayerId && readyIds.includes(myPlayerId));
+  const canForce = Engine.canForceRestart(game, myPlayerId);
+  const leagueScores = leagueFromState(game);
+  if (typeof window !== 'undefined') writeLeague(game.code, leagueScores);
+  const leagueRanked = [...board]
+    .map((p) => ({
+      ...p,
+      liga: leagueScores[p.id] ?? 0,
+    }))
+    .sort((a, b) => b.liga - a.liga || b.score - a.score);
+
+  const leagueBlock =
+    !isSolo && board.length >= 1 ? (
+      <View style={styles.list}>
+        <Label>Liga</Label>
+        <Muted>
+          {leagueMatchCountOf(game)} partida{leagueMatchCountOf(game) === 1 ? '' : 's'}
+          {' · '}
+          ronda {game.round} de la última
+          {' · '}
+          +1 al ganador de cada final
+        </Muted>
+        {leagueRanked.map((p, i) => (
+          <View
+            key={`liga-${p.id}`}
+            style={[styles.row, i === 0 && p.liga > 0 && styles.rowFirst]}
+          >
+            <View
+              style={[styles.rankBadge, i === 0 && p.liga > 0 && styles.rankBadgeFirst]}
+            >
+              <Text style={[styles.rank, i === 0 && styles.rankOnAccent]}>{i + 1}</Text>
+            </View>
+            <Text style={styles.name} numberOfLines={1}>
+              {p.isBot ? '🤖 ' : ''}
+              {p.nickname}
+            </Text>
+            <Text style={[styles.score, i === 0 && p.liga > 0 && styles.scoreFirst]}>
+              {p.liga}
+            </Text>
+          </View>
+        ))}
+      </View>
+    ) : null;
+
   const menuBlock = (
     <View style={styles.menuBlock}>
-      <Button title="Reiniciar partida" onPress={onRestart} />
+      {isSolo || !onlineRoom ? (
+        <Button title="Reiniciar partida" onPress={onRestartReady} />
+      ) : (
+        <>
+          <Button
+            title={
+              iAmReady
+                ? 'Listo ✓ — esperando al resto'
+                : 'Reiniciar partida (listo)'
+            }
+            onPress={onRestartReady}
+            disabled={iAmReady}
+          />
+          <WaitingRoster
+            players={board}
+            doneIds={readyIds}
+            meId={myPlayerId}
+            verb="confirme"
+          />
+          {canForce ? (
+            <Button
+              title="Forzar reinicio (anfitrión/ganador)"
+              variant="outline"
+              onPress={onForceRestart}
+            />
+          ) : (
+            <Muted>
+              Todos deben confirmar, o el anfitrión/ganador puede forzar.
+            </Muted>
+          )}
+        </>
+      )}
+      {leagueBlock}
       <Button
         title="★ Ver respuestas favoritas"
         variant="outline"
@@ -270,8 +453,12 @@ export default function ResultsScreen() {
     </View>
   );
 
-  return (
+    return (
     <Screen>
+      <WinnerScreenFlash
+        active={!!myPlayerId && winner?.id === myPlayerId}
+        variant="match"
+      />
       <View style={styles.heroCompact}>
         <Text style={styles.brand}>FIN DE PARTIDA</Text>
         <View style={styles.heroRow}>
@@ -354,11 +541,38 @@ export default function ResultsScreen() {
                     </Text>
                   </Pressable>
                 </View>
-                <FilledPromptText
+                                <FilledPromptText
                   small={!isFirst}
                   promptText={item.promptText}
-                  answers={item.answers}
+                  answers={
+                    item.answers?.length
+                      ? item.answers
+                      : item.filledText
+                        ? [item.filledText]
+                        : []
+                  }
                 />
+                {isFirst &&
+                myPlayerId &&
+                game.roundWinnerId &&
+                myPlayerId !== game.roundWinnerId
+                  ? (() => {
+                      const mine = game.submissions.find(
+                        (s) => s.playerId === myPlayerId
+                      );
+                      if (!mine) return null;
+                      return (
+                        <>
+                          <Muted>no ganador</Muted>
+                          <FilledPromptText
+                            small
+                            promptText={item.promptText}
+                            answers={mine.cards.map((c) => c.text)}
+                          />
+                        </>
+                      );
+                    })()
+                  : null}
                 <View style={styles.cardFooterRight}>
                   <EnviarShareButton
                     onPress={() =>
@@ -464,6 +678,7 @@ function useResultsStyles() {
     backgroundColor: colors.zar,
   },
   rank: { color: colors.text, fontWeight: '900', fontSize: 14 },
+  rankOnAccent: { color: '#FFFFFF' },
   name: { color: colors.text, fontWeight: '700', flex: 1, fontSize: 16 },
   score: { color: colors.textMuted, fontWeight: '800', fontSize: 18 },
   scoreFirst: { color: colors.zar },

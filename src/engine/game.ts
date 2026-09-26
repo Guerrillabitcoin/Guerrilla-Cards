@@ -28,6 +28,7 @@ import {
   type Player,
   type Submission,
 } from './types';
+import { awardLeaguePersistent } from '../store/leagueSession';
 
 export {
   ASYNC_TARGET_PLAYERS,
@@ -78,6 +79,8 @@ export function createGame(opts: {
   targetScore?: number;
   code?: string;
   judgeMode?: JudgeMode;
+  /** Async lobby size (2–8). */
+  maxPlayers?: number;
   /** Prompt ids seen recently (other matches) — put later in the deck */
   avoidPromptIds?: string[];
   avoidAnswerIds?: string[];
@@ -111,6 +114,16 @@ export function createGame(opts: {
     phase: 'lobby',
     zarIndex: 0,
     judgeMode: opts.judgeMode ?? 'zar',
+    maxPlayers:
+      opts.mode === 'async'
+        ? Math.max(
+            MIN_PLAYERS,
+            Math.min(
+              MAX_PLAYERS,
+              Math.floor(opts.maxPlayers ?? ASYNC_TARGET_PLAYERS)
+            )
+          )
+        : opts.maxPlayers,
     votes: {},
     currentPrompt: null,
     submissions: [],
@@ -517,11 +530,9 @@ function dealHands(state: GameState): GameState {
 }
 
 export function startGame(state: GameState): GameState {
-  if (state.mode === 'async') {
-    if (state.players.length !== ASYNC_TARGET_PLAYERS) {
-      throw new Error(
-        `Async necesita exactamente ${ASYNC_TARGET_PLAYERS} jugadores.`
-      );
+    if (state.mode === 'solo') {
+    if (state.players.length < 1) {
+      throw new Error('Haz falta al menos 1 jugador.');
     }
   } else {
     const minPlayers = state.mode === 'solo' ? 1 : MIN_PLAYERS;
@@ -532,8 +543,11 @@ export function startGame(state: GameState): GameState {
       throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
     }
   }
-  let next = dealHands({ ...state, zarIndex: 0, round: 0 });
-  next = beginRound(next);
+  const z = Math.max(
+    0,
+    Math.min((state.players.length || 1) - 1, Number(state.zarIndex) || 0)
+  );
+  let next = dealHands({ ...state, zarIndex: z, round: 0 });  next = beginRound(next);
   return { ...next, updatedAt: now() };
 }
 
@@ -693,6 +707,50 @@ export function submitCards(
   };
 }
 
+/** +1 liga point to match winner when entering results (once per match). */
+export function awardLeagueWin(state: GameState, winnerId: string | null): GameState {
+  return awardLeaguePersistent(state, winnerId);
+}
+
+export function markRestartReady(
+  state: GameState,
+  playerId: string
+): GameState {
+  if (state.phase !== 'results') return state;
+  const ids = new Set(state.restartReadyIds || []);
+  ids.add(playerId);
+  return {
+    ...state,
+    restartReadyIds: Array.from(ids),
+    updatedAt: now(),
+  };
+}
+
+export function clearRestartReady(state: GameState): GameState {
+  return { ...state, restartReadyIds: [], updatedAt: now() };
+}
+
+/** Host or match winner can force rematch without waiting for all humans. */
+export function canForceRestart(
+  state: GameState,
+  actorId: string | null | undefined
+): boolean {
+  if (!actorId) return false;
+  const actor = state.players.find((p) => p.id === actorId);
+  if (!actor || actor.isBot) return false;
+  if (actor.isHost) return true;
+  const humans = state.players.filter((p) => !p.isBot);
+  const ranked = [...humans].sort((a, b) => b.score - a.score);
+  return ranked[0]?.id === actorId;
+}
+
+export function allHumansRestartReady(state: GameState): boolean {
+  const humans = state.players.filter((p) => !p.isBot);
+  if (!humans.length) return true;
+  const ready = new Set(state.restartReadyIds || []);
+  return humans.every((p) => ready.has(p.id));
+}
+
 /** Apply round winner (scoring + reveal/results). Used by judgePick and castVote. */
 function applyRoundWinner(
   state: GameState,
@@ -727,15 +785,18 @@ function applyRoundWinner(
     : 0;
 
   if (winnerIsRealPlayer && winnerScore >= state.targetScore) {
-    return {
-      ...state,
-      players,
-      roundWinnerId: winnerPlayerId,
-      roundWinnerIds: [],
-      phase: 'results',
-      activeSeatId: null,
-      updatedAt: now(),
-    };
+    return awardLeagueWin(
+      {
+        ...state,
+        players,
+        roundWinnerId: winnerPlayerId,
+        roundWinnerIds: [],
+        phase: 'results',
+        activeSeatId: null,
+        updatedAt: now(),
+      },
+      winnerPlayerId
+    );
   }
 
   return {
@@ -749,7 +810,8 @@ function applyRoundWinner(
 }
 
 /**
- * Vote ties (2+): +1 each real player, roundWinnerIds=tied, roundWinnerId=tied[0].
+ * Vote ties for exactly 2 humans (legacy / fallback): +1 each real player,
+ * roundWinnerIds=tied, roundWinnerId=tied[0]. Prefer vote2p for 2p online.
  * No revealOrder tiebreak. Results if any hits targetScore.
  */
 export function applyRoundWinners(
@@ -782,17 +844,87 @@ export function applyRoundWinners(
     return !!p && p.score >= state.targetScore;
   });
 
-  return {
+  const base = {
     ...state,
     players,
     roundWinnerIds: ids,
     roundWinnerId: ids[0] ?? null,
-    phase: anyHitTarget ? 'results' : 'reveal',
+    phase: (anyHitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: anyHitTarget ? null : state.activeSeatId,
+    updatedAt: now(),
+  };
+  if (!anyHitTarget) return base;
+  const humans = base.players.filter((p) => !p.isBot);
+  const top = [...humans].sort((a, b) => b.score - a.score)[0];
+  return awardLeagueWin(base, top?.id ?? ids[0] ?? null);
+}
+
+/**
+ * Vote mode, >2 players, tied tallies: annul the round (no points),
+ * label via roundWinnerId=null + roundWinnerIds=tied («Empate: voto dividido» in UI),
+ * stay on reveal so clients can advance to next round.
+ */
+export function applyVoteSplitAnnul(
+  state: GameState,
+  tiedIds: string[]
+): GameState {
+  const ids = [...new Set(tiedIds)].filter(Boolean);
+  if (ids.length < 2) {
+    throw new Error('applyVoteSplitAnnul requiere al menos 2 empatados.');
+  }
+  const hostId =
+    state.players.find((p) => p.isHost)?.id ??
+    state.players.find((p) => !p.isBot)?.id ??
+    state.players[0]?.id ??
+    null;
+  return {
+    ...state,
+    // scores unchanged — round annulled
+    roundWinnerIds: ids,
+    roundWinnerId: null,
+    phase: 'reveal',
+    activeSeatId: hostId,
     updatedAt: now(),
   };
 }
 
+/**
+ * Tally completed votes. Majority → applyRoundWinner.
+ * Tie + >2 humans → applyVoteSplitAnnul (no points).
+ * Tie + 2 humans → applyRoundWinners (+1 each; vote2p usually handles 2p).
+ * Safe no-op if not all eligible have voted.
+ */
+export function tallyVotesIfComplete(state: GameState): GameState {
+  if (state.phase !== 'judging' || !isVoteMode(state)) return state;
+  const votes = state.votes ?? {};
+  const eligible = state.submissions
+    .filter((s) => !s.rival)
+    .map((s) => s.playerId);
+  if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
+
+  const tallies: Record<string, number> = {};
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] ?? 0) + 1;
+  }
+  let bestCount = -1;
+  for (const n of Object.values(tallies)) {
+    if (n > bestCount) bestCount = n;
+  }
+  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
+  const withVotes = { ...state, votes };
+  if (tied.length >= 2) {
+    const humans = state.players.filter((p) => !p.isBot).length;
+    if (humans > 2) {
+      return applyVoteSplitAnnul(withVotes, tied);
+    }
+    return applyRoundWinners(withVotes, tied);
+  }
+  if (!tied[0]) {
+    // Defensive: empty tally must not hang in judging
+    return applyVoteSplitAnnul(withVotes, eligible.slice(0, 2));
+  }
+  return applyRoundWinner(withVotes, tied[0]);
+}
 
 
 /**
@@ -878,7 +1010,8 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
 /**
  * Vote mode: cast one vote for a submission (cannot vote own).
  * When all eligible voters have voted, tallies majority → applyRoundWinner.
- * Ties (2+): applyRoundWinners — +1 each, no revealOrder tiebreak.
+ * Ties with >2 humans: applyVoteSplitAnnul (no points, «Empate: voto dividido»).
+ * Ties with 2 humans: applyRoundWinners (+1 each; vote2p usually handles 2p).
  */
 export function castVote(
   state: GameState,
@@ -927,21 +1060,8 @@ export function castVote(
     };
   }
 
-  // Tally: majority wins; 2+ tie → applyRoundWinners (no revealOrder tiebreak)
-  const tallies: Record<string, number> = {};
-  for (const target of Object.values(votes)) {
-    tallies[target] = (tallies[target] ?? 0) + 1;
-  }
-  let bestCount = -1;
-  for (const n of Object.values(tallies)) {
-    if (n > bestCount) bestCount = n;
-  }
-  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
-  const withVotes = { ...state, votes };
-  if (tied.length >= 2) {
-    return applyRoundWinners(withVotes, tied);
-  }
-  return applyRoundWinner(withVotes, tied[0]);
+  // Tally via shared helper (annuls >2-player ties; no hang on empty tally)
+  return tallyVotesIfComplete({ ...state, votes });
 }
 
 /** Enter discarding phase before a multiple-of-DISCARD_AT_ROUND round (zar not rotated yet). */
@@ -959,11 +1079,8 @@ export function startDiscardRound(state: GameState): GameState {
   };
 }
 
-/**
- * Player discards between min(DISCARD_MIN, hand.length) and min(DISCARD_MAX, hand.length) cards.
- * When everyone is done: refill hands, flag completed, beginRound with next zar.
- */
-export function submitDiscard(
+/** Apply one seat's discard without advancing phase (bots / submitDiscard). */
+function applyDiscardOnly(
   state: GameState,
   playerId: string,
   cardIds: string[]
@@ -1011,30 +1128,10 @@ export function submitDiscard(
     ...(state.lastDiscarded ?? []),
     { playerId, cards },
   ];
-
-  const allDone = discardDonePlayerIds.length >= state.players.length;
-
-  if (allDone) {
-    let next: GameState = {
-      ...state,
-      players,
-      answerDeck,
-      answerDeckPos,
-      discardDonePlayerIds,
-      lastDiscarded,
-      discardRoundCompleted: true,
-      updatedAt: now(),
-    };
-    next = dealHands(next);
-    const zarIndex = nextZarIndex(next);
-    return beginRound({ ...next, zarIndex });
-  }
-
   const pending = state.players.filter(
     (p) => p.id !== playerId && !discardDonePlayerIds.includes(p.id)
   );
   const nextSeat = pending.find((p) => !p.isBot) ?? pending[0];
-
   return {
     ...state,
     players,
@@ -1045,6 +1142,44 @@ export function submitDiscard(
     activeSeatId: nextSeat?.id ?? playerId,
     updatedAt: now(),
   };
+}
+
+/**
+ * Player discards between min(DISCARD_MIN, hand.length) and min(DISCARD_MAX, hand.length) cards.
+ * When everyone is done: refill hands, flag completed, beginRound with next zar.
+ */
+export function submitDiscard(
+  state: GameState,
+  playerId: string,
+  cardIds: string[]
+): GameState {
+  return advanceDiscardIfReady(applyDiscardOnly(state, playerId, cardIds));
+}
+
+/**
+ * After sync merges discardDonePlayerIds, finish the discard round when every
+ * human has discarded (bots auto-filled). Mirrors advanceToJudgingIfReady.
+ */
+export function advanceDiscardIfReady(state: GameState): GameState {
+  if (state.phase !== 'discarding') return state;
+  let next = autoDiscardBots(state);
+  if (next.phase !== 'discarding') return next;
+  const done = new Set(next.discardDonePlayerIds ?? []);
+  const humans = next.players.filter((p) => !p.isBot);
+  const required = humans.length ? humans : next.players;
+  if (!required.every((p) => done.has(p.id))) return next;
+  const discardDonePlayerIds = Array.from(
+    new Set([...done, ...next.players.map((p) => p.id)])
+  );
+  next = {
+    ...next,
+    discardDonePlayerIds,
+    discardRoundCompleted: true,
+    updatedAt: now(),
+  };
+  next = dealHands(next);
+  const zarIndex = nextZarIndex(next);
+  return beginRound({ ...next, zarIndex });
 }
 
 /** Auto-discard exactly DISCARD_MIN (or hand length) for pending bots. Kept for back-compat. */
@@ -1058,9 +1193,8 @@ export function autoDiscardBots(state: GameState): GameState {
     const live = next.players.find((x) => x.id === p.id);
     if (!live) continue;
     const need = Math.min(DISCARD_MIN, live.hand.length);
-    const ids =
-      need === 0 ? [] : pickRandomFromHand(live, need);
-    next = submitDiscard(next, live.id, ids);
+    const ids = need === 0 ? [] : pickRandomFromHand(live, need);
+    next = applyDiscardOnly(next, live.id, ids);
   }
   return next;
 }
@@ -1172,6 +1306,7 @@ export function nextRound(state: GameState): GameState {
  * decks, round 0 → startGame (phase submitting). Does not permanently rely on
  * discardRoundCompleted — that flag resets here.
  */
+
 export function restartMatch(
   state: GameState,
   opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
@@ -1208,6 +1343,10 @@ export function restartMatch(
     discardRoundCompleted: false,
     discardDonePlayerIds: [],
     lastDiscarded: [],
+    // Keep session liga across rematches; clear ready-up + award latch
+    leagueScores: { ...(state.leagueScores || {}) },
+    leagueAwarded: false,
+    restartReadyIds: [],
     updatedAt: now(),
   };
   return startGame(reset);
@@ -1257,4 +1396,4 @@ export function buildWinningHistorySnapshot(state: GameState): {
     round: state.round,
     gameCode: state.code,
   };
-}
+}/* see following push */

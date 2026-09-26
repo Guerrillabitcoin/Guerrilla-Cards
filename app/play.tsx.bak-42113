@@ -16,28 +16,22 @@ import {
   Title,
 } from '@/src/components/ui';
 import { NextRoundBar } from '@/src/components/NextRoundBar';
-import { leagueMatchCountOf } from '@/src/store/leagueSession';import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
 import { WaitingRoster } from '@/src/components/WaitingRoster';
-import { TuRespuesta } from '@/src/components/TuRespuesta';
-import { SubmitWaitMenu } from '@/src/components/SubmitWaitMenu';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
 import { RoundStandings } from '@/src/components/RoundStandings';
-import { WinnerScreenFlash } from '@/src/components/WinFlash';import { TelegramPlane } from '@/src/components/TelegramPlane';
+import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
 import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
 import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, type Card } from '@/src/engine/types';
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
 import {
-  claimSeat,
   getMySeat,
   getOnlineFlag,
   pullRoom,
   pushRoom,
-  setMySeat,
-  setOnlineFlag,
 } from '@/src/store/roomSync';
-import { useRoomPoll } from '@/src/store/useRoomPoll'; import { useHistoryStore } from '@/src/store/HistoryContext';
+import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function rivalLabel(playerId: string): string {
@@ -50,7 +44,7 @@ export default function PlayScreen() {
   const styles = usePlayStyles();
   const { patches: adminPatches } = useAdmin();
 
-  const { code, seat: seatParam } = useLocalSearchParams<{ code: string; seat?: string }>();
+  const { code } = useLocalSearchParams<{ code: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
   const {
@@ -127,47 +121,21 @@ export default function PlayScreen() {
     };
   }, [gameCode]);
 
-  // Deep-link /play?code=&seat= → reclaim seat and stay on the live board
-  const seatClaimRan = useRef<string | null>(null);
   useEffect(() => {
-    if (!ready || !gameCode) return;
-    const want = String(seatParam ?? '').trim();
-    if (!want) return;
-    const key = `${gameCode}:${want}`;
-    if (seatClaimRan.current === key) return;
-    seatClaimRan.current = key;
+    if (!ready || !gameCode || !onlineRoom) return;
     let cancelled = false;
-    void (async () => {
-      await setOnlineFlag(gameCode, true);
-      setOnlineRoom(true);
-      const claimed = await claimSeat(gameCode, want);
-      if (cancelled) return;
-      if (claimed.ok) {
-        await setMySeat(gameCode, claimed.playerId);
-        setMyPlayerId(claimed.playerId);
-        applyRemoteGame(claimed.state);
-        return;
-      }
-      const pulled = await pullRoom(gameCode);
-      if (cancelled || !pulled.ok) return;
-      applyRemoteGame(pulled.state);
-      if (pulled.state.players.some((p) => p.id === want)) {
-        await setMySeat(gameCode, want);
-        setMyPlayerId(want);
-      }
-    })();
+    const tick = async () => {
+      const res = await pullRoom(gameCode);
+      if (cancelled || !res.ok) return;
+      applyRemoteGame(res.state);
+    };
+    void tick();
+    const id = setInterval(tick, 2500);
     return () => {
       cancelled = true;
+      clearInterval(id);
     };
-  }, [ready, gameCode, seatParam, applyRemoteGame]);
-
-     useRoomPoll({
-    ready,
-    code: gameCode,
-    enabled: onlineRoom,
-    phase: game?.phase,
-    applyRemoteGame,
-  });
+  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   useEffect(() => {
     // En rondas múltiplo de 5 no hay descartar/pasar (fase de descarte aparte).
@@ -453,7 +421,7 @@ export default function PlayScreen() {
   // Others wait for poll. Host fallback at 12s if still stuck on reveal.
   useEffect(() => {
     if (!game || game.mode === 'solo') return;
-    if (game.phase !== 'reveal') { // 421.14 annul ties
+    if (game.phase !== 'reveal' || !game.roundWinnerId) {
       if (autoRevealTimerRef.current) {
         clearTimeout(autoRevealTimerRef.current);
         autoRevealTimerRef.current = null;
@@ -468,7 +436,7 @@ export default function PlayScreen() {
       !!game.players.find((p) => p.id === myPlayerId && p.isHost);
     // Pass-and-play (one device): anyone may auto-advance
     const mayAuto = true;
-    const key = `${game.code}:${game.round}:${game.roundWinnerId ?? 'annul'}:${(game.roundWinnerIds ?? []).join(',')}:${
+    const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
       mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
     }`;
     if (autoRevealKeyRef.current === key) return;
@@ -494,7 +462,6 @@ export default function PlayScreen() {
     game?.code,
     game?.round,
     game?.roundWinnerId,
-    game?.roundWinnerIds,
     game?.players,
     onlineRoom,
     myPlayerId,
@@ -917,9 +884,7 @@ export default function PlayScreen() {
         }
       }
     } catch (e) {
-      { const msg = e instanceof Error ? e.message : 'Error';
-      if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(`Voto: ${msg}`);
-      else Alert.alert('Voto', msg); }
+      Alert.alert('Voto', e instanceof Error ? e.message : 'Error');
     }
   };
 
@@ -953,14 +918,13 @@ export default function PlayScreen() {
             advancingLockRef.current = false;
             return;
           }
-                   const iAmNextZar =
+          const vote = (cur.judgeMode ?? 'zar') === 'vote';
+          const iAmNextZar =
             !!cur.roundWinnerId && myPlayerId === cur.roundWinnerId;
           const iAmHost = !!cur.players.find(
             (p) => p.id === myPlayerId && p.isHost
           );
-          const votoDividido = !cur.roundWinnerId;
-          const mayAdvance =
-            iAmNextZar || iAmHost || votoDividido || !!opts?.hostFallback;
+          const mayAdvance = true;
           if (!mayAdvance) {
             advancingLockRef.current = false;
             return;
@@ -975,8 +939,7 @@ export default function PlayScreen() {
         autoRevealKeyRef.current = null;
         const msg = e instanceof Error ? e.message : 'Error';
         if (/revelado/i.test(msg)) return;
-        if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(`Siguiente: ${msg}`);
-        else Alert.alert('Siguiente', msg);
+        Alert.alert('Siguiente', msg);
       }
     };
     void run();
@@ -1131,13 +1094,13 @@ export default function PlayScreen() {
       phase === 'judging' ||
       phase === 'reveal');
 
-   const stickyPromptAnswers =
-   phase === 'reveal'
-      ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
-      : phase === 'judging' && myPlayerId
-        ? (game.submissions.find((s) => s.playerId === myPlayerId && !s.rival)
-            ?.cards.map((c) => c.text) ??
-          Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______'))
+  const stickyPromptAnswers =
+    phase === 'reveal' && submittedAnswerTexts.length
+      ? submittedAnswerTexts
+      : phase === 'judging'
+        ? stickyAnswers.length
+          ? stickyAnswers
+          : Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
         : stickyAnswers;
 
   const discardCountLabel =
@@ -1147,34 +1110,23 @@ export default function PlayScreen() {
   // Solo “tirar 2 y saltar”: always n/2
   const soloSkipCountLabel = `${Math.min(picked.length, pickNeed)}/${pickNeed}`;
 
- const roundLine = isDiscarding
+  const roundLine = isDiscarding
     ? `Descarte · ${discardCountLabel}`
     : soloSkipMode
       ? `Descarte · ${soloSkipCountLabel}`
-      : !voteMode &&
-          phase === 'submitting' &&
-          zar &&
-          myPlayerId === zar.id
-               ? `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round} · ZAR`
-        : `Partida ${(leagueMatchCountOf(game) || 0) + (game.phase === 'results' ? 0 : 1)} · Ronda ${game.round}`;
+    : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
+        isSolo ? 'Solo' : game.code
+      }`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
-    : '';
+    : voteMode
+      ? `Voto · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`
+      : `Zar ${zar?.nickname} · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
+
   return (
     <View style={styles.root}>
-      <WinnerScreenFlash
-        active={phase === 'reveal' && !isSolo && !!myPlayerId && myPlayerId === game.roundWinnerId}
-        variant="round"
-      />      <View style={styles.sticky}>
-                  <NextRoundBar
-                    active={phase === 'reveal'}
-                    deadlineAt={
-                      phase === 'reveal' && game.updatedAt
-                        ? game.updatedAt + 8000
-                        : null
-                    }
-                    onDone={() => continueRoundRef.current?.()}
-                  />
+      <View style={styles.sticky}>
+                  <NextRoundBar active={phase === 'reveal'} onDone={() => continueRoundRef.current?.()} />
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
             {roundLine}
@@ -1211,9 +1163,7 @@ export default function PlayScreen() {
                 ? `Descartar ${soloSkipCountLabel}`
                 : pickNeed > 1 && phase === 'submitting' && !alreadyAnswered
                   ? `Elige ${pickNeed} (${picked.length}/${pickNeed})`
-                                  : phase === 'judging'
-                    ? 'Tu respuesta'
-                    : 'Pregunta'}
+                  : 'Pregunta'}
             </Text>
             {!soloSkipMode ? (
               <FilledPromptText
@@ -1296,6 +1246,13 @@ export default function PlayScreen() {
         </Muted>
       ) : null}
 
+      {isOnline && iAmHostPlayer ? (
+        <HostRecoveryLinks
+          code={game.code}
+          players={game.players}
+          compact
+        />
+      ) : null}
 
       {isDiscarding ? (
         <>
@@ -1412,20 +1369,12 @@ export default function PlayScreen() {
                 />
               ) : null}
               {!isSolo ? (
-                <SubmitWaitMenu
+              <WaitingRoster
                   players={game.players}
-                  doneIds={[
-                    ...roundSubs.filter((s) => !s.rival).map((s) => s.playerId),
-                    ...(!voteMode && zar ? [zar.id] : []),
-                  ]}
-                  expected={
-                    voteMode
-                      ? game.players.filter((p) => !p.isBot).length
-                      : Math.max(0, game.players.filter((p) => !p.isBot).length - 1)
-                  }
+                  doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
                   meId={myPlayerId ?? active?.id}
-                  since={game.updatedAt}
-              />
+                  verb="responda"
+                />
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
@@ -1543,7 +1492,7 @@ export default function PlayScreen() {
                       .join(', ')}`
                   : ''}
              </Muted>
-                           <WaitingRoster
+              <WaitingRoster
                 players={game.players}
                 doneIds={Object.keys(votesMap)}
                 meId={myPlayerId ?? active?.id}
@@ -1790,7 +1739,7 @@ export default function PlayScreen() {
                   <>
                     <View style={styles.revealTitleRow}>
                       <Title>
-                        {isTie ? (game.roundWinnerId ? 'Empate' : 'Empate: voto dividido') : iWon ? '¡Puntaco!' : 'Fin de ronda'}
+                        {isTie ? 'Empate' : iWon ? '¡Puntaco!' : 'Fin de ronda'}
                       </Title>
                       {iWon && !isTie ? (
                         <Pressable
@@ -1808,7 +1757,7 @@ export default function PlayScreen() {
                     </View>
                     <Subtitle>
                       {isTie
-                        ? (game.roundWinnerId ? 'Empate · +1 cada una' : 'Empate: voto dividido · sin puntos')
+                        ? 'Empate · +1 cada una'
                         : winnerIsRival
                           ? `Gana el bot (${winnerName})`
                           : iWon
@@ -1818,10 +1767,10 @@ export default function PlayScreen() {
                         ? ` · próximo Zar: ${winnerName}`
                         : ''}
                     </Subtitle>
-                                        <Muted>
-                      {iWon
-                        ? 'Tu respuesta ha ganado'
-                        : `Ganó ${winnerName}`}
+                    <Muted>
+                      {isTie
+                        ? `Empate · +1 cada una. Meta: ${game.targetScore} Puntacos.`
+                        : `+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
                     </Muted>
                     {isTie
                       ? tiedSubs.map((sub) => {
@@ -1835,9 +1784,7 @@ export default function PlayScreen() {
                               style={styles.judgeCard}
                             >
                               <View style={styles.soloRivalHead}>
-                                <Text style={styles.judgeLabel}>
-                                  {`${nick} · ${(game.players.find((p) => p.id === sub.playerId)?.score ?? 0)} Puntacos · ronda ${game.round}`}
-                                </Text>
+                                <Text style={styles.judgeLabel}>{nick}</Text>
                                 <Text
                                   style={styles.soloStar}
                                   onPress={() =>
@@ -1865,11 +1812,7 @@ export default function PlayScreen() {
                               <View style={styles.judgeCard}>
                                 <View style={styles.soloRivalHead}>
                                   <Text style={styles.judgeLabel}>
-                                    {`${winnerName} · ${
-                                      winnerIsRival
-                                        ? 0
-                                        : game.players.find((p) => p.id === game.roundWinnerId)?.score ?? 0
-                                    } Puntacos · ronda ${game.round}`}
+                                    {winnerName}
                                   </Text>
                                   <Text
                                     style={styles.soloStar}
@@ -1897,10 +1840,16 @@ export default function PlayScreen() {
                           : `Esperando a que ${winnerName} (Zar) empiece la siguiente ronda…`}
                       </Muted>
                     ) : null}
-                                       {isSolo || iAmNextZar || !isOnline ? (
-                      <AdvanceRoundButton
-                        isSolo={!!isSolo}
-                        isZar={!!iAmNextZar}
+                    {isSolo || iAmNextZar || !isOnline ? (
+                      <Button
+                        title={
+                          isSolo
+                            ? '→  Siguiente ronda'
+                            : iAmNextZar
+                              ? 'Empezar siguiente ronda (eres el Zar)'
+                              : '→  Siguiente ronda'
+                        }
+                        variant="success"
                         onPress={() => continueRound()}
                       />
                     ) : null}
@@ -1916,14 +1865,6 @@ export default function PlayScreen() {
             </>
           )}
         </>
-      ) : null}
-
-      {isOnline && iAmHostPlayer ? (
-        <HostRecoveryLinks
-          code={game.code}
-          players={game.players}
-          compact
-        />
       ) : null}
       </ScrollView>
 
