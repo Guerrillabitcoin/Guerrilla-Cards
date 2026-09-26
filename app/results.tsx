@@ -276,8 +276,8 @@ export default function ResultsScreen() {
       }
     })();
   };
-
   const onForceRestart = () => {
+    rematchOnceRef.current = null;
     if (!Engine.canForceRestart(game, myPlayerId)) {
       if (typeof window !== 'undefined' && window.alert) {
         window.alert(
