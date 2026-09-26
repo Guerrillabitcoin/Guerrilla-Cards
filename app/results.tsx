@@ -234,23 +234,24 @@ export default function ResultsScreen() {
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
 
-       const doRestartNow = () => {
-        const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
+         const doRestartNow = () => {
+    const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
     void (async () => {
       const awarded = await rematchRoom(game.code, myPlayerId);
       if (awarded.ok) applyRemoteGame(awarded.state);
+      const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+      if (!iAmHost) {
+        router.replace({ pathname: '/play', params: { code: game.code } });
+        return;
+      }
       const next = restartSameSetup(game.code);
       if (!next) {
         router.replace('/');
         return;
       }
-      if (next.phase === 'lobby') {
-        router.replace({ pathname: '/lobby', params: { code: next.code } });
-      } else {
-        router.replace({ pathname: '/play', params: { code: next.code } });
-      }
+      router.replace({ pathname: '/play', params: { code: next.code } });
     })();
   };
 
