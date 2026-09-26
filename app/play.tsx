@@ -35,7 +35,7 @@ import {
   setMySeat,
   setOnlineFlag,
 } from '@/src/store/roomSync';
-import { useRoomPoll } from '@/src/store/useRoomPoll';import { useHistoryStore } from '@/src/store/HistoryContext';
+import { useRoomPoll } from '@/src/store/useRoomPoll'; import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
 function rivalLabel(playerId: string): string {
@@ -159,13 +159,13 @@ export default function PlayScreen() {
     };
   }, [ready, gameCode, seatParam, applyRemoteGame]);
 
-  useEffect(() => {
-    if (!ready || !gameCode || !onlineRoom) return;
-    let cancelled = false;
-    const tick = async () => {
-      const res = await pullRoom(gameCode);
-      if (cancelled || !res.ok) return;
-      applyRemoteGame(res.state);
+    useRoomPoll({
+    ready,
+    code: gameCode,
+    enabled: onlineRoom,
+    phase: game?.phase,
+    applyRemoteGame,
+  });
     };
     void tick();
     const id = setInterval(tick, 2500);
