@@ -735,8 +735,10 @@ function applyPrivacyMerges(existing, incoming) {
       incoming && incoming.leagueScores,
       state.leagueScores
     );
-    const { awardOnResults } = require('./awardOnResults');
+        const { awardOnResults } = require('./awardOnResults');
     state = awardOnResults(state);
+    const { unionRestartReady } = require('./unionReady');
+    state = unionRestartReady(existing, incoming, state);
     const mergingRematch =
     state &&
     (Number(state.round) || 0) <= 1 &&
