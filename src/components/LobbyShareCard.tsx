@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../store/ThemeContext';
 
 export function LobbyShareCard({
@@ -13,28 +14,49 @@ export function LobbyShareCard({
   onCopy: () => void;
 }) {
   const { colors, fontFamily } = useTheme();
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1.06,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
   return (
-    <Pressable
-      onPress={onCopy}
-      style={[styles.box, { backgroundColor: colors.zar || '#4A148C', borderColor: colors.accent }]}
-    >
-      <View style={styles.row}>
-        <View style={styles.badge}>
-          <Text style={styles.silhouette}>👤</Text>
-          <View style={styles.plus}>
-            <Text style={styles.plusTxt}>+1</Text>
+    <Animated.View style={{ transform: [{ scale: pulse }] }}>
+      <Pressable
+        onPress={onCopy}
+        style={[styles.box, { backgroundColor: colors.zar || '#4A148C', borderColor: colors.accent }]}
+      >
+        <View style={styles.row}>
+          <View style={styles.badge}>
+            <Text style={styles.silhouette}>👤</Text>
+            <View style={styles.plus}>
+              <Text style={styles.plusTxt}>+1</Text>
+            </View>
+          </View>
+          <View style={styles.texts}>
+            <Text style={[styles.kicker, { fontFamily }]}>Invitar · sumar gente</Text>
+            <Text style={[styles.title, { fontFamily }]}>Lobby {code}</Text>
+            <Text style={[styles.hint, { fontFamily }]}>
+              Toca para copiar el enlace
+              {seated != null && cap != null ? ` · ${seated}/${cap}` : ''}
+            </Text>
           </View>
         </View>
-        <View style={styles.texts}>
-          <Text style={[styles.kicker, { fontFamily }]}>Invitar · sumar gente</Text>
-          <Text style={[styles.title, { fontFamily }]}>Lobby {code}</Text>
-          <Text style={[styles.hint, { fontFamily }]}>
-            Toca para copiar el enlace
-            {seated != null && cap != null ? ` · ${seated}/${cap}` : ''}
-          </Text>
-        </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </Animated.View>
   );
 }
 

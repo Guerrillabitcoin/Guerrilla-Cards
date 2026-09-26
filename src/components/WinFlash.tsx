@@ -2,21 +2,28 @@ import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useTheme } from '../store/ThemeContext';
 
-const HIT: Record<string, { bg: string; fg: string }> = {
-  guerrilla: { bg: '#FFC857', fg: '#1A0A00' },
-  classic: { bg: '#C45A12', fg: '#FFFFFF' },
-  oscuro: { bg: '#5CFF9E', fg: '#04140A' },
+const ROUND: Record<string, string> = {
+  guerrilla: '#FFC857',
+  classic: '#C45A12',
+  oscuro: '#5CFF9E',
+};
+const MATCH: Record<string, string> = {
+  guerrilla: '#E040FB',
+  classic: '#FFD54F',
+  oscuro: '#40C4FF',
 };
 
 export function WinFlash({
   active,
+  variant = 'round',
   children,
 }: {
   active: boolean;
+  variant?: 'round' | 'match';
   children: React.ReactNode;
 }) {
   const { themeId } = useTheme();
-  const hit = HIT[themeId] || HIT.guerrilla;
+  const bg = (variant === 'match' ? MATCH : ROUND)[themeId] || ROUND.guerrilla;
   const pulse = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     if (!active) {
@@ -26,35 +33,71 @@ export function WinFlash({
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
-          toValue: 0.18,
-          duration: 55,
+          toValue: 0.25,
+          duration: 70,
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 1,
-          duration: 55,
+          duration: 70,
           useNativeDriver: true,
         }),
       ]),
-      { iterations: 10 }
+      { iterations: 3 }
     );
     loop.start();
     return () => loop.stop();
   }, [active, pulse]);
   if (!active) return <View>{children}</View>;
   return (
-    <Animated.View
-      style={[styles.hit, { opacity: pulse, backgroundColor: hit.bg }]}
-    >
+    <Animated.View style={[styles.hit, { opacity: pulse, backgroundColor: bg }]}>
       {children}
     </Animated.View>
   );
 }
 
+export function WinnerScreenFlash({
+  active,
+  variant = 'round',
+}: {
+  active: boolean;
+  variant?: 'round' | 'match';
+}) {
+  const { themeId } = useTheme();
+  const bg = (variant === 'match' ? MATCH : ROUND)[themeId] || ROUND.guerrilla;
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!active) {
+      pulse.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 0.55,
+          duration: 90,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 90,
+          useNativeDriver: true,
+        }),
+      ]),
+      { iterations: variant === 'match' ? 6 : 3 }
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [active, pulse, variant]);
+  if (!active) return null;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { backgroundColor: bg, opacity: pulse, zIndex: 40 }]}
+    />
+  );
+}
+
 const styles = StyleSheet.create({
-  hit: {
-    borderRadius: 4,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-  },
+  hit: { borderRadius: 4, paddingHorizontal: 4, paddingVertical: 2 },
 });
