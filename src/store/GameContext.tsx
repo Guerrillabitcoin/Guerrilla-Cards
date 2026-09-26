@@ -345,7 +345,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       const key = state.code.trim().toUpperCase();
             let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
-      if (local && roomPaintKey(local) === roomPaintKey(remote)) {
+     if (
+        local &&
+        roomPaintKey(local) === roomPaintKey(remote) &&
+        remote.phase !== 'discarding'
+      ) {
         return false;
       }
       const localProg = gameProgress(local);
