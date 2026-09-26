@@ -1153,8 +1153,8 @@ export default function PlayScreen() {
           phase === 'submitting' &&
           zar &&
           myPlayerId === zar.id
-        ? `ZAR · Ronda ${game.round} · ${game.code}`
-                                : `Partida ${(leagueMatchCountOf(game) || 0) + (game.phase === 'results' ? 0 : 1)} · Ronda ${game.round}`;
+               ? `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round} · ZAR`
+        : `Partida ${(leagueMatchCountOf(game) || 0) + (game.phase === 'results' ? 0 : 1)} · Ronda ${game.round}`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
     : '';
