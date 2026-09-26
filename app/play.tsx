@@ -159,21 +159,13 @@ export default function PlayScreen() {
     };
   }, [ready, gameCode, seatParam, applyRemoteGame]);
 
-    useRoomPoll({
+     useRoomPoll({
     ready,
     code: gameCode,
     enabled: onlineRoom,
     phase: game?.phase,
     applyRemoteGame,
   });
-    };
-    void tick();
-    const id = setInterval(tick, 2500);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
 
   useEffect(() => {
     // En rondas múltiplo de 5 no hay descartar/pasar (fase de descarte aparte).
