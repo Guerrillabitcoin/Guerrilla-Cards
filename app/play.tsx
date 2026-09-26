@@ -1130,13 +1130,9 @@ export default function PlayScreen() {
       phase === 'reveal');
 
    const stickyPromptAnswers =
-    phase === 'reveal'
+   phase === 'reveal' || phase === 'judging'
       ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
-      : phase === 'judging'
-        ? stickyAnswers.length
-          ? stickyAnswers
-          : Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
-        : stickyAnswers;
+      : stickyAnswers;
 
   const discardCountLabel =
     picked.length <= discardMin
