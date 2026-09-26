@@ -19,12 +19,9 @@ function applyRematch(existing) {
     (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)
   );
   const winner = ranked[0];
+  // Liga +1 solo en results (awardOnResults). Rematch preserva y abre el pestillo.
   const leagueScores = { ...(existing.leagueScores || {}) };
-  let leagueMatchCount = Number(existing.leagueMatchCount) || 0;
-  if (!existing.leagueAwarded && winner && winner.id && (Number(winner.score) || 0) > 0) {
-    leagueScores[winner.id] = (Number(leagueScores[winner.id]) || 0) + 1;
-    leagueMatchCount += 1;
-  }
+  const leagueMatchCount = Number(existing.leagueMatchCount) || 0;
   const zarIndex = Math.max(
     0,
     playersIn.findIndex((p) => p && winner && p.id === winner.id)
