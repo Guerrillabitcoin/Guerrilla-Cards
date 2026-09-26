@@ -468,12 +468,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             return out;
           })(),
           leagueAwarded: !!(local.leagueAwarded || remote.leagueAwarded),
-         currentPrompt:
+                   currentPrompt:
             local.currentPrompt &&
             remote.currentPrompt &&
             local.currentPrompt.id === remote.currentPrompt.id
-              ? local.currentPrompt
-              : remote.currentPrompt,
               ? local.currentPrompt
               : remote.currentPrompt,
           restartReadyIds: Array.from(
