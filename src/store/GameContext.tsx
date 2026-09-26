@@ -467,8 +467,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             return out;
           })(),
-          leagueAwarded: !!(local.leagueAwarded || remote.leagueAwarded),
-                   currentPrompt:
+          leagueAwarded:
+            remote.phase === 'results'
+              ? !!(local.leagueAwarded || remote.leagueAwarded)
+              : !!remote.leagueAwarded,                   currentPrompt:
             local.currentPrompt &&
             remote.currentPrompt &&
             local.currentPrompt.id === remote.currentPrompt.id
