@@ -3,13 +3,13 @@ import { Animated, StyleSheet, View } from 'react-native';
 import { useTheme } from '../store/ThemeContext';
 
 const ROUND: Record<string, string> = {
-  guerrilla: '#FFC857',
+  guerrilla: '#E06A1A',
   classic: '#C45A12',
   oscuro: '#123D28',
 };
 const MATCH: Record<string, string> = {
-  guerrilla: '#E040FB',
-  classic: '#FFD54F',
+  guerrilla: '#FF6D00',
+  classic: '#E65100',
   oscuro: '#0D3A4A',
 };
 
