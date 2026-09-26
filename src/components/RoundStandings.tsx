@@ -31,7 +31,7 @@ export function RoundStandings({
     .filter((p) => !p.isBot)
     .map((p) => {
       const d = deltaFor(game, p);
-      return { p, d, prev: p.score - d };
+      return { p, d };
     });
   const now = [...rows].sort(
     (a, b) => b.p.score - a.p.score || a.p.nickname.localeCompare(b.p.nickname)
@@ -55,26 +55,26 @@ export function RoundStandings({
           })
         : null}
       {now.map((r, i) => (
-        <WinFlash key={r.p.id} active={r.d > 0}>
-          <View style={[styles.row, i === 0 && styles.lead]}>
-            <Text style={styles.pos}>{i + 1}</Text>
-            <Text style={styles.name} numberOfLines={1}>
-              {r.p.nickname}
-              {meId === r.p.id ? ' · tú' : ''}
-            </Text>
+        <View key={r.p.id} style={[styles.row, i === 0 && styles.lead]}>
+          <Text style={styles.pos}>{i + 1}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {r.p.nickname}
+            {meId === r.p.id ? ' · tú' : ''}
+          </Text>
+          <WinFlash active={r.d > 0}>
             <Text style={[styles.delta, r.d > 0 ? styles.plus : styles.zero]}>
               {r.d > 0 ? `+${r.d}` : '+0'}
             </Text>
-            <Text style={styles.total}>{r.p.score}</Text>
-          </View>
-        </WinFlash>
+          </WinFlash>
+          <Text style={styles.total}>{r.p.score}</Text>
+        </View>
       ))}
       <Text style={styles.hint}>
         {split
           ? humans >= 4
             ? 'Empate · nadie suma esta ronda'
             : 'Voto dividido · nadie suma esta ronda'
-          : `Meta ${game.targetScore} · +N esta ronda · número grande = total`}
+          : `Meta ${game.targetScore}`}
       </Text>
     </View>
   );
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   pos: { width: 18, color: '#FFF8E1', fontWeight: '900' },
   name: { flex: 1, color: '#FFF', fontWeight: '800', fontSize: 16 },
   delta: { fontWeight: '900', fontSize: 18, minWidth: 36, textAlign: 'right' },
-  plus: { color: '#003300' },
+  plus: { color: '#69F0AE' },
   zero: { color: '#757575' },
   total: {
     color: '#FFE082',
