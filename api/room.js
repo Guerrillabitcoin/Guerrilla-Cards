@@ -807,19 +807,34 @@ async function handler(req, res) {
         return res.status(joined.status).json(joined.body);
       }
 
-      if (action === 'rematch') {
-        const { applyRematch } = require('./rematchApply');
+
+      if (action === 'vote') {
+        const { applyBallot } = require('./castBallot');
         const code = normalizeCode(body.code);
-        if (!code) return res.status(400).json({ ok: false, error: 'bad_code' });
+        const voterId = String(body.voterId || '').trim();
+        const targetId = String(body.targetId || '').trim();
+        if (!code || code.length < 3) {
+          return res.status(400).json({ ok: false, error: 'bad_code' });
+        }
+        if (!voterId || !targetId) {
+          return res.status(400).json({ ok: false, error: 'bad_ballot' });
+        }
         const key = `${ROOM_PREFIX}${code}`;
         const existingData = await kvCommand(['GET', key]);
         const existing = parseExisting(existingData?.result);
-        const out = applyRematch(existing);
+        if (!existing) {
+          return res.status(404).json({ ok: false, error: 'missing_room' });
+        }
+        const out = applyBallot(existing, voterId, targetId);
         if (out.reject) {
           return res.status(400).json({ ok: false, error: out.error });
         }
-        await kvCommand(['SET', key, JSON.stringify(out.state)]);
-        return res.status(200).json({ ok: true, code, state: out.state });
+        let state = out.state;
+        state = resolveVotesIfCompleteServer(state);
+        const { awardOnResults } = require('./awardOnResults');
+        state = awardOnResults(state);
+        await kvCommand(['SET', key, JSON.stringify(state)]);
+        return res.status(200).json({ ok: true, code, state });
       }
 
       if (action === 'rematch') {
@@ -836,6 +851,7 @@ async function handler(req, res) {
         await kvCommand(['SET', key, JSON.stringify(out.state)]);
         return res.status(200).json({ ok: true, code, state: out.state });
       }
+
 
       if (action === 'rename') {       const code = normalizeCode(body.code);
         const playerId = String(body.playerId || '').trim();

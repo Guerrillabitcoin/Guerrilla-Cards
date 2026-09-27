@@ -11,7 +11,7 @@ import { GameProvider } from '@/src/store/GameContext';
 import { HistoryProvider } from '@/src/store/HistoryContext';
 import { AdminProvider } from '@/src/store/AdminContext';
 import { ThemeProvider, useTheme } from '@/src/store/ThemeContext';
-import { APP_VERSION_LABEL } from '@/src/version';
+import { displayVersionLabel } from '@/src/version';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -37,7 +37,42 @@ function ThemedStack() {
           name="index"
           options={{ title: 'Guerrilla Cards', headerShown: false }}
         />
-        <Stack.Screen name="lobby" options={{ title: 'Lobby' }} />
+        <Stack.Screen
+          name="lobby"
+          options={{
+            title: 'Lobby',
+            headerTitle: () => (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  gap: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontWeight: '800',
+                    fontSize: 17,
+                    fontFamily,
+                  }}
+                >
+                  Lobby
+                </Text>
+                <Text
+                  style={{
+                    color: colors.textDim,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    fontFamily,
+                  }}
+                >
+                  {displayVersionLabel()}
+                </Text>
+              </View>
+            ),
+          }}
+        />
         <Stack.Screen
           name="play"
           options={{
@@ -69,14 +104,49 @@ function ThemedStack() {
                     fontFamily,
                   }}
                 >
-                  {APP_VERSION_LABEL}
+                  {displayVersionLabel()}
                 </Text>
               </View>
             ),
             headerRight: () => <ThemeToggle compact />,
           }}
         />
-        <Stack.Screen name="results" options={{ title: 'Resultados' }} />
+        <Stack.Screen
+          name="results"
+          options={{
+            title: 'Resultados',
+            headerTitle: () => (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  gap: 6,
+                }}
+              >
+                <Text
+                  style={{
+                    color: colors.text,
+                    fontWeight: '800',
+                    fontSize: 17,
+                    fontFamily,
+                  }}
+                >
+                  Resultados
+                </Text>
+                <Text
+                  style={{
+                    color: colors.textDim,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    fontFamily,
+                  }}
+                >
+                  {displayVersionLabel()}
+                </Text>
+              </View>
+            ),
+          }}
+        />
         <Stack.Screen
           name="historial"
           options={{ title: 'Respuestas favoritas' }}

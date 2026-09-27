@@ -1,8 +1,10 @@
+import { coerceGameState, type GameState } from '../engine/types';
+
 export async function castVoteRoom(
   code: string,
   voterId: string,
   targetId: string
-): Promise<{ ok: boolean; state?: unknown }> {
+): Promise<{ ok: boolean; state?: GameState }> {
   const raw = String(code || '').trim().toUpperCase();
   if (!raw || !voterId || !targetId) return { ok: false };
   try {
@@ -17,7 +19,8 @@ export async function castVoteRoom(
       }),
     });
     const data = (await res.json()) as { ok?: boolean; state?: unknown };
-    return { ok: !!data.ok, state: data.state };
+    if (!data.ok || !data.state) return { ok: false };
+    return { ok: true, state: coerceGameState(data.state) };
   } catch {
     return { ok: false };
   }

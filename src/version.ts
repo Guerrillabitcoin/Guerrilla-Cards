@@ -1,9 +1,31 @@
-export const APP_VERSION = '0.99.421.59';
+export const APP_VERSION = '0.99.421.60';
+/** True on preview/grok-docs. Production branch must keep this false. */
+export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
+
+/** Runtime: PREVIEW_BANNER or preview hostname (git-previ / preview). */
+export function isPreviewDeploy(): boolean {
+  if (PREVIEW_BANNER) return true;
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    const h = String(window.location.hostname).toLowerCase();
+    return h.includes('git-previ') || h.includes('preview');
+  }
+  return false;
+}
+
+/** Visible label: "BETA v0.99.421.xx" on preview, plain version on live. */
+export function displayVersionLabel(): string {
+  return isPreviewDeploy() ? `BETA ${APP_VERSION_LABEL}` : APP_VERSION_LABEL;
+}
+
 export const APP_VERSION_NOTES = [
   {
-    version: '0.99.421.59',
+    version: '0.99.421.60',
     date: '2026-09-28',
-    notes: ['El voto se guarda en el servidor, no solo en el móvil'],
+    notes: [
+      'Voto online: action vote en servidor (applyBallot) + castVoteRoom',
+      'BETA banner en preview junto a la versión',
+      'Zar no cuenta en faltan respuestas (WaitingRoster)',
+    ],
   },
 ] as const;

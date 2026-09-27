@@ -41,7 +41,7 @@ import { randomNickname } from '@/src/engine/nicknames';
 import * as Engine from '@/src/engine/game';
 import { useTheme } from '@/src/store/ThemeContext';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
-import { APP_VERSION_LABEL } from '@/src/version';
+import { displayVersionLabel } from '@/src/version';
 function notify(title: string, message: string) {
   if (typeof window !== 'undefined' && typeof window.alert === 'function') {
     window.alert(`${title}: ${message}`);
@@ -495,7 +495,7 @@ export default function HomeScreen() {
         <Text style={[styles.brandTitle, denseMenu && styles.brandTitleDense]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
           GUERRILLA CARDS
         </Text>
-        <Text style={styles.brandVersion}>{APP_VERSION_LABEL}</Text>
+        <Text style={styles.brandVersion}>{displayVersionLabel()}</Text>
       </View>
       <Subtitle style={denseMenu ? styles.subDense : undefined}>
         Juego de humor negro en español. Rellena los huecos de las preguntas con disparatadas e ingeniosas respuestas.

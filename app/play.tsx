@@ -37,6 +37,7 @@ import {
   setMySeat,
   setOnlineFlag,
 } from '@/src/store/roomSync';
+import { castVoteRoom } from '@/src/store/castVoteRoom';
 import { useRoomPoll } from '@/src/store/useRoomPoll'; import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
@@ -914,9 +915,11 @@ export default function PlayScreen() {
 
   const castVote = (submissionPlayerId: string) => {
     if (!active) return;
+    const voterId =
+      onlineRoom && myPlayerId ? myPlayerId : active.id;
     try {
       updateGame(game.code, (g) => {
-        const next = castVoteFlexible(g, active.id, submissionPlayerId);
+        const next = castVoteFlexible(g, voterId, submissionPlayerId);
         recordIfNeeded(next);
         if (next.phase === 'results') {
           setTimeout(() => {
@@ -945,6 +948,19 @@ export default function PlayScreen() {
             { won: true }
           );
         }
+      }
+      if (onlineRoom && myPlayerId) {
+        const code = game.code;
+        const vid = myPlayerId;
+        void (async () => {
+          const voted = await castVoteRoom(code, vid, submissionPlayerId);
+          if (voted.ok && voted.state) {
+            applyRemoteGame(voted.state);
+          } else {
+            const local = getGame(code);
+            if (local) await pushRoom(local, vid);
+          }
+        })();
       }
     } catch (e) {
       { const msg = e instanceof Error ? e.message : 'Error';
@@ -1468,7 +1484,10 @@ export default function PlayScreen() {
             (isOnline ? myPlayerId === zar.id : active?.id === zar.id) ? (
               <WaitingRoster
               players={game.players}
-              doneIds={roundSubs.filter((s) => !s.rival).map((s) => s.playerId)}
+              doneIds={[
+                ...roundSubs.filter((s) => !s.rival).map((s) => s.playerId),
+                ...(zar ? [zar.id] : []),
+              ]}
               meId={myPlayerId ?? active?.id}
               verb="responda"
          />
@@ -1579,11 +1598,13 @@ export default function PlayScreen() {
                 meId={myPlayerId ?? active?.id}
                 verb="vote"
               />
-              {active && votesMap[active.id] ? (
+              {(isOnline
+                ? !!(myPlayerId && votesMap[myPlayerId])
+                : !!(active && votesMap[active.id])) ? (
                 <Muted>
                   {isOnline
                     ? 'Ya has votado. Esperando votos…'
-                    : `${active.nickname} ya votó. Pasa el móvil al siguiente.`}
+                    : `${active?.nickname} ya votó. Pasa el móvil al siguiente.`}
                 </Muted>
               ) : privacy && !isOnline ? (
                 <>
