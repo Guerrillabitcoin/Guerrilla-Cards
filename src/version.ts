@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.421.63';
+export const APP_VERSION = '0.99.421.64';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,11 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.64',
+    date: '2026-09-28',
+    notes: ['Resultados: ganador de la final muestra +1 liga'],
+  },
   {
     version: '0.99.421.63',
     date: '2026-09-28',

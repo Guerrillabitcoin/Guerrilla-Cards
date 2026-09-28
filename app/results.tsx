@@ -251,10 +251,14 @@ export default function ResultsScreen() {
     );
   }
 
+  const isSolo = game.mode === 'solo';
   const humans = game.players.filter((p) => !p.isBot);
   const board = humans.length ? humans : game.players;
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
+  const ligaWinner = !isSolo
+    ? [...humans].sort((a, b) => b.score - a.score)[0]
+    : undefined;
 
          const doRestartNow = () => {
     const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
@@ -340,13 +344,21 @@ export default function ResultsScreen() {
     }
   };
 
-  const isSolo = game.mode === 'solo';
   const answersTitle = isSolo
     ? 'Tus respuestas de la partida'
     : 'Tus respuestas';
   const answersHint = isSolo
     ? 'Las 10 rondas · de la última a la primera · toca ★ para favoritas'
     : 'De la última a la primera · toca ★ para favoritas';
+
+  const ligaCallout =
+    !isSolo && ligaWinner ? (
+      <View style={styles.ligaCallout}>
+        <Text style={styles.ligaCalloutText}>
+          Final · {ligaWinner.nickname} +1 liga
+        </Text>
+      </View>
+    ) : null;
 
   const rankingBlock =
     !isSolo && ranked.length >= 1 ? (
@@ -414,9 +426,14 @@ export default function ResultsScreen() {
               {p.isBot ? '🤖 ' : ''}
               {p.nickname}
             </Text>
-            <Text style={[styles.score, i === 0 && p.liga > 0 && styles.scoreFirst]}>
-              {p.liga}
-            </Text>
+            <View style={styles.ligaScoreWrap}>
+              <Text style={[styles.score, i === 0 && p.liga > 0 && styles.scoreFirst]}>
+                {p.liga}
+              </Text>
+              {ligaWinner?.id === p.id ? (
+                <Text style={styles.ligaPlus}>+1</Text>
+              ) : null}
+            </View>
           </View>
         ))}
       </View>
@@ -492,6 +509,7 @@ export default function ResultsScreen() {
         </View>
       </View>
 
+      {!isSolo ? ligaCallout : null}
       {!isSolo ? rankingBlock : null}
       {menuBlock}
 
@@ -668,6 +686,21 @@ function useResultsStyles() {
     borderColor: colors.border,
   },
   list: { gap: 8, marginBottom: 8 },
+  ligaCallout: {
+    backgroundColor: colors.bgCard,
+    borderWidth: 1,
+    borderColor: '#69F0AE',
+    borderRadius: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+  },
+  ligaCalloutText: {
+    color: '#69F0AE',
+    fontWeight: '900',
+    fontSize: 15,
+    textAlign: 'center',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -699,6 +732,12 @@ function useResultsStyles() {
   name: { color: colors.text, fontWeight: '700', flex: 1, fontSize: 16 },
   score: { color: colors.textMuted, fontWeight: '800', fontSize: 18 },
   scoreFirst: { color: colors.zar },
+  ligaScoreWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ligaPlus: { color: '#69F0AE', fontWeight: '900', fontSize: 14 },
   answersBox: {
     backgroundColor: colors.bgElevated,
     borderRadius: 4,
