@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.421.61';
+export const APP_VERSION = '0.99.421.62';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,14 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.62',
+    date: '2026-09-28',
+    notes: [
+      'Reject incomplete pick submissions on room merge / promoteJudging',
+      'Client autoSend + roomSync guard cards.length === pick',
+    ],
+  },
   {
     version: '0.99.421.60',
     date: '2026-09-28',

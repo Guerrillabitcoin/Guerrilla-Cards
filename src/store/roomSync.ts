@@ -106,7 +106,12 @@ export function mergeHandsPreserveLocal(
   });
   let submissions = remote.submissions ?? [];
   const remoteRound = remote.round;
+  const pickNeed = Math.max(1, remote.currentPrompt?.pick ?? 1);
   submissions = submissions.filter((s) => s.round == null || s.round === remoteRound);
+  // Defense in depth: drop incomplete !rival multipick answers from remote.
+  submissions = submissions.filter(
+    (s) => s.rival || (Array.isArray(s.cards) && s.cards.length === pickNeed)
+  );
   // Un-redact MY submission text if the server already has my seat.
   // Never add a local-only submission the server lacks (ghost «ya contestaste»).
   if (
@@ -121,7 +126,11 @@ export function mergeHandsPreserveLocal(
     const localSub = local.submissions.find(
       (s) => s.playerId === myPlayerId && !s.rival && (s.round == null || s.round === remoteRound)
     );
-    if (localSub && localSub.cards.some((c) => !isRedactedCardText(c.text))) {
+    if (
+      localSub &&
+      localSub.cards.length === pickNeed &&
+      localSub.cards.some((c) => !isRedactedCardText(c.text))
+    ) {
       const serverHasMine = submissions.some((s) => s.playerId === myPlayerId && !s.rival);
       if (serverHasMine) {
         submissions = submissions.map((s) => {

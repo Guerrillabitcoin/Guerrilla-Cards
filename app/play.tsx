@@ -766,6 +766,11 @@ export default function PlayScreen() {
 
     // Answer path: keep `picked` so the sticky fills on this press, show it,
     // then commit. Reveal keeps the same filled text.
+    // Hard guard: never submit incomplete multipick (pick must match prompt).
+    if (!skipMode) {
+      const answerPickNeed = Math.max(1, game.currentPrompt?.pick ?? 1);
+      if (ids.length !== answerPickNeed) return;
+    }
     runEngineAfterPaint(() => {
       if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
       engineTimerRef.current = setTimeout(() => {
@@ -780,6 +785,8 @@ export default function PlayScreen() {
               }
               setPicked([]);
             } else {
+              const answerPickNeed = Math.max(1, game.currentPrompt?.pick ?? 1);
+              if (ids.length !== answerPickNeed) return;
               if (onlineRoom) {
                 try {
                   const remote = await pullRoom(code);

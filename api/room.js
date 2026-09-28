@@ -302,14 +302,24 @@ function mergeHandsByPlayerId(existingPlayers, incomingPlayers, mode) {
 
 /**
  * Merge submissions by playerId preferring real (non-redacted) card text.
+ * Drop !rival submissions whose cards.length !== pick (incomplete multipick).
  */
-function mergeSubmissionsPreferReal(existingSubs, incomingSubs) {
+function mergeSubmissionsPreferReal(existingSubs, incomingSubs, pick) {
+  const need = Math.max(1, Number(pick) || 1);
+  const pickLenOk = (s) => {
+    if (!s || s.rival) return true;
+    return Array.isArray(s.cards) && s.cards.length === need;
+  };
   const byId = new Map();
   for (const s of existingSubs || []) {
-    if (s && s.playerId) byId.set(s.playerId, s);
+    if (!s || !s.playerId) continue;
+    if (!pickLenOk(s)) continue;
+    byId.set(s.playerId, s);
   }
   for (const s of incomingSubs || []) {
     if (!s || !s.playerId) continue;
+    // Invalid !rival length: do not merge in; keep valid existing if any.
+    if (!pickLenOk(s)) continue;
     const ex = byId.get(s.playerId);
     if (!ex) {
       byId.set(s.playerId, s);
@@ -330,13 +340,18 @@ function mergeSubmissions(existing, incoming) {
   const incomingPhase = incoming?.phase;
   const existingPhase = existing?.phase;
   const revealPhases = ['judging', 'reveal', 'results'];
+  const prompt =
+    (incoming && incoming.currentPrompt) ||
+    (existing && existing.currentPrompt);
+  const pick = Math.max(1, Number(prompt && prompt.pick) || 1);
 
   if (revealPhases.includes(incomingPhase)) {
     // Prefer incoming (full) but fall back to existing real text per player
     // so a last-submitter push with fogged peers does not wipe answers.
     return mergeSubmissionsPreferReal(
       existing?.submissions,
-      incoming?.submissions
+      incoming?.submissions,
+      pick
     );
   }
 
@@ -349,11 +364,14 @@ function mergeSubmissions(existing, incoming) {
   ) {
     return mergeSubmissionsPreferReal(
       existing?.submissions,
-      incoming?.submissions
+      incoming?.submissions,
+      pick
     );
   }
 
-  return incoming?.submissions ?? existing?.submissions ?? [];
+  // Still drop incomplete !rival pick submissions on the fallback path.
+  const raw = incoming?.submissions ?? existing?.submissions ?? [];
+  return mergeSubmissionsPreferReal([], raw, pick);
 }
 
 
@@ -428,12 +446,17 @@ function promoteJudgingIfReady(state) {
   const players = state.players || [];
   const zar = players[state.zarIndex || 0];
   const round = Number(state.round) || 0;
+  const pick = Math.max(1, Number(state.currentPrompt && state.currentPrompt.pick) || 1);
   let subs = (state.submissions || []).filter(
     (s) => s && !s.rival && (s.round == null || s.round === round)
   );
   if (!voteMode && zar?.id) {
     subs = subs.filter((s) => s.playerId !== zar.id);
   }
+  // Ignore incomplete multipick answers toward readiness / judging store.
+  subs = subs.filter(
+    (s) => Array.isArray(s.cards) && s.cards.length === pick
+  );
   const needed = voteMode
     ? players.length
     : Math.max(0, players.length - 1);
@@ -718,7 +741,15 @@ function applyPrivacyMerges(existing, incoming) {
       state.roundWinnerId = existing.roundWinnerId;
       state.submissions = mergeSubmissionsPreferReal(
         existing.submissions,
-        incoming.submissions
+        incoming.submissions,
+        Math.max(
+          1,
+          Number(
+            (state.currentPrompt && state.currentPrompt.pick) ||
+              (existing.currentPrompt && existing.currentPrompt.pick) ||
+              (incoming.currentPrompt && incoming.currentPrompt.pick)
+          ) || 1
+        )
       );
     }
   }
