@@ -230,7 +230,13 @@ export function PackTile({
 }) {
   const styles = useUiStyles();
 
-  const { width: winW } = useWindowDimensions();
+  const { width: winWRaw } = useWindowDimensions();
+  const winW =
+    winWRaw > 0
+      ? winWRaw
+      : typeof window !== 'undefined' && window.innerWidth > 0
+        ? window.innerWidth
+        : 1024;
   const pcPack = winW >= 700;
   return (
     <Pressable
@@ -451,7 +457,19 @@ function CardFaceInner({
   const styles = useUiStyles();
 
   const isPrompt = kind === 'prompt';
-  const { width: winW, height: winH } = useWindowDimensions();
+  const { width: winWRaw, height: winHRaw } = useWindowDimensions();
+  const winW =
+    winWRaw > 0
+      ? winWRaw
+      : typeof window !== 'undefined' && window.innerWidth > 0
+        ? window.innerWidth
+        : 1024;
+  const winH =
+    winHRaw > 0
+      ? winHRaw
+      : typeof window !== 'undefined' && window.innerHeight > 0
+        ? window.innerHeight
+        : 800;
   const columns = gridColumns ?? (winW >= 700 ? 6 : 2);
   const gap = dense ? 6 : 10;
   const approxTileRaw = square

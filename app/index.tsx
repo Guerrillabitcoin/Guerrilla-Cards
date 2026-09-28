@@ -91,7 +91,14 @@ export default function HomeScreen() {
     () => getPlayablePackMeta().filter((p) => p.id !== '_banned'),
     []
   );
-  const { width: winW } = useWindowDimensions();
+  const { width: winWRaw } = useWindowDimensions();
+  // Avoid first-frame width 0 (or tiny) which reflows the whole home menu.
+  const winW =
+    winWRaw > 0
+      ? winWRaw
+      : typeof window !== 'undefined' && window.innerWidth > 0
+        ? window.innerWidth
+        : 1024;
   const denseMenu = winW >= 900;
   const mobileCompact = winW < 700;
   const packCols = mobileCompact ? 4 : winW >= 1400 ? 7 : winW >= 1100 ? 6 : winW >= 900 ? 6 : 5;
