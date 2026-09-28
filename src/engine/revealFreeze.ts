@@ -1,4 +1,5 @@
 import type { GameState } from './types';
+import { shuffle } from './deck';
 
 function isVoteMode(state: GameState): boolean {
   return (state.judgeMode ?? 'zar') === 'vote';
@@ -13,9 +14,27 @@ function isIndexPerm(order: unknown, n: number): order is number[] {
   );
 }
 
+function isPlayerIdPerm(
+  order: unknown,
+  playerIds: string[]
+): boolean {
+  if (!Array.isArray(order) || !playerIds.length) return false;
+  if (order.length !== playerIds.length) return false;
+  const ids = new Set(playerIds.map(String));
+  if (ids.size !== playerIds.length) return false;
+  const seen = new Set<string>();
+  for (const x of order) {
+    const id = String(x);
+    if (!ids.has(id) || seen.has(id)) return false;
+    seen.add(id);
+  }
+  return true;
+}
+
 /**
  * Drop leftover answers from past rounds and freeze the Zar board.
- * Never reshuffle a live judging list — that swapped Opción 1/2 on every poll.
+ * Never reshuffle or alphabetically re-sort a live judging list — that
+ * swapped Opción 1/2 on every poll when revealOrder was index-based.
  */
 export function ensureRevealOrder(state: GameState): GameState {
   const round = state.round ?? 0;
@@ -31,13 +50,18 @@ export function ensureRevealOrder(state: GameState): GameState {
   ) {
     subs = subs.filter((s) => s.playerId !== zar.id);
   }
-  subs = [...subs].sort((a, b) =>
-    String(a.playerId).localeCompare(String(b.playerId))
-  );
+  // Keep existing submissions order (frozen). Do not localeCompare sort.
   const n = subs.length;
-  const order = isIndexPerm(state.revealOrder, n)
-    ? state.revealOrder.map((i) => Number(i))
-    : [...Array(n).keys()];
+  const playerIds = subs.map((s) => s.playerId);
+  const existing = state.revealOrder ?? [];
+  let order: Array<number | string>;
+  if (isPlayerIdPerm(existing, playerIds)) {
+    order = existing.slice();
+  } else if (isIndexPerm(existing, n)) {
+    order = (existing as Array<number | string>).map((i) => Number(i));
+  } else {
+    order = shuffle([...playerIds]);
+  }
   const sameSubs =
     subs.length === (state.submissions?.length ?? 0) &&
     subs.every((s, i) => s.playerId === state.submissions[i]?.playerId);

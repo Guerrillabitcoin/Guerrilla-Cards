@@ -15,7 +15,6 @@ const {
   sanitizeRoomState,
   freezeRevealOrder,
   currentRoundSubs,
-  sortSubsByPlayerId,
   mergeLeagueMaps,
   mergePlayerScores,
 } = require('./sanitizeRoom');
@@ -461,12 +460,23 @@ function promoteJudgingIfReady(state) {
     ? players.length
     : Math.max(0, players.length - 1);
   if (subs.length < needed) return state;
+  // Freeze order once: shuffle playerIds; keep submissions in that order.
+  // Never sortSubsByPlayerId here — that remapped Opción N across polls.
+  const byId = new Map();
+  for (const s of subs) {
+    if (s && s.playerId) byId.set(s.playerId, s);
+  }
+  const ids = Array.from(byId.keys());
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  const frozen = ids.map((id) => byId.get(id));
   const firstVoter = players.find((p) => !p.isBot) || players[0];
   return {
     ...state,
-    submissions: subs,
-    revealOrder: freezeRevealOrder(state.revealOrder, null, sortSubsByPlayerId(subs).length),
-submissions: sortSubsByPlayerId(subs),
+    submissions: frozen,
+    revealOrder: ids.slice(),
     votes: {},
     phase: 'judging',
     activeSeatId: voteMode
@@ -754,11 +764,28 @@ function applyPrivacyMerges(existing, incoming) {
     }
   }
   if (phase === 'judging') {
-    state.submissions = currentRoundSubs(state);
+    // Union by playerId (prefer real text) then order as existing.submissions
+    // (frozen). Never alphabetical re-sort during judging.
+    const orderSrc =
+      Array.isArray(existing.submissions) && existing.submissions.length
+        ? existing.submissions
+        : state.submissions || [];
+    state.submissions = currentRoundSubs({
+      ...state,
+      submissions: [
+        ...orderSrc,
+        ...(state.submissions || []),
+        ...(incoming.submissions || []),
+      ],
+    });
+    const playerIds = (state.submissions || [])
+      .map((s) => s && s.playerId)
+      .filter(Boolean);
     state.revealOrder = freezeRevealOrder(
       existing.revealOrder,
       incoming.revealOrder,
-      state.submissions.length
+      state.submissions.length,
+      playerIds
     );
     state.activeSeatId =
       incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;

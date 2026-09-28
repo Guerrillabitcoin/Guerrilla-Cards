@@ -593,15 +593,35 @@ export default function PlayScreen() {
     if (zarSkipsSubmit && p.id === zar.id) return false;
     return !roundSubs.some((s) => s.playerId === p.id && !s.rival);
   });
-  // Prefer engine revealOrder (set on enter judging). Stable identity fallback only.
-  const revealOrderSafe =
-    game.revealOrder.length === game.submissions.length &&
-    game.revealOrder.every(
-      (i) => i >= 0 && i < game.submissions.length
-    ) &&
-    new Set(game.revealOrder).size === game.submissions.length
-      ? game.revealOrder
-      : game.submissions.map((_, i) => i);
+  // Prefer engine revealOrder (playerIds preferred; legacy numeric indices ok).
+  const subPlayerIds = game.submissions.map((s) => s.playerId);
+  const revealOrderRaw = game.revealOrder ?? [];
+  const revealIsPlayerIds =
+    revealOrderRaw.length === subPlayerIds.length &&
+    revealOrderRaw.length > 0 &&
+    revealOrderRaw.every((x) => typeof x === 'string') &&
+    new Set(revealOrderRaw.map(String)).size === subPlayerIds.length &&
+    revealOrderRaw.every((x) => subPlayerIds.includes(String(x)));
+  const revealIsIndices =
+    revealOrderRaw.length === game.submissions.length &&
+    revealOrderRaw.every((i) => {
+      const n = typeof i === 'number' ? i : Number(i);
+      return Number.isInteger(n) && n >= 0 && n < game.submissions.length;
+    }) &&
+    new Set(revealOrderRaw.map((i) => Number(i))).size === game.submissions.length;
+  const revealOrderSafe: Array<number | string> = revealIsPlayerIds
+    ? revealOrderRaw
+    : revealIsIndices
+      ? revealOrderRaw.map((i) => Number(i))
+      : subPlayerIds.length
+        ? subPlayerIds
+        : game.submissions.map((_, i) => i);
+  const subByRevealEntry = (entry: number | string) => {
+    if (typeof entry === 'string') {
+      return game.submissions.find((s) => s.playerId === entry);
+    }
+    return game.submissions[entry];
+  };
   const handLenForPick = active?.hand.length ?? 0;
   const discardMin = Math.min(DISCARD_MIN, handLenForPick);
   const discardMax = Math.min(DISCARD_MAX, handLenForPick);
@@ -1630,7 +1650,7 @@ export default function PlayScreen() {
                       : `Voto de ${active?.nickname} — elige una (anónimas)`}
                   </Label>
                   {revealOrderSafe
-                    .map((idx) => game.submissions[idx])
+                    .map((entry) => subByRevealEntry(entry))
                     .filter(
                       (sub): sub is NonNullable<typeof sub> =>
                         !!sub &&
@@ -1639,6 +1659,11 @@ export default function PlayScreen() {
                     )
                     .map((sub, optNum) => {
                       const filled = Engine.getFilledSubmission(game, sub);
+                      const answers = (sub.cards || []).map((c) =>
+                        c?.text != null && String(c.text).trim() !== ''
+                          ? c.text
+                          : '…'
+                      );
                       return (
                       <View key={sub.playerId} style={styles.judgeCard}>
                         <View style={styles.soloRivalHead}>
@@ -1652,11 +1677,13 @@ export default function PlayScreen() {
                             {isFavFilled(filled) ? '★' : '☆'}
                           </Text>
                         </View>
-                        <FilledPromptText
-                          large
-                          promptText={game.currentPrompt?.text ?? ''}
-                          answers={sub.cards.map((c) => c.text)}
-                        />
+                        <View style={styles.judgeCardBody}>
+                          <FilledPromptText
+                            large
+                            promptText={game.currentPrompt?.text ?? ''}
+                            answers={answers}
+                          />
+                        </View>
                         <Button
                           title="Votar esta"
                           onPress={() => castVote(sub.playerId)}
@@ -1698,8 +1725,8 @@ export default function PlayScreen() {
                           ? 'Elige la mejor jugada'
                           : 'Jugadas anónimas'}
                     </Label>
-                    {revealOrderSafe.map((idx, optNum) => {
-                      const sub = game.submissions[idx];
+                    {revealOrderSafe.map((entry, optNum) => {
+                      const sub = subByRevealEntry(entry);
                       if (!sub) return null;
                       const isRival =
                         !!sub.rival || sub.playerId.startsWith('rival-');
@@ -1712,9 +1739,14 @@ export default function PlayScreen() {
                             : 'Opción'
                         : `Opción ${optNum + 1}`;
                       const filled = Engine.getFilledSubmission(game, sub);
+                      const answers = (sub.cards || []).map((c) =>
+                        c?.text != null && String(c.text).trim() !== ''
+                          ? c.text
+                          : '…'
+                      );
                       return (
                         <View
-                          key={`${sub.playerId}-${idx}`}
+                          key={sub.playerId}
                           style={styles.judgeCard}
                         >
                           <View style={styles.soloRivalHead}>
@@ -1726,11 +1758,13 @@ export default function PlayScreen() {
                               {isFavFilled(filled) ? '★' : '☆'}
                             </Text>
                           </View>
-                          <FilledPromptText
-                            large
-                            promptText={game.currentPrompt?.text ?? ''}
-                            answers={sub.cards.map((c) => c.text)}
-                          />
+                          <View style={styles.judgeCardBody}>
+                            <FilledPromptText
+                              large
+                              promptText={game.currentPrompt?.text ?? ''}
+                              answers={answers}
+                            />
+                          </View>
                           {canPickWinner ? (
                             <Button
                               title="Gana esta"
@@ -2278,6 +2312,11 @@ function usePlayStyles() {
     gap: 8,
     borderWidth: 1,
     borderColor: colors.border,
+    minHeight: 132,
+  },
+  judgeCardBody: {
+    minHeight: 56,
+    justifyContent: 'center',
   },
   judgeLabel: {
     color: colors.accentSoft,

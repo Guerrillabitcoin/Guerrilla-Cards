@@ -669,7 +669,7 @@ export function submitCards(
   const allIn = submissions.length >= needed;
 
   if (allIn) {
-    const order = shuffle([...submissions.keys()]);
+    const order = shuffle(submissions.map((s) => s.playerId));
     const firstVoter =
       state.players.find((p) => !p.isBot) ?? state.players[0];
     return {
@@ -956,7 +956,7 @@ export function advanceToJudgingIfReady(state: GameState): GameState {
     : realSubs.filter((s) => s.playerId !== zar?.id);
   if (submissions.length < needed) return state;
 
-  const order = shuffle([...submissions.keys()]);
+  const order = shuffle(submissions.map((s) => s.playerId));
   const firstVoter =
     state.players.find((p) => !p.isBot) ?? state.players[0];
   return {
@@ -970,21 +970,47 @@ export function advanceToJudgingIfReady(state: GameState): GameState {
   };
 }
 
-/** Ensure revealOrder is a full permutation of submission indices (reshuffle if missing/stale). */
+function isIndexRevealPerm(
+  order: Array<number | string>,
+  n: number
+): boolean {
+  if (!n || order.length !== n) return false;
+  const nums = order.map((x) => Number(x));
+  return (
+    nums.every((i) => Number.isInteger(i) && i >= 0 && i < n) &&
+    new Set(nums).size === n
+  );
+}
+
+function isPlayerIdRevealPerm(
+  order: Array<number | string>,
+  playerIds: string[]
+): boolean {
+  if (!playerIds.length || order.length !== playerIds.length) return false;
+  const ids = new Set(playerIds.map(String));
+  if (ids.size !== playerIds.length) return false;
+  const seen = new Set<string>();
+  for (const x of order) {
+    const id = String(x);
+    if (!ids.has(id) || seen.has(id)) return false;
+    seen.add(id);
+  }
+  return true;
+}
+
+/** Ensure revealOrder is a full perm of playerIds (preferred) or indices. Do not reshuffle if valid. */
 export function ensureRevealOrder(state: GameState): GameState {
   const n = state.submissions.length;
   if (n === 0) {
     return state.revealOrder?.length ? { ...state, revealOrder: [] } : state;
   }
   const order = state.revealOrder ?? [];
-  const valid =
-    order.length === n &&
-    order.every((i) => typeof i === 'number' && i >= 0 && i < n) &&
-    new Set(order).size === n;
-  if (valid) return state;
+  const playerIds = state.submissions.map((s) => s.playerId);
+  if (isPlayerIdRevealPerm(order, playerIds)) return state;
+  if (isIndexRevealPerm(order, n)) return state;
   return {
     ...state,
-    revealOrder: shuffle([...Array(n).keys()]),
+    revealOrder: shuffle([...playerIds]),
     updatedAt: now(),
   };
 }

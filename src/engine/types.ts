@@ -70,7 +70,7 @@ export interface GameState {
   votes?: Record<string, string>;
   currentPrompt: Card | null;
   submissions: Submission[];
-  revealOrder: number[];
+  revealOrder: Array<number | string>;
   roundWinnerId: string | null;
   roundWinnerIds?: string[];
   targetScore: number;
