@@ -260,10 +260,20 @@ export default function ResultsScreen() {
     ? [...humans].sort((a, b) => b.score - a.score)[0]
     : undefined;
 
-         const doRestartNow = () => {
+  const doRestartNow = () => {
     const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
+    // Solo / pass-and-play: no server rematch; myPlayerId is often null in Solo.
+    if (game.mode === 'solo' || !onlineRoom) {
+      const next = restartSameSetup(game.code);
+      if (!next) {
+        router.replace('/');
+        return;
+      }
+      router.replace({ pathname: '/play', params: { code: next.code } });
+      return;
+    }
     void (async () => {
       const awarded = await rematchRoom(game.code, myPlayerId);
       if (awarded.ok) applyRemoteGame(awarded.state);
