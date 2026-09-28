@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.421.62';
+export const APP_VERSION = '0.99.421.63';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,14 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.421.63',
+    date: '2026-09-28',
+    notes: [
+      'Rematch Listo: restartReadyIds from server only (no ghost ready)',
+      'Results mount pull+apply before painting Listo; union never LWW-wipes',
+    ],
+  },
   {
     version: '0.99.421.62',
     date: '2026-09-28',

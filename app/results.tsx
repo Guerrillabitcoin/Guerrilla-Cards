@@ -37,6 +37,8 @@ export default function ResultsScreen() {
   const { getGame, restartSameSetup, ready, applyRemoteGame, updateGame } = useGameStore();
   const [onlineRoom, setOnlineRoom] = useState(false);
   const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  /** Online: true after pullRoom+applyRemote so Listo is not painted from ghost local ids. */
+  const [resultsSynced, setResultsSynced] = useState(false);
   const {
     recordLeftInHand,
     winningHistory,
@@ -54,6 +56,7 @@ export default function ResultsScreen() {
   useEffect(() => {
     if (!gameCode) return;
     let cancelled = false;
+    setResultsSynced(false);
     void (async () => {
       const [online, seat] = await Promise.all([
         getOnlineFlag(gameCode),
@@ -62,11 +65,18 @@ export default function ResultsScreen() {
       if (cancelled) return;
       setOnlineRoom(online);
       setMyPlayerId(seat);
+      // Online: pull server restartReadyIds before painting Listo (no ghost ready).
+      if (online) {
+        const pulled = await pullRoom(gameCode);
+        if (cancelled) return;
+        if (pulled.ok) applyRemoteGame(pulled.state);
+      }
+      if (!cancelled) setResultsSynced(true);
     })();
     return () => {
       cancelled = true;
     };
-  }, [gameCode]);
+  }, [gameCode, applyRemoteGame]);
 
   // Poll remote room while on results (async online rematch)
   useRoomPoll({
@@ -279,12 +289,14 @@ export default function ResultsScreen() {
       }
       return;
     }
-          updateGame(game.code, (g) => Engine.markRestartReady(g, myPlayerId));
+    // Capture marked snapshot for push (avoid poll wiping id before push).
+    const marked = Engine.markRestartReady(game, myPlayerId);
+    updateGame(game.code, () => marked);
     void (async () => {
-      const local = getGame(game.code);
-      if (local) await pushRoom(local, myPlayerId);
+      await pushRoom(marked, myPlayerId);
       const pulled = await pullRoom(game.code);
       if (pulled.ok) applyRemoteGame(pulled.state);
+      // applyRemote trusts server restartReadyIds only (GameContext).
       const g = getGame(game.code);
       if (g && Engine.allHumansRestartReady(g)) {
         rematchOnceRef.current = null;
@@ -361,7 +373,12 @@ export default function ResultsScreen() {
     ) : null;
 
   const readyIds = game.restartReadyIds ?? [];
-  const iAmReady = !!(myPlayerId && readyIds.includes(myPlayerId));
+  // Only paint «Listo ✓» from server-trusted ids (after pull/apply on mount).
+  const iAmReady = !!(
+    resultsSynced &&
+    myPlayerId &&
+    readyIds.includes(myPlayerId)
+  );
   const canForce = Engine.canForceRestart(game, myPlayerId);
   const leagueScores = leagueFromState(game);
   if (typeof window !== 'undefined') writeLeague(game.code, leagueScores);

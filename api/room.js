@@ -771,6 +771,7 @@ function applyPrivacyMerges(existing, incoming) {
     );
         const { awardOnResults } = require('./awardOnResults');
     state = awardOnResults(state);
+    // Results: union restartReadyIds (never LWW-wipe when incoming is []).
     const { unionRestartReady } = require('./unionReady');
     state = unionRestartReady(existing, incoming, state);
     const mergingRematch =
@@ -1023,6 +1024,8 @@ async function handler(req, res) {
           } else if (incoming.leagueScores) {
             state.leagueScores = incoming.leagueScores;
           }
+          // Rematch leaving results: clear ready list for the new match.
+          // Do NOT clear during normal results merges (see unionRestartReady).
           if (existing.restartReadyIds && !incoming.restartReadyIds) {
             state.restartReadyIds = [];
           }
@@ -1067,11 +1070,19 @@ async function handler(req, res) {
               ...(existing.leagueScores || {}),
               ...(incoming.leagueScores || {}),
             },
+            // Prefer non-empty list; [] is truthy in JS so `incoming ||` would
+            // wipe peers if a lobby push sent an empty array.
             restartReadyIds:
-              incoming.restartReadyIds ||
-              fresh.restartReadyIds ||
-              existing.restartReadyIds ||
-              [],
+              Array.isArray(incoming.restartReadyIds) &&
+              incoming.restartReadyIds.length
+                ? incoming.restartReadyIds
+                : Array.isArray(fresh.restartReadyIds) &&
+                    fresh.restartReadyIds.length
+                  ? fresh.restartReadyIds
+                  : Array.isArray(existing.restartReadyIds) &&
+                      existing.restartReadyIds.length
+                    ? existing.restartReadyIds
+                    : [],
             submissions: mergeSubmissions(fresh, {
               ...incoming,
               phase: 'lobby',

@@ -488,14 +488,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             return rp ?? lp ?? null;
           })(),
-          restartReadyIds: Array.from(
-            new Set([
-              ...(local.phase === remote.phase
-                ? local.restartReadyIds || []
-                : []),
-              ...(remote.restartReadyIds || []),
-            ])
-          ),
+          // Results rematch Listo: server is source of truth (no ghost ready
+          // from localStorage). Same pattern as ghost «ya contestaste» / «ya voté».
+          restartReadyIds:
+            remote.phase === 'results'
+              ? [...(remote.restartReadyIds || [])]
+              : Array.from(
+                  new Set([
+                    ...(local.phase === remote.phase
+                      ? local.restartReadyIds || []
+                      : []),
+                    ...(remote.restartReadyIds || []),
+                  ])
+                ),
         };
       }
       // Same discarding round: union who already discarded (sync must not wipe peers)

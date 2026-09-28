@@ -1,3 +1,4 @@
+/** Union restartReadyIds on results. Never LWW-wipe when incoming is []/missing. */
 function unionRestartReady(existing, incoming, state) {
   if (!state || state.phase !== 'results') return state;
   const ids = [];
