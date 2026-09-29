@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.02';
+export const APP_VERSION = '0.99.422.03';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,7 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
-      {
+        {
+    version: '0.99.422.03',
+    notes:
+      'Round standings include bots (same board as humans); they keep Puntacos and can win Liga.',
+  },
+{
     version: '0.99.422.02',
     notes:
       'Fix Multi vote: do not fog bot submission texts (were stuck as … on judging).',

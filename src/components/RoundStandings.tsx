@@ -27,12 +27,11 @@ export function RoundStandings({
   const split = isVoteSplit(game);
   const humans = humanCount(game);
   const tieIds = (game.roundWinnerIds ?? []).filter(Boolean);
-  const rows = [...game.players]
-    .filter((p) => !p.isBot)
-    .map((p) => {
-      const d = deltaFor(game, p);
-      return { p, d };
-    });
+  // Humans + bots: bots are full seats (Puntacos / Liga); nick already has « (Bot)»
+  const rows = [...game.players].map((p) => {
+    const d = deltaFor(game, p);
+    return { p, d };
+  });
   const now = [...rows].sort(
     (a, b) => b.p.score - a.p.score || a.p.nickname.localeCompare(b.p.nickname)
   );
@@ -59,6 +58,7 @@ export function RoundStandings({
           <Text style={styles.pos}>{i + 1}</Text>
           <Text style={styles.name} numberOfLines={1}>
             {r.p.nickname}
+            {r.p.isBot && !/\(Bot\)/i.test(r.p.nickname) ? ' (Bot)' : ''}
             {meId === r.p.id ? ' · tú' : ''}
           </Text>
           <WinFlash active={r.d > 0}>
