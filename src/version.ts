@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.13';
+export const APP_VERSION = '0.99.422.14';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.14',
+    date: '2026-09-29',
+    notes:
+      'Wait roster: siempre nicks (no …). Opciones juicio: orden aleatorio distinto por asiento/ronda. Reveal: sticky rellena ganadora; perdedor ve la suya discreta; menos texto repetido. Enlaces asiento en menú ▾ con copy legible (oscuro). Listo rematch: union local+server + re-stamp. Tú/Partida colores.',
+  },
     {
     version: '0.99.422.13',
     date: '2026-09-29',

@@ -1271,16 +1271,26 @@ async function handler(req, res) {
             },
             // Prefer non-empty list; [] is truthy in JS so `incoming ||` would
             // wipe peers if a lobby push sent an empty array.
-            restartReadyIds:
-              Array.isArray(incoming.restartReadyIds) &&
-              incoming.restartReadyIds.length
-                ? incoming.restartReadyIds
-                : Array.isArray(fresh.restartReadyIds) &&
-                    fresh.restartReadyIds.length
+            restartReadyIds: (() => {
+              const ids = [];
+              const seen = new Set();
+              for (const id of [
+                ...(Array.isArray(existing.restartReadyIds)
+                  ? existing.restartReadyIds
+                  : []),
+                ...(Array.isArray(fresh.restartReadyIds)
                   ? fresh.restartReadyIds
-                  : Array.isArray(existing.restartReadyIds) &&
-                      existing.restartReadyIds.length
-                    ? existing.restartReadyIds
+                  : []),
+                ...(Array.isArray(incoming.restartReadyIds)
+                  ? incoming.restartReadyIds
+                  : []),
+              ]) {
+                if (!id || seen.has(id)) continue;
+                seen.add(id);
+                ids.push(id);
+              }
+              return ids;
+            })()
                     : [],
             submissions: mergeSubmissions(fresh, {
               ...incoming,

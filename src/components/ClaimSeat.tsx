@@ -1,5 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button, Label, Muted } from './ui';
+import { useTheme } from '../store/ThemeContext';
 import type { GameState } from '../engine/types';
 
 export function ClaimSeat({
@@ -67,11 +69,12 @@ function notify(title: string, url: string) {
   }
 }
 
+const HELP =
+  'Guarda este enlace o pídeselo al anfitrión para recuperar tu asiento en una partida (cambio de dispositivo, ronda atascada y como solución para bugs).';
+
 /**
- * Seat links menu.
- * - Host (in-match): copy each human's recovery link (no lobby link).
- * - Non-host: only their own seat recovery link.
- * - Lobby host may pass showLobbyLink.
+ * Collapsible seat-links menu (default closed).
+ * Host: all humans. Guest (selfId): only own seat. No lobby link in-match.
  */
 export function HostRecoveryLinks({
   code,
@@ -79,50 +82,68 @@ export function HostRecoveryLinks({
   compact,
   showLobbyLink = false,
   selfId,
+  defaultOpen = false,
 }: {
   code: string;
   players: { id: string; nickname: string; isBot?: boolean }[];
   compact?: boolean;
-  /** Lobby share only — hide once the match has started. */
   showLobbyLink?: boolean;
-  /** If set, only show this player's link (guest menu). */
   selfId?: string | null;
+  defaultOpen?: boolean;
 }) {
+  const { colors, fontFamily } = useTheme();
+  const [open, setOpen] = useState(defaultOpen);
   const humans = players.filter((p) => !p.isBot);
-  const list = selfId
-    ? humans.filter((p) => p.id === selfId)
-    : humans;
+  const list = selfId ? humans.filter((p) => p.id === selfId) : humans;
   if (!list.length && !showLobbyLink) return null;
   const guest = !!selfId;
+  const title = guest ? 'Tu enlace de asiento' : 'Enlaces de asiento';
+
   return (
-    <View style={[styles.box, compact ? styles.compact : null]}>
-      <Label>{guest ? 'Tu enlace de asiento' : 'Recuperar asiento'}</Label>
-      <Muted>
-        {guest
-          ? 'Guárdalo por si pierdes las cookies o cambias de dispositivo. Abre el enlace para reengancharte (solo entonces verás el aviso naranja).'
-          : 'Enlace por jugador si alguien pierde cookies o la partida se atasca. El aviso de desatascar solo aparece al abrir este enlace.'}
-      </Muted>
-      {showLobbyLink ? (
-        <Button
-          title={`Copiar enlace lobby (${code})`}
-          variant="outline"
-          onPress={() => {
-            void copyRecoveryUrl(code).then((url) => notify('Lobby', url));
-          }}
-        />
+    <View
+      style={[
+        styles.box,
+        compact ? styles.compact : null,
+        { borderColor: colors.warning, backgroundColor: colors.bgElevated },
+      ]}
+    >
+      <Pressable
+        onPress={() => setOpen((v) => !v)}
+        style={styles.head}
+        accessibilityRole="button"
+      >
+        <Text style={[styles.headTitle, { color: colors.text, fontFamily }]}>
+          {title} {open ? '▴' : '▾'}
+        </Text>
+      </Pressable>
+      {open ? (
+        <>
+          <Text style={[styles.help, { color: colors.text, fontFamily }]}>
+            {HELP}
+          </Text>
+          {showLobbyLink ? (
+            <Button
+              title={`Copiar enlace lobby (${code})`}
+              variant="outline"
+              onPress={() => {
+                void copyRecoveryUrl(code).then((url) => notify('Lobby', url));
+              }}
+            />
+          ) : null}
+          {list.map((p) => (
+            <Button
+              key={`rec-${p.id}`}
+              title={guest ? 'Copiar mi enlace' : `Copiar ${p.nickname}`}
+              variant={guest ? 'outline' : 'ghost'}
+              onPress={() => {
+                void copyRecoveryUrl(code, p.id).then((url) =>
+                  notify(guest ? 'Tu asiento' : p.nickname, url)
+                );
+              }}
+            />
+          ))}
+        </>
       ) : null}
-      {list.map((p) => (
-        <Button
-          key={`rec-${p.id}`}
-          title={guest ? 'Copiar mi enlace' : `Copiar ${p.nickname}`}
-          variant={guest ? 'outline' : 'ghost'}
-          onPress={() => {
-            void copyRecoveryUrl(code, p.id).then((url) =>
-              notify(guest ? 'Tu asiento' : p.nickname, url)
-            );
-          }}
-        />
-      ))}
     </View>
   );
 }
@@ -130,7 +151,6 @@ export function HostRecoveryLinks({
 const styles = StyleSheet.create({
   box: {
     borderWidth: 2,
-    borderColor: '#F9A825',
     borderRadius: 4,
     padding: 10,
     gap: 8,
@@ -141,4 +161,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     opacity: 0.95,
   },
+  head: { paddingVertical: 2 },
+  headTitle: { fontWeight: '800', fontSize: 15 },
+  help: { fontSize: 13, fontWeight: '600', lineHeight: 18, opacity: 0.92 },
 });

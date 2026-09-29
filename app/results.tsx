@@ -309,8 +309,14 @@ export default function ResultsScreen() {
       await pushRoom(marked, myPlayerId);
       const pulled = await pullRoom(game.code);
       if (pulled.ok) applyRemoteGame(pulled.state);
-      // applyRemote trusts server restartReadyIds only (GameContext).
-      const g = getGame(game.code);
+      // Re-stamp self after pull in case a race dropped our id before union.
+      let g = getGame(game.code);
+      if (g && myPlayerId && !(g.restartReadyIds || []).includes(myPlayerId)) {
+        g = Engine.markRestartReady(g, myPlayerId);
+        updateGame(game.code, () => g!);
+        await pushRoom(g, myPlayerId);
+        g = getGame(game.code) ?? g;
+      }
       if (g && Engine.allHumansRestartReady(g)) {
         rematchOnceRef.current = null;
         doRestartNow();
@@ -461,7 +467,6 @@ export default function ResultsScreen() {
                 : 'Reiniciar partida (listo)'
             }
             onPress={onRestartReady}
-            disabled={iAmReady}
           />
           <WaitingRoster
             players={board}

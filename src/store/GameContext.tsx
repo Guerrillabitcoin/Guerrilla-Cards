@@ -501,11 +501,20 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             }
             return rp ?? lp ?? null;
           })(),
-          // Results rematch Listo: server is source of truth (no ghost ready
-          // from localStorage). Same pattern as ghost «ya contestaste» / «ya voté».
+          // Results Listo: UNION local+remote so a stale poll cannot uncheck
+          // a seat that already marked ready on this device.
           restartReadyIds:
-            remote.phase === 'results'
-              ? [...(remote.restartReadyIds || [])]
+            remote.phase === 'results' || local.phase === 'results'
+              ? Array.from(
+                  new Set([
+                    ...(local.phase === 'results'
+                      ? local.restartReadyIds || []
+                      : []),
+                    ...(remote.phase === 'results'
+                      ? remote.restartReadyIds || []
+                      : []),
+                  ])
+                )
               : Array.from(
                   new Set([
                     ...(local.phase === remote.phase

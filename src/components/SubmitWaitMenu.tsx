@@ -16,6 +16,7 @@ export function SubmitWaitMenu({
   doneIds: string[];
   expected: number;
   meId?: string | null;
+  /** Kept for stagger timing only — never hide nicknames. */
   since?: number | null;
 }) {
   const { colors, fontFamily } = useTheme();
@@ -26,9 +27,8 @@ export function SubmitWaitMenu({
   }, []);
 
   const roster = players.filter((p) => p && p.id);
-  const bots = roster.filter((p) => p.isBot);
   const done = new Set(doneIds);
-  const t0 = since || now;
+  const t0 = since && since > 0 ? since : now;
   const elapsed = Math.max(0, now - t0);
 
   const visuallyDone = useMemo(() => {
@@ -49,7 +49,6 @@ export function SubmitWaitMenu({
 
   const have = visuallyDone.size;
   const need = Math.max(expected, roster.length);
-  const revealNames = elapsed >= 5000;
 
   return (
     <View style={[styles.box, { borderColor: colors.border, backgroundColor: colors.bgElevated }]}>
@@ -59,27 +58,21 @@ export function SubmitWaitMenu({
       {roster.map((p) => {
         const ok = visuallyDone.has(p.id);
         const submitted = done.has(p.id);
-        const show =
-          ok || revealNames || p.id === meId || (p.isBot && submitted);
-        const label = p.isBot && !ok && submitted ? 'rápido…' : ok ? 'listo' : '';
+        const label = p.isBot && !ok && submitted ? 'rápido…' : ok ? 'listo' : 'espera';
         return (
           <View key={p.id} style={styles.row}>
             <Text style={[styles.mark, { color: ok ? colors.success : colors.textMuted }]}>
               {ok ? '✓' : submitted && p.isBot ? '…' : '·'}
             </Text>
             <Text
-              style={[styles.name, { color: colors.text, fontFamily, fontSize: show ? 13 : 11 }]}
+              style={[styles.name, { color: colors.text, fontFamily }]}
               numberOfLines={1}
             >
-              {show
-                ? `${p.nickname}${p.id === meId ? ' · tú' : ''}`
-                : '…'}
+              {`${p.nickname}${p.id === meId ? ' · tú' : ''}`}
             </Text>
-            {label ? (
-              <Text style={[styles.tag, { color: colors.textMuted, fontFamily }]}>
-                {label}
-              </Text>
-            ) : null}
+            <Text style={[styles.tag, { color: colors.textMuted, fontFamily }]}>
+              {label}
+            </Text>
           </View>
         );
       })}
@@ -92,6 +85,6 @@ const styles = StyleSheet.create({
   count: { fontWeight: '900', fontSize: 18, marginBottom: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   mark: { width: 14, fontWeight: '900' },
-  name: { flex: 1, fontWeight: '700' },
+  name: { flex: 1, fontWeight: '700', fontSize: 13 },
   tag: { fontSize: 11, fontWeight: '700' },
 });

@@ -18,6 +18,7 @@ import {
 import { NextRoundBar } from '@/src/components/NextRoundBar';
 import { leagueMatchCountOf } from '@/src/store/leagueSession';import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
 import { WaitingRoster } from '@/src/components/WaitingRoster';
+import { viewerRevealOrder } from '@/src/engine/viewerOrder';
 import { TuRespuesta } from '@/src/components/TuRespuesta';
 import { SubmitWaitMenu } from '@/src/components/SubmitWaitMenu';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
@@ -50,6 +51,7 @@ function rivalLabel(playerId: string): string {
 
 export default function PlayScreen() {
   const styles = usePlayStyles();
+  const { colors } = useTheme();
   const { patches: adminPatches } = useAdmin();
 
   const { code, seat: seatParam, recover: recoverParam } = useLocalSearchParams<{ code: string; seat?: string; recover?: string }>();
@@ -812,13 +814,22 @@ export default function PlayScreen() {
       return Number.isInteger(n) && n >= 0 && n < game.submissions.length;
     }) &&
     new Set(revealOrderRaw.map((i) => Number(i))).size === game.submissions.length;
-  const revealOrderSafe: Array<number | string> = revealIsPlayerIds
-    ? revealOrderRaw
-    : revealIsIndices
-      ? revealOrderRaw.map((i) => Number(i))
+  // Shared freeze may still be submission-order; display per-viewer shuffle
+  // so each seat (and each round) sees bots+humans in a different mix.
+  const viewerSeed = `${game.code}|r${game.round}|${myPlayerId || active?.id || 'anon'}`;
+  const revealOrderSafe: Array<number | string> = (() => {
+    const baseIds = revealIsPlayerIds
+      ? revealOrderRaw.map(String)
       : subPlayerIds.length
         ? subPlayerIds
+        : game.submissions.map((s) => s.playerId);
+    if (!baseIds.length) {
+      return revealIsIndices
+        ? revealOrderRaw.map((i) => Number(i))
         : game.submissions.map((_, i) => i);
+    }
+    return viewerRevealOrder(baseIds, viewerSeed);
+  })();
   const subByRevealEntry = (entry: number | string) => {
     if (typeof entry === 'string') {
       return game.submissions.find((s) => s.playerId === entry);
@@ -1445,9 +1456,18 @@ export default function PlayScreen() {
       phase === 'judging' ||
       phase === 'reveal');
 
-   const stickyPromptAnswers =
-   phase === 'reveal'
-      ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
+  const revealTieIds = (game.roundWinnerIds ?? []).filter(Boolean);
+  const revealIsTie = phase === 'reveal' && revealTieIds.length > 1;
+  const revealWinnerSub =
+    phase === 'reveal' && game.roundWinnerId
+      ? game.submissions.find((s) => s.playerId === game.roundWinnerId)
+      : undefined;
+  const stickyPromptAnswers =
+    phase === 'reveal'
+      ? revealIsTie
+        ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
+        : revealWinnerSub?.cards?.map((c) => c.text) ??
+          Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
       : phase === 'judging' && myPlayerId
         ? (game.submissions.find((s) => s.playerId === myPlayerId && !s.rival)
             ?.cards.map((c) => c.text) ??
@@ -1508,7 +1528,22 @@ export default function PlayScreen() {
                   />
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
-            {roundLine}
+            <Text style={{ color: colors.zar }}>
+              Partida{' '}
+              {(leagueMatchCountOf(game) || 0) +
+                (game.phase === 'results' ? 0 : 1)}
+            </Text>
+            <Text style={{ color: colors.textDim }}> · </Text>
+            <Text style={{ color: colors.accentSoft }}>
+              {isDiscarding || soloSkipMode
+                ? `Descarte`
+                : !voteMode &&
+                    phase === 'submitting' &&
+                    zar &&
+                    myPlayerId === zar.id
+                  ? `Ronda ${game.round} · COMANDANTE`
+                  : `Ronda ${game.round}`}
+            </Text>
           </Text>
           <Text style={styles.roundStickyScore} numberOfLines={1}>
             {scoreLine}
@@ -1542,9 +1577,22 @@ export default function PlayScreen() {
                 ? `Descartar ${soloSkipCountLabel}`
                 : pickNeed > 1 && phase === 'submitting' && !alreadyAnswered
                   ? `Elige ${pickNeed} (${picked.length}/${pickNeed})`
-                                  : phase === 'judging'
+                  : phase === 'judging'
                     ? 'Tu respuesta'
-                    : 'Pregunta'}
+                    : phase === 'reveal'
+                      ? revealIsTie
+                        ? game.roundWinnerId
+                          ? 'Empate'
+                          : 'Empate: voto dividido'
+                        : myPlayerId &&
+                            myPlayerId === game.roundWinnerId
+                          ? '¡Puntaco!'
+                          : `Ganadora · ${
+                              game.players.find(
+                                (p) => p.id === game.roundWinnerId
+                              )?.nickname ?? '—'
+                            }`
+                      : 'Pregunta'}
             </Text>
             {!soloSkipMode ? (
               <FilledPromptText
@@ -1622,9 +1670,15 @@ export default function PlayScreen() {
         </>
       ) : null}
       {isOnline ? (
-        <Muted>
-          Tú: {active?.nickname ?? '—'} · online · código {game.code}
-        </Muted>
+        <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 6 }}>
+          <Text style={{ color: colors.textMuted }}>Tú: </Text>
+          <Text style={{ color: colors.accentSoft }}>
+            {active?.nickname ?? '—'}
+          </Text>
+          <Text style={{ color: colors.textDim }}> · </Text>
+          <Text style={{ color: colors.textMuted }}>Partida: </Text>
+          <Text style={{ color: colors.zar }}>{game.code}</Text>
+        </Text>
       ) : null}
 
 
@@ -2156,42 +2210,27 @@ export default function PlayScreen() {
                         (s): s is NonNullable<typeof s> => !!s
                       )
                   : [];
+                const myLoseSub =
+                  !iWon && !isTie && myPlayerId
+                    ? game.submissions.find(
+                        (s) => s.playerId === myPlayerId && !s.rival
+                      )
+                    : undefined;
                 return (
                   <>
-                    <View style={styles.revealTitleRow}>
-                      <Title>
-                        {isTie ? (game.roundWinnerId ? 'Empate' : 'Empate: voto dividido') : iWon ? '¡Puntaco!' : 'Fin de ronda'}
-                      </Title>
-                      {iWon && !isTie ? (
-                        <Pressable
-                          onPress={toggleMyAnswerFav}
-                          hitSlop={12}
-                          accessibilityLabel={
-                            starFilled ? 'Respuesta guardada' : 'Marcar favorita'
-                          }
-                        >
-                          <Text style={styles.revealFavStar}>
-                            {starFilled ? '★' : '☆'}
-                          </Text>
-                        </Pressable>
-                      ) : null}
-                    </View>
-                    <Subtitle>
+                    <Muted>
                       {isTie
-                        ? (game.roundWinnerId ? 'Empate · +1 cada una' : 'Empate: voto dividido · sin puntos')
-                        : winnerIsRival
-                          ? `Gana el bot (${winnerName})`
-                          : iWon
-                            ? `Has ganado esta ronda`
-                            : `Gana: ${winnerName}`}
+                        ? game.roundWinnerId
+                          ? 'Empate · +1 cada una'
+                          : 'Empate: voto dividido · sin puntos'
+                        : iWon
+                          ? 'Has ganado esta ronda · +1'
+                          : winnerIsRival
+                            ? `Gana el bot (${winnerName})`
+                            : `Gana ${winnerName}`}
                       {!isTie && !isSolo && !winnerIsRival && !voteMode
                         ? ` · próximo Comandante: ${winnerName}`
                         : ''}
-                    </Subtitle>
-                                        <Muted>
-                      {iWon
-                        ? 'Tu respuesta ha ganado'
-                        : `Ganó ${winnerName}`}
                     </Muted>
                     {isTie
                       ? tiedSubs.map((sub) => {
@@ -2206,7 +2245,7 @@ export default function PlayScreen() {
                             >
                               <View style={styles.soloRivalHead}>
                                 <Text style={styles.judgeLabel}>
-                                  {`${nick} · ${(game.players.find((p) => p.id === sub.playerId)?.score ?? 0)} Puntacos · ronda ${game.round}`}
+                                  {`${nick} · ${(game.players.find((p) => p.id === sub.playerId)?.score ?? 0)} pts`}
                                 </Text>
                                 <Text
                                   style={styles.soloStar}
@@ -2225,41 +2264,27 @@ export default function PlayScreen() {
                             </View>
                           );
                         })
-                      : winnerSub
-                        ? (() => {
-                            const filled = Engine.getFilledSubmission(
-                              game,
-                              winnerSub
-                            );
-                            return (
-                              <View style={styles.judgeCard}>
-                                <View style={styles.soloRivalHead}>
-                                  <Text style={styles.judgeLabel}>
-                                    {`${winnerName} · ${
-                                      winnerIsRival
-                                        ? 0
-                                        : game.players.find((p) => p.id === game.roundWinnerId)?.score ?? 0
-                                    } Puntacos · ronda ${game.round}`}
-                                  </Text>
-                                  <Text
-                                    style={styles.soloStar}
-                                    onPress={() =>
-                                      toggleFavFilled(filled, winnerSub.cards)
-                                    }
-                                  >
-                                    {isFavFilled(filled) ? '★' : '☆'}
-                                  </Text>
-                                </View>
-                                <FilledPromptText
-                                  large
-                                  promptText={game.currentPrompt?.text ?? ''}
-                                  answers={winnerSub.cards.map((c) => c.text)}
-                                />
-                              </View>
-                            );
-                          })()
-                        : null}
-                                       <RoundStandings game={game} meId={myPlayerId ?? active?.id} />
+                      : null}
+                    {myLoseSub ? (
+                      <View style={{ opacity: 0.72, marginTop: 4, marginBottom: 6 }}>
+                        <Text
+                          style={{
+                            color: colors.textMuted,
+                            fontWeight: '800',
+                            fontSize: 13,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Tu respuesta
+                        </Text>
+                        <FilledPromptText
+                          small
+                          promptText={game.currentPrompt?.text ?? ''}
+                          answers={myLoseSub.cards.map((c) => c.text)}
+                        />
+                      </View>
+                    ) : null}
+                    <RoundStandings game={game} meId={myPlayerId ?? active?.id} />
                     {!isSolo ? (
                       <Muted>
                         {iAmNextZar
