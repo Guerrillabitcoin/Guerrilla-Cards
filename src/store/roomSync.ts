@@ -47,6 +47,10 @@ export function slimForRoom(
   if (shouldRedactSubmissionTexts(state.phase)) {
     submissions = state.submissions.map((s) => {
       if (myPlayerId && s.playerId === myPlayerId) return s;
+      // Bots are ghost seats: everyone must see their phrase to vote/judge.
+      // Redacting them left «…» forever on the server after autoSubmitBots.
+      const owner = state.players.find((p) => p.id === s.playerId);
+      if (owner?.isBot) return s;
       return redactSubmission(s);
     });
   }
@@ -120,6 +124,39 @@ export function mergeHandsPreserveLocal(
   submissions = submissions.filter(
     (s) => s.rival || (Array.isArray(s.cards) && s.cards.length === pickNeed)
   );
+  // Prefer local real text for bot seats over remote fog («…»).
+  // Host autoSubmitBots has the real phrase; a peer push must not blank the mesa.
+  if (
+    myPlayerId &&
+    local.submissions?.length &&
+    (local.round ?? 0) === (remote.round ?? 0) &&
+    (local.currentPrompt?.id ?? null) === (remote.currentPrompt?.id ?? null)
+  ) {
+    const botIds = new Set(
+      remote.players.filter((p) => p.isBot).map((p) => p.id)
+    );
+    if (botIds.size) {
+      submissions = submissions.map((s) => {
+        if (!s || s.rival || !botIds.has(s.playerId)) return s;
+        if (s.cards.some((c) => !isRedactedCardText(c.text))) return s;
+        const localSub = local.submissions.find(
+          (ls) =>
+            ls.playerId === s.playerId &&
+            !ls.rival &&
+            (ls.round == null || ls.round === remoteRound)
+        );
+        if (
+          localSub &&
+          localSub.cards.length === pickNeed &&
+          localSub.cards.some((c) => !isRedactedCardText(c.text))
+        ) {
+          return { ...localSub, round: remoteRound };
+        }
+        return s;
+      });
+    }
+  }
+
   // Un-redact MY submission text if the server already has my seat.
   // Never add a local-only submission the server lacks (ghost «ya contestaste»).
   if (
