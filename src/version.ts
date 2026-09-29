@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.14';
+export const APP_VERSION = '0.99.422.15';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.15',
+    date: '2026-09-29',
+    notes:
+      'Header play: «GUERRILLA CARDS» + BETA (como inicio); toque → inicio.',
+  },
     {
     version: '0.99.422.14',
     date: '2026-09-29',

@@ -1,8 +1,8 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { ThemeToggle } from '@/src/components/ThemeToggle';
@@ -16,6 +16,58 @@ import { displayVersionLabel } from '@/src/version';
 export { ErrorBoundary } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
+
+function HeaderBrand({
+  title,
+  goHome,
+}: {
+  title: string;
+  goHome?: boolean;
+}) {
+  const { colors, fontFamily } = useTheme();
+  const router = useRouter();
+  const label = (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'baseline',
+        gap: 6,
+      }}
+    >
+      <Text
+        style={{
+          color: colors.text,
+          fontWeight: '800',
+          fontSize: 17,
+          fontFamily,
+        }}
+      >
+        {title}
+      </Text>
+      <Text
+        style={{
+          color: colors.textDim,
+          fontSize: 11,
+          fontWeight: '700',
+          fontFamily,
+        }}
+      >
+        {displayVersionLabel()}
+      </Text>
+    </View>
+  );
+  if (!goHome) return label;
+  return (
+    <Pressable
+      onPress={() => router.replace('/')}
+      accessibilityRole="link"
+      accessibilityLabel="Ir al inicio"
+      hitSlop={8}
+    >
+      {label}
+    </Pressable>
+  );
+}
 
 function ThemedStack() {
   const { colors, fontFamily, themeId } = useTheme();
@@ -41,72 +93,16 @@ function ThemedStack() {
           name="lobby"
           options={{
             title: 'Lobby',
-            headerTitle: () => (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'baseline',
-                  gap: 6,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontWeight: '800',
-                    fontSize: 17,
-                    fontFamily,
-                  }}
-                >
-                  Lobby
-                </Text>
-                <Text
-                  style={{
-                    color: colors.textDim,
-                    fontSize: 11,
-                    fontWeight: '700',
-                    fontFamily,
-                  }}
-                >
-                  {displayVersionLabel()}
-                </Text>
-              </View>
-            ),
+            headerTitle: () => <HeaderBrand title="Lobby" />,
           }}
         />
         <Stack.Screen
           name="play"
           options={{
-            title: 'Partida',
+            title: 'GUERRILLA CARDS',
             headerBackVisible: false,
             headerTitle: () => (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'baseline',
-                  gap: 6,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontWeight: '800',
-                    fontSize: 17,
-                    fontFamily,
-                  }}
-                >
-                  Partida
-                </Text>
-                <Text
-                  style={{
-                    color: colors.textDim,
-                    fontSize: 11,
-                    fontWeight: '700',
-                    fontFamily,
-                  }}
-                >
-                  {displayVersionLabel()}
-                </Text>
-              </View>
+              <HeaderBrand title="GUERRILLA CARDS" goHome />
             ),
             headerRight: () => <ThemeToggle compact />,
           }}
@@ -115,36 +111,7 @@ function ThemedStack() {
           name="results"
           options={{
             title: 'Resultados',
-            headerTitle: () => (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'baseline',
-                  gap: 6,
-                }}
-              >
-                <Text
-                  style={{
-                    color: colors.text,
-                    fontWeight: '800',
-                    fontSize: 17,
-                    fontFamily,
-                  }}
-                >
-                  Resultados
-                </Text>
-                <Text
-                  style={{
-                    color: colors.textDim,
-                    fontSize: 11,
-                    fontWeight: '700',
-                    fontFamily,
-                  }}
-                >
-                  {displayVersionLabel()}
-                </Text>
-              </View>
-            ),
+            headerTitle: () => <HeaderBrand title="Resultados" />,
           }}
         />
         <Stack.Screen
