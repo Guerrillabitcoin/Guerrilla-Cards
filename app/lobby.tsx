@@ -258,9 +258,9 @@ export default function LobbyScreen() {
   if (!game) {
     return (
       <Screen>
-        <Title>Lobby perdido</Title>
+        <Title>Sala perdida</Title>
         <Subtitle>
-          No hay partida con ese código en el servidor. Crea la sala otra vez
+          No hay sala con ese código en el servidor. Crea la sala otra vez
           y comparte el enlace nuevo.
         </Subtitle>
         <Button title="Inicio" onPress={() => router.replace('/')} />
@@ -317,7 +317,7 @@ export default function LobbyScreen() {
   const start = () => {
     if (!canStart) {
       notify(
-        'Lobby',
+        'Sala',
         `Espera a ${seatMax} jugadores humanos (hay ${humansHere}).`
       );
       return;
@@ -348,7 +348,7 @@ export default function LobbyScreen() {
         seated={humansHere}
         cap={seatMax}
         onCopy={() => {
-          void copyRecoveryUrl(game.code).then((url) => notify('Lobby', url));
+          void copyRecoveryUrl(game.code).then((url) => notify('Sala', url));
         }}
       />      <Subtitle>
         Modo {modeLabel}
@@ -356,7 +356,7 @@ export default function LobbyScreen() {
         {game.packIds.join(', ')} · Meta: {game.targetScore} Puntacos
       </Subtitle>
       <Muted>
-        Online: cada jugador en su dispositivo. Comparte el enlace lobby.
+        Online: cada jugador en su dispositivo. Comparte el enlace sala.
         Sala para {seatMax} humanos. Ahora {humansHere}/{seatMax}
         {botsHere ? ` · ${botsHere} bot${botsHere === 1 ? '' : 's'}` : ''}.
       </Muted>

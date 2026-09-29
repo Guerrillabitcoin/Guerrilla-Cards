@@ -229,7 +229,7 @@ export function renamePlayer(
   nickname: string
 ): GameState {
   if (state.phase !== 'lobby') {
-    throw new Error('Solo puedes cambiar el nombre en el lobby.');
+    throw new Error('Solo puedes cambiar el nombre en la sala.');
   }
   const nick = nickname.trim();
   if (!nick) throw new Error('Pon un apodo.');
@@ -422,7 +422,7 @@ export function autoJudgeBot(state: GameState): GameState {
 }
 
 export function removePlayer(state: GameState, playerId: string): GameState {
-  if (state.phase !== 'lobby') throw new Error('Solo en el lobby.');
+  if (state.phase !== 'lobby') throw new Error('Solo en la sala.');
   const players = state.players.filter((p) => p.id !== playerId || p.isHost);
   return {
     ...state,

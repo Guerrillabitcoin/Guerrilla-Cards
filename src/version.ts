@@ -1,5 +1,5 @@
-/** 0.99.422.17: lobby HeaderBrand GUERRILLA CARDS→home; guerrilla accent orange. */
-export const APP_VERSION = '0.99.422.17';
+/** 0.99.422.18: UI Lobby→Sala; código de sala framing. */
+export const APP_VERSION = '0.99.422.18';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.18',
+    date: '2026-09-29',
+    notes:
+      'UI: Lobby→Sala (textos visibles); código de sala; enlace sala. Identifiers/routes sin cambio.',
+  },
     {
     version: '0.99.422.15',
     date: '2026-09-29',

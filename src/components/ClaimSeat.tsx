@@ -123,10 +123,10 @@ export function HostRecoveryLinks({
           </Text>
           {showLobbyLink ? (
             <Button
-              title={`Copiar enlace lobby (${code})`}
+              title={`Copiar enlace sala (${code})`}
               variant="outline"
               onPress={() => {
-                void copyRecoveryUrl(code).then((url) => notify('Lobby', url));
+                void copyRecoveryUrl(code).then((url) => notify('Sala', url));
               }}
             />
           ) : null}

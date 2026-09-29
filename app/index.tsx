@@ -425,7 +425,7 @@ export default function HomeScreen() {
     const code = (codeOverride || joinCode).trim().toUpperCase();
     const wantSeat = (seatOverride || '').trim();
     if (!code) {
-      notify('Código', 'Introduce el código de la partida.');
+      notify('Código', 'Introduce el código de la sala.');
       return;
     }
     setJoinCode(code);
@@ -515,7 +515,7 @@ export default function HomeScreen() {
           );
           return;
         }
-        notify('Unirse', joined.error && joined.error !== 'not_web' ? `No se pudo unir (${joined.error}).` : 'No hay partida con ese código.');
+        notify('Unirse', joined.error && joined.error !== 'not_web' ? `No se pudo unir (${joined.error}).` : 'No hay sala con ese código.');
       } catch (e) {
         notify('Unirse', e instanceof Error ? e.message : 'No se pudo unir');
       }
@@ -617,7 +617,7 @@ export default function HomeScreen() {
               <Button key={r.code} title={`${r.code} · ${r.seated}/${r.maxPlayers} · ${r.players.join(', ') || 'vacía'}`} variant="ghost" onPress={() => onJoin(r.code)} />
             ))
           )}
-          <Label>Código de partida</Label>
+          <Label>Código de sala</Label>
           <Input value={joinCode} onChangeText={setJoinCode} placeholder="ABC12" autoCapitalize="characters" maxLength={8} />
            <Button title="Unirse" onPress={() => onJoin()} variant="outline" />
           {claimGame ? (
@@ -654,7 +654,7 @@ export default function HomeScreen() {
           </View>
         ))}
       </View>
-      <Button title={mode === 'async' ? 'Crear partida Multijugador' : 'Jugar solo (rivales aleatorios)'} onPress={onCreate} />
+      <Button title={mode === 'async' ? 'Crear sala Multijugador' : 'Jugar solo (rivales aleatorios)'} onPress={onCreate} />
       <Button title="★ Respuestas favoritas" variant="outline" onPress={() => router.push('/historial')} />
       {ready && recent.length > 0 ? (
         <>

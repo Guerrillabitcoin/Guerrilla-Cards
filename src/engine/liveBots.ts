@@ -56,7 +56,7 @@ export function setLiveBots(state: GameState, count: number): GameState {
     throw new Error('Usa addSoloBots en modo solo.');
   }
   if (state.phase !== 'lobby') {
-    throw new Error('Solo se pueden cambiar bots en el lobby.');
+    throw new Error('Solo se pueden cambiar bots en la sala.');
   }
   const humans = humanPlayers(state);
   const humanCap = Math.max(

@@ -48,7 +48,7 @@ export function LobbyShareCard({
           </View>
           <View style={styles.texts}>
             <Text style={[styles.kicker, { fontFamily }]}>Invitar · sumar gente</Text>
-            <Text style={[styles.title, { fontFamily }]}>Lobby {code}</Text>
+            <Text style={[styles.title, { fontFamily }]}>Sala {code}</Text>
             <Text style={[styles.hint, { fontFamily }]}>
               Toca para copiar el enlace
               {seated != null && cap != null ? ` · ${seated}/${cap}` : ''}

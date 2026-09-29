@@ -746,14 +746,14 @@ export default function PlayScreen() {
 
   if (!ready) return <Loading />;
 
-  // Seat deep-link / recover: wait for claim+pull before «Partida no encontrada».
+  // Seat deep-link / recover: wait for claim+pull before «Sala no encontrada».
   if (!game) {
     const waitingSeat =
       Boolean(String(seatParam ?? '').trim()) && seatHydrateStatus !== 'failed';
     if (waitingSeat) return <Loading />;
     return (
       <Screen>
-        <Title>Partida no encontrada</Title>
+        <Title>Sala no encontrada</Title>
         {seatHydrateError ? (
           <Muted>{seatHydrateError}</Muted>
         ) : null}
@@ -785,15 +785,15 @@ export default function PlayScreen() {
     return (
       <Screen>
         <Title>
-          {game.phase === 'results' ? 'Final de partida' : 'Lobby'}
+          {game.phase === 'results' ? 'Final de partida' : 'Sala'}
         </Title>
         <Muted>
           {game.phase === 'results'
             ? 'Abriendo resultados…'
-            : 'Volviendo al lobby…'}
+            : 'Volviendo a la sala…'}
         </Muted>
         <Button
-          title={game.phase === 'results' ? 'Ver resultados' : 'Ir al lobby'}
+          title={game.phase === 'results' ? 'Ver resultados' : 'Ir a la sala'}
           onPress={go}
         />
       </Screen>
@@ -820,7 +820,7 @@ export default function PlayScreen() {
         <Title>Sin asiento</Title>
         <Subtitle>
           Esta ventana no tiene jugador propio en la sala. Vuelve a Inicio y usa
-          «Unirse a partida async» (cada invitado necesita su propia unión).
+          «Unirse» con el código de sala (cada invitado necesita su propia unión).
         </Subtitle>
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>

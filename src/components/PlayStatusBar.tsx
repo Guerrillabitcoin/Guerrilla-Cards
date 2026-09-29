@@ -3,7 +3,7 @@ import { Muted } from './ui';
 import { useTheme } from '../store/ThemeContext';
 
 const PHASE: Record<string, string> = {
-  lobby: 'Lobby',
+  lobby: 'Sala',
   submitting: 'Elige respuesta',
   judging: 'El Comandante elige',
   reveal: 'Revelar',
