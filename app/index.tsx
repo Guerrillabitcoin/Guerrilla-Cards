@@ -438,7 +438,8 @@ export default function HomeScreen() {
             await setOnlineFlag(code, true);
             await setMySeat(code, claimed.playerId);
             setClaimGame(null);
-            openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
+            // Explicit seat pick from recovery list → recover banner
+            openGame(claimed.state.code, claimed.state.phase, claimed.playerId, true);
             return;
           }
           notify('Asiento', claimed.error || 'No se pudo reclamar');

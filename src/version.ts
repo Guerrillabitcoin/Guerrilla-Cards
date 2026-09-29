@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.12';
+export const APP_VERSION = '0.99.422.13';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.13',
+    date: '2026-09-29',
+    notes:
+      'ClaimSeat picker también pasa recover=1 (aviso naranja al elegir asiento en lista).',
+  },
     {
     version: '0.99.422.12',
     date: '2026-09-29',
