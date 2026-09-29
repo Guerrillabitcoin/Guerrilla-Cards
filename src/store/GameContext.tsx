@@ -124,7 +124,7 @@ interface GameContextValue {
   /** Rematch in-place: same code + seats, scores 0, reshuffled decks, started. */
   restartSameSetup: (fromCode: string) => GameState | null;
   /** Replace local game if remote.updatedAt is newer (online poll). */
-  applyRemoteGame: (state: GameState) => boolean;
+  applyRemoteGame: (state: GameState, opts?: { force?: boolean }) => boolean;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -353,11 +353,13 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 
   const applyRemoteGame = useCallback(
-    (state: GameState) => {
+    (state: GameState, opts?: { force?: boolean }) => {
+      const force = !!opts?.force;
       const key = state.code.trim().toUpperCase();
             let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
      if (
+        !force &&
         local &&
         roomPaintKey(local) === roomPaintKey(remote) &&
         remote.phase !== 'discarding'
@@ -389,10 +391,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         (remote.restartReadyIds?.length ?? 0) !==
           (local.restartReadyIds?.length ?? 0);
       // Keep local if we already moved to the next cycle and remote is stale reveal
-            if (dropStaleRemote(local, remote)) {
+            if (!force && dropStaleRemote(local, remote)) {
         return false;
       }
       if (
+        !force &&
         local &&
         !remoteAdvanced &&
         (local.updatedAt ?? 0) > (remote.updatedAt ?? 0)
@@ -419,6 +422,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         }
       }
       if (
+        !force &&
         local &&
         !isMatchRestart &&
         !remoteAdvanced &&
@@ -600,6 +604,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       ) {
         const top = [...remote.players].sort((a, b) => b.score - a.score)[0];
         if (top) remote = Engine.awardLeagueWin(remote, top.id);
+      }
+      if (force) {
+        // Seat recovery: server is truth; stamp so local ghosts can't win the next race.
+        remote = { ...remote, updatedAt: Math.max(Date.now(), (remote.updatedAt ?? 0) + 1) };
       }
       gamesRef.current = { ...gamesRef.current, [key]: remote };
       setGames((prevMap) => ({

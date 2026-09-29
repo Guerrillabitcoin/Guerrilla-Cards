@@ -75,7 +75,10 @@ export function HostRecoveryLinks({
   return (
     <View style={[styles.box, compact ? styles.compact : null]}>
       <Label>Recuperar asiento</Label>
-      <Muted>Al final · solo anfitrión · si alguien pierde las cookies</Muted>
+      <Muted>
+        Enlace por jugador: recupera asiento y desatasca si faltaba respuesta,
+        voto o descarte (cookies perdidas / partida colgada).
+      </Muted>
       <Button
         title={`Copiar enlace lobby (${code})`}
         variant="outline"

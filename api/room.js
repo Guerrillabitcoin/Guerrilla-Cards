@@ -1090,11 +1090,18 @@ async function handler(req, res) {
         if (!seat) {
           return res.status(404).json({ ok: false, error: 'seat_missing' });
         }
+        // Seat recovery: fill pending bots + promote if ready so reclaim unsticks.
+        let claimedState = sanitizeRoomState(
+          promoteJudgingIfReady({ ...existing, code })
+        );
+        if (claimedState !== existing) {
+          await kvSetRoom(key, JSON.stringify(claimedState));
+        }
         return res.status(200).json({
           ok: true,
           code,
           playerId: seat.id,
-          state: { ...existing, code },
+          state: claimedState,
         });
       }
 

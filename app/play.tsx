@@ -21,6 +21,7 @@ import { WaitingRoster } from '@/src/components/WaitingRoster';
 import { TuRespuesta } from '@/src/components/TuRespuesta';
 import { SubmitWaitMenu } from '@/src/components/SubmitWaitMenu';
 import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
+import { pendingActionForSeat } from '@/src/store/seatResume';
 import { RoundStandings } from '@/src/components/RoundStandings';
 import { WinnerScreenFlash } from '@/src/components/WinFlash';import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
@@ -132,8 +133,9 @@ export default function PlayScreen() {
     };
   }, [gameCode]);
 
-  // Deep-link /play?code=&seat= → reclaim seat and stay on the live board
+  // Deep-link /play?code=&seat= → reclaim seat, force server board, clear local ghosts
   const seatClaimRan = useRef<string | null>(null);
+  const [resumeHint, setResumeHint] = useState<string | null>(null);
   useEffect(() => {
     if (!ready || !gameCode) return;
     const want = String(seatParam ?? '').trim();
@@ -145,21 +147,36 @@ export default function PlayScreen() {
     void (async () => {
       await setOnlineFlag(gameCode, true);
       setOnlineRoom(true);
+      // Drop local UI ghosts that block sending again
+      setPicked([]);
+      setPrivacy(false);
+      setPaintPhase(null);
+      setAdvancingRound(false);
+      setSoloSkipMode(false);
+      discardAckRef.current = null;
+
+      let board = null as null | import('@/src/engine/types').GameState;
       const claimed = await claimSeat(gameCode, want);
       if (cancelled) return;
       if (claimed.ok) {
         await setMySeat(gameCode, claimed.playerId);
         setMyPlayerId(claimed.playerId);
-        applyRemoteGame(claimed.state);
-        return;
+        applyRemoteGame(claimed.state, { force: true });
+        board = claimed.state;
+      } else {
+        const pulled = await pullRoom(gameCode);
+        if (cancelled || !pulled.ok) return;
+        applyRemoteGame(pulled.state, { force: true });
+        board = pulled.state;
+        if (pulled.state.players.some((p) => p.id === want)) {
+          await setMySeat(gameCode, want);
+          setMyPlayerId(want);
+        }
       }
-      const pulled = await pullRoom(gameCode);
-      if (cancelled || !pulled.ok) return;
-      applyRemoteGame(pulled.state);
-      if (pulled.state.players.some((p) => p.id === want)) {
-        await setMySeat(gameCode, want);
-        setMyPlayerId(want);
-      }
+      if (cancelled || !board) return;
+      const pending = pendingActionForSeat(board, want);
+      if (pending.label) setResumeHint(pending.label);
+      else setResumeHint('Asiento recuperado — sincronizado con la sala.');
     })();
     return () => {
       cancelled = true;
@@ -1582,6 +1599,26 @@ export default function PlayScreen() {
         </Muted>
       ) : null}
 
+
+      {resumeHint ? (
+        <View
+          style={{
+            borderWidth: 2,
+            borderColor: '#F9A825',
+            borderRadius: 4,
+            padding: 10,
+            marginBottom: 8,
+            gap: 6,
+          }}
+        >
+          <Text style={{ fontWeight: '800', fontSize: 14 }}>{resumeHint}</Text>
+          <Button
+            title="Entendido"
+            variant="ghost"
+            onPress={() => setResumeHint(null)}
+          />
+        </View>
+      ) : null}
 
       {isDiscarding ? (
         <>

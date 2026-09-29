@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.08';
+export const APP_VERSION = '0.99.422.09';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.09',
+    date: '2026-09-29',
+    notes:
+      'Seat recovery: /play?seat= fuerza estado servidor (sin fantasmas ya-contestaste), limpia picks/privacy, banner «te falta…», claim rellena bots y promueve judging si listo.',
+  },
     {
     version: '0.99.422.08',
     date: '2026-09-29',
