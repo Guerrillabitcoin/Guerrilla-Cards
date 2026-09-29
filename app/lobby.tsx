@@ -283,7 +283,7 @@ export default function LobbyScreen() {
   );
   const humansHere = humanCount(game);
   const botsHere = botCountOf(game);
-  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
+  const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Comandante';
   // Start when human roster is full — bots do not advance Empezar
   const canStart = humansHere >= seatMax && humansHere >= MIN_PLAYERS;
   const maxBotsNow = maxLiveBotsAllowed(seatMax, humansHere);

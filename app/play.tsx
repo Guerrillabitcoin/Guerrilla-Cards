@@ -1154,7 +1154,7 @@ export default function PlayScreen() {
         );
       }
     } catch (e) {
-      Alert.alert('Zar', e instanceof Error ? e.message : 'Error');
+      Alert.alert('Comandante', e instanceof Error ? e.message : 'Error');
     }
   };
 
@@ -1956,7 +1956,7 @@ export default function PlayScreen() {
             !isOnline &&
             active?.id === zar.id ? (
             <Button
-              title="Soy el Zar — revelar jugadas"
+              title="Soy el Comandante — revelar jugadas"
               onPress={() => setPrivacy(false)}
             />
           ) : (
@@ -2025,7 +2025,7 @@ export default function PlayScreen() {
                       );
                     })}
                     {!isSolo && !canPickWinner ? (
-                      <Muted>El Zar está eligiendo…</Muted>
+                      <Muted>El Comandante está eligiendo…</Muted>
                     ) : null}
                   </>
                 );
@@ -2157,7 +2157,7 @@ export default function PlayScreen() {
                             ? `Has ganado esta ronda`
                             : `Gana: ${winnerName}`}
                       {!isTie && !isSolo && !winnerIsRival && !voteMode
-                        ? ` · próximo Zar: ${winnerName}`
+                        ? ` · próximo Comandante: ${winnerName}`
                         : ''}
                     </Subtitle>
                                         <Muted>
@@ -2235,10 +2235,10 @@ export default function PlayScreen() {
                     {!isSolo ? (
                       <Muted>
                         {iAmNextZar
-                          ? 'Eres el próximo Zar: empieza ya o en 8 s pasa sola.'
+                          ? 'Eres el próximo Comandante: empieza ya o en 8 s pasa sola.'
                           : iAmHostPlayer
                             ? 'Eres anfitrión: puedes forzar la siguiente ronda o esperar el contador.'
-                            : `Esperando a que ${winnerName} (Zar) o el anfitrión empiece la siguiente ronda…`}
+                            : `Esperando a que ${winnerName} (Comandante) o el anfitrión empiece la siguiente ronda…`}
                       </Muted>
                     ) : null}
                                        {isSolo || iAmNextZar || iAmHostPlayer || !isOnline ? (

@@ -52,7 +52,7 @@ export function NextRoundBar({
   } else if (canAdvance) {
     label = 'Empezando nueva ronda';
   } else {
-    label = 'Esperando al Zar / anfitrión…';
+    label = 'Esperando al Comandante / anfitrión…';
   }
 
   return (

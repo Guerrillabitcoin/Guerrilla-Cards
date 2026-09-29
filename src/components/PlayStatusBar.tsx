@@ -5,7 +5,7 @@ import { useTheme } from '../store/ThemeContext';
 const PHASE: Record<string, string> = {
   lobby: 'Lobby',
   submitting: 'Elige respuesta',
-  judging: 'El Zar elige',
+  judging: 'El Comandante elige',
   reveal: 'Revelar',
   discarding: 'Descarte',
   results: 'Final',

@@ -33,7 +33,7 @@ export function pendingActionForSeat(
     if (!voteMode && seatId === zarId) {
       return {
         kind: 'ready',
-        label: 'Eres el Zar esta ronda — espera a que contesten los demás.',
+        label: 'Eres el Comandante esta ronda — espera a que contesten los demás.',
       };
     }
     const has = submissionsForRound(state).some(

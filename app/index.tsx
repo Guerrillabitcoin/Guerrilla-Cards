@@ -594,13 +594,13 @@ export default function HomeScreen() {
           </Muted>
           <Label>Juez de la ronda</Label>
           <View style={[styles.row, styles.modeRow]}>
-            <Chip label="Zar" selected={judgeMode === 'zar'} disabled={maxPlayers === 2} onPress={() => { if (maxPlayers !== 2) setJudgeMode('zar'); }} />
+            <Chip label="Comandante" selected={judgeMode === 'zar'} disabled={maxPlayers === 2} onPress={() => { if (maxPlayers !== 2) setJudgeMode('zar'); }} />
             <Chip label="Voto" selected={judgeMode === 'vote' || maxPlayers === 2} onPress={() => setJudgeMode('vote')} />
           </View>
           <Muted>
             {maxPlayers === 2 || judgeMode === 'vote'
               ? 'Todos votan (sin votar la propia). Con 2 jugadores siempre es voto.'
-              : 'Un Zar elige la mejor jugada; el ganador será el próximo Zar.'}
+              : 'Un Comandante elige la mejor jugada; el ganador será el próximo Comandante.'}
           </Muted>
           <Label>Salas con hueco</Label>
           {openRooms.length === 0 ? (

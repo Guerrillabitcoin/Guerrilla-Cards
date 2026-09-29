@@ -662,7 +662,7 @@ export function submitCards(
   const voteMode = isVoteMode(state);
   // Zar skips answers only in zar judge mode (not vote, not solo)
   if (!isSolo && !voteMode && playerId === zar.id) {
-    throw new Error('El Zar no envía cartas.');
+    throw new Error('El Comandante no envía cartas.');
   }
   if (state.submissions.some((s) => s.playerId === playerId)) {
     throw new Error('Ya enviaste tu jugada.');
@@ -814,7 +814,7 @@ function applyRoundWinner(
 
   // Zar cannot win their own round — except solo, rivals, or vote mode (everyone plays)
   if (!isSolo && !isRival && !voteMode && winnerPlayerId === zar.id) {
-    throw new Error('El Zar no puede ganar su ronda.');
+    throw new Error('El Comandante no puede ganar su ronda.');
   }
 
   // Only increment score if winner is a real player in state.players

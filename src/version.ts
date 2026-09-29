@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.09';
+export const APP_VERSION = '0.99.422.10';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.10',
+    date: '2026-09-29',
+    notes:
+      'Voto: bots en roster como ✓ «no vota» (ya listos). UI: Zar → Comandante en menús, lobby, play, botones y mensajes.',
+  },
     {
     version: '0.99.422.09',
     date: '2026-09-29',

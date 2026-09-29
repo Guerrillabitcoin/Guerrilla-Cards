@@ -30,7 +30,7 @@ export function JudgeModePicker({
           onPress={() => onChange?.('zar')}
           style={[styles.chip, { borderColor: colors.accent, backgroundColor: zarBg }]}
         >
-          <Text style={[styles.chipTxt, { fontFamily, color: zarInk }]}>Zar</Text>
+          <Text style={[styles.chipTxt, { fontFamily, color: zarInk }]}>Comandante</Text>
         </Pressable>
         <Pressable
           disabled={!canEdit}
@@ -43,7 +43,7 @@ export function JudgeModePicker({
       <Text style={[styles.help, { color: colors.text, fontFamily }]}>
         {vote
           ? 'Voto: todos tiran carta y todos votan. Nadie es juez. Empate a 2-3 = voto dividido (0 puntos).'
-          : 'Zar: un jugador no tira. Elige la frase ganadora. El ganador será el siguiente Zar.'}
+          : 'Comandante: un jugador no tira. Elige la frase ganadora. El ganador será el siguiente Comandante.'}
       </Text>
       {!canEdit ? (
         <Text style={[styles.help, { color: colors.textMuted, fontFamily }]}>

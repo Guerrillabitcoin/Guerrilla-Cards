@@ -14,9 +14,9 @@ export function AdvanceRoundButton({
   const title = isSolo
     ? '→  Siguiente ronda'
     : flash
-      ? 'Zar forzó comienzo de turno'
+      ? 'Comandante forzó comienzo de turno'
       : isZar
-        ? 'Empezar siguiente ronda (eres el Zar)'
+        ? 'Empezar siguiente ronda (eres el Comandante)'
         : '→  Siguiente ronda';
   return (
     <Button

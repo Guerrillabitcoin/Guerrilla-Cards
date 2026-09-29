@@ -20,18 +20,19 @@ export function WaitingRoster({
   mineWaitLabel?: string;
 }) {
   const { colors, fontFamily } = useTheme();
+  const botsSkipVote = verb === 'vote' || verb === 'vota';
   const doneKey = doneIds.join('|');
   const done = useMemo(() => new Set(doneIds), [doneKey]);
   const roster = players.filter((p) => p && p.id);
   const bots = roster.filter((p) => p.isBot);
+  // Bots that actually submitted (answers/discard) — not vote-skip bots
   const botDoneKey = bots
-    .filter((b) => done.has(b.id))
+    .filter((b) => !botsSkipVote && done.has(b.id))
     .map((b) => b.id)
     .join('|');
   const t0Ref = useRef(Date.now());
   const prevBotDone = useRef('');
   if (botDoneKey !== prevBotDone.current) {
-    // New bot became done → restart stagger clock once
     if (botDoneKey.length > prevBotDone.current.length) {
       t0Ref.current = Date.now();
     }
@@ -51,12 +52,13 @@ export function WaitingRoster({
   });
 
   const pending = roster.filter((p) => {
-    if (!done.has(p.id)) return true;
+    if (p.isBot && botsSkipVote) return false; // bots never vote — not pending
     if (p.isBot) {
+      if (!done.has(p.id)) return true;
       const need = botRevealAt.get(p.id) ?? 0;
       return elapsed < need;
     }
-    return false;
+    return !done.has(p.id);
   });
 
   return (
@@ -67,6 +69,31 @@ export function WaitingRoster({
       ]}
     >
       {roster.map((p) => {
+        if (p.isBot && botsSkipVote) {
+          return (
+            <View key={p.id} style={styles.row}>
+              <Text style={[styles.mark, { color: colors.success, fontFamily }]}>
+                ✓
+              </Text>
+              <Text
+                style={[
+                  styles.name,
+                  { color: colors.text, fontFamily, opacity: 0.7 },
+                ]}
+                numberOfLines={1}
+              >
+                {p.nickname}
+              </Text>
+              <Text
+                style={[styles.tag, { color: colors.textMuted, fontFamily }]}
+                numberOfLines={1}
+              >
+                no vota
+              </Text>
+            </View>
+          );
+        }
+
         const submitted = done.has(p.id);
         const botDelay = p.isBot ? botRevealAt.get(p.id) ?? 0 : 0;
         const ok = submitted && (!p.isBot || elapsed >= botDelay);
