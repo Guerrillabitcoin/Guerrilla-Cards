@@ -500,9 +500,65 @@ function isNextCycleAdvance(existing, incoming) {
   return gameProgress(incoming) > gameProgress(existing);
 }
 
+
+/**
+ * Fill missing bot answers from their hands during submitting.
+ * Host client usually does this; server covers host-away / race with human-first submit.
+ */
+function autoSubmitBotsServer(state) {
+  if (!state || state.phase !== 'submitting') return state;
+  if (state.mode === 'solo') return state;
+  const voteMode = (state.judgeMode || 'zar') === 'vote';
+  const playersIn = state.players || [];
+  const zar = playersIn[state.zarIndex || 0];
+  const zarId = zar && zar.id;
+  const round = Number(state.round) || 0;
+  const pick = Math.max(
+    1,
+    Number(state.currentPrompt && state.currentPrompt.pick) || 1
+  );
+  const submitted = new Set(
+    (state.submissions || [])
+      .filter((s) => s && !s.rival && s.playerId)
+      .map((s) => s.playerId)
+  );
+  let changed = false;
+  let players = playersIn.map((p) =>
+    p ? { ...p, hand: Array.isArray(p.hand) ? p.hand.slice() : [] } : p
+  );
+  let submissions = (state.submissions || []).slice();
+  for (const p of players) {
+    if (!p || !p.isBot || !p.id) continue;
+    if (!voteMode && p.id === zarId) continue;
+    if (submitted.has(p.id)) continue;
+    const hand = p.hand || [];
+    if (hand.length < pick) continue;
+    const cards = hand.slice(0, pick).map((c) => ({ ...c }));
+    const remain = hand.slice(pick);
+    players = players.map((x) =>
+      x && x.id === p.id ? { ...x, hand: remain } : x
+    );
+    submissions.push({
+      playerId: p.id,
+      cards,
+      round,
+    });
+    submitted.add(p.id);
+    changed = true;
+  }
+  if (!changed) return state;
+  return {
+    ...state,
+    players,
+    submissions,
+    updatedAt: Date.now(),
+  };
+}
+
 function promoteJudgingIfReady(state) {
   if (!state || state.phase !== 'submitting') return state;
   if (state.mode === 'solo') return state;
+  state = autoSubmitBotsServer(state);
   const voteMode = (state.judgeMode || 'zar') === 'vote';
   const players = state.players || [];
   const zar = players[state.zarIndex || 0];
@@ -1294,5 +1350,6 @@ handler.isNextCycleAdvance = isNextCycleAdvance;
 handler.applyPrivacyMerges = applyPrivacyMerges;
 handler.mergeVotesByVoterId = mergeVotesByVoterId;
 handler.resolveVotesIfCompleteServer = resolveVotesIfCompleteServer;
+handler.autoSubmitBotsServer = autoSubmitBotsServer;
 module.exports = handler;
 

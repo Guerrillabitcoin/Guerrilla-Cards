@@ -336,7 +336,8 @@ export default function PlayScreen() {
     }, 1000);
   }, [game?.phase, game?.round, game?.code]);
 
-  // Host valve: auto-submit / auto-discard Multi bots ASAP (guests only applyRemote)
+  // Host valve: auto-submit / auto-discard Multi bots one-by-one (stagger ~0.4s)
+  // so the wait roster shows each bot flipping to «listo» in sequence.
   useEffect(() => {
     if (!ready || !game || !myPlayerId) return;
     if (game.mode === 'solo') return;
@@ -344,27 +345,69 @@ export default function PlayScreen() {
       (p) => p.id === myPlayerId && p.isHost
     );
     if (!iAmHostNow) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     if (game.phase === 'submitting') {
       const zarId = game.players[game.zarIndex]?.id;
       const voteModeNow = (game.judgeMode ?? 'zar') === 'vote';
-      const pendingBot = game.players.some((p) => {
+      const pendingBots = game.players.filter((p) => {
         if (!p.isBot) return false;
         if (!voteModeNow && p.id === zarId) return false;
         return !Engine.submissionsForRound(game).some(
           (s) => s.playerId === p.id && !s.rival
         );
       });
-      if (!pendingBot) return;
-      updateGame(game.code, (g) => Engine.autoSubmitBots(g));
-      return;
+      if (!pendingBots.length) return;
+      // First bot almost immediately; next ones ~420ms apart
+      const delay = pendingBots.length === game.players.filter((p) => p.isBot).length
+        ? 220
+        : 420;
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        const botId = pendingBots[0]?.id;
+        if (!botId) return;
+        updateGame(game.code, (g) => {
+          if (g.phase !== 'submitting') return g;
+          const live = g.players.find((x) => x.id === botId && x.isBot);
+          if (!live) return g;
+          if (
+            Engine.submissionsForRound(g).some(
+              (s) => s.playerId === botId && !s.rival
+            )
+          ) {
+            return g;
+          }
+          const pick = Math.max(1, g.currentPrompt?.pick ?? 1);
+          const ids = live.hand.slice(0, pick).map((c) => c.id);
+          if (ids.length < pick) return Engine.autoSubmitBots(g);
+          try {
+            return Engine.submitCards(g, botId, ids);
+          } catch {
+            return Engine.autoSubmitBots(g);
+          }
+        });
+      }, delay);
+      return () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
     }
+
     if (game.phase === 'discarding') {
       const pendingBot = game.players.some(
         (p) =>
           p.isBot && !(game.discardDonePlayerIds ?? []).includes(p.id)
       );
       if (!pendingBot) return;
-      updateGame(game.code, (g) => Engine.autoDiscardBots(g));
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        updateGame(game.code, (g) => Engine.autoDiscardBots(g));
+      }, 280);
+      return () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
     }
   }, [
     ready,
@@ -1663,8 +1706,8 @@ export default function PlayScreen() {
                   ]}
                   expected={
                     voteMode
-                      ? game.players.filter((p) => !p.isBot).length
-                      : Math.max(0, game.players.filter((p) => !p.isBot).length - 1)
+                      ? game.players.length
+                      : Math.max(0, game.players.length - 1)
                   }
                   meId={myPlayerId ?? active?.id}
                   since={game.updatedAt}

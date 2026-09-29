@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.07';
+export const APP_VERSION = '0.99.422.08';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.08',
+    date: '2026-09-29',
+    notes:
+      'Bots en roster de espera con ✓ escalonado (~0.4s); auto-submit en cadena en host; servidor rellena bots pendientes; slim no borra manos de bots sin enviar; expected cuenta humanos+bots.',
+  },
     {
     version: '0.99.422.07',
     date: '2026-09-29',

@@ -1,5 +1,10 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../store/ThemeContext';
+
+/** Stagger bot ready marks so they feel fast & synced (not all at once). */
+const BOT_STAGGER_MS = 420;
+const BOT_STAGGER_BASE_MS = 280;
 
 export function WaitingRoster({
   players,
@@ -15,9 +20,44 @@ export function WaitingRoster({
   mineWaitLabel?: string;
 }) {
   const { colors, fontFamily } = useTheme();
-  const humans = players.filter((p) => !p.isBot);
-  const done = new Set(doneIds);
-  const pending = humans.filter((p) => !done.has(p.id));
+  const doneKey = doneIds.join('|');
+  const done = useMemo(() => new Set(doneIds), [doneKey]);
+  const roster = players.filter((p) => p && p.id);
+  const bots = roster.filter((p) => p.isBot);
+  const botDoneKey = bots
+    .filter((b) => done.has(b.id))
+    .map((b) => b.id)
+    .join('|');
+  const t0Ref = useRef(Date.now());
+  const prevBotDone = useRef('');
+  if (botDoneKey !== prevBotDone.current) {
+    // New bot became done → restart stagger clock once
+    if (botDoneKey.length > prevBotDone.current.length) {
+      t0Ref.current = Date.now();
+    }
+    prevBotDone.current = botDoneKey;
+  }
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!botDoneKey) return;
+    const id = setInterval(() => setNow(Date.now()), 120);
+    return () => clearInterval(id);
+  }, [botDoneKey]);
+  const elapsed = now - t0Ref.current;
+
+  const botRevealAt = new Map<string, number>();
+  bots.forEach((b, i) => {
+    botRevealAt.set(b.id, BOT_STAGGER_BASE_MS + i * BOT_STAGGER_MS);
+  });
+
+  const pending = roster.filter((p) => {
+    if (!done.has(p.id)) return true;
+    if (p.isBot) {
+      const need = botRevealAt.get(p.id) ?? 0;
+      return elapsed < need;
+    }
+    return false;
+  });
 
   return (
     <View
@@ -26,13 +66,16 @@ export function WaitingRoster({
         { borderColor: colors.border, backgroundColor: colors.bgElevated },
       ]}
     >
-      {humans.map((p) => {
-        const ok = done.has(p.id);
+      {roster.map((p) => {
+        const submitted = done.has(p.id);
+        const botDelay = p.isBot ? botRevealAt.get(p.id) ?? 0 : 0;
+        const ok = submitted && (!p.isBot || elapsed >= botDelay);
+        const waitingBot = p.isBot && !ok;
         const tone = ok ? colors.success : colors.text;
         return (
           <View key={p.id} style={styles.row}>
             <Text style={[styles.mark, { color: tone, fontFamily }]}>
-              {ok ? '✓' : '·'}
+              {ok ? '✓' : waitingBot ? '…' : '·'}
             </Text>
             <Text
               style={[
@@ -50,9 +93,11 @@ export function WaitingRoster({
             >
               {ok
                 ? 'listo'
-                : meId === p.id && mineWaitLabel
-                  ? mineWaitLabel
-                  : `espera que ${verb}`}
+                : waitingBot
+                  ? 'rápido…'
+                  : meId === p.id && mineWaitLabel
+                    ? mineWaitLabel
+                    : `espera que ${verb}`}
             </Text>
           </View>
         );

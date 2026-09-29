@@ -65,10 +65,27 @@ export function slimForRoom(
   const publishAllHands =
     state.phase === 'lobby' ||
     (state.phase === 'submitting' && humanSubCount === 0);
+  const submittedIds = new Set(
+    (state.submissions ?? [])
+      .filter((s) => s && !s.rival && s.playerId)
+      .map((s) => s.playerId)
+  );
   const players =
     !myPlayerId || publishAllHands
       ? state.players
-      : state.players.map((p) => (p.id === myPlayerId ? p : { ...p, hand: [] }));
+      : state.players.map((p) => {
+          if (p.id === myPlayerId) return p;
+          // Keep bot hands on the wire until that bot has submitted so the
+          // host valve / server can still auto-pick if a human answered first.
+          if (
+            p.isBot &&
+            state.phase === 'submitting' &&
+            !submittedIds.has(p.id)
+          ) {
+            return p;
+          }
+          return { ...p, hand: [] };
+        });
   return { ...state, players, submissions, promptDeck: [], answerDeck: [] };
 }
 
