@@ -1,4 +1,5 @@
-export const APP_VERSION = '0.99.422.15';
+/** 0.99.422.16: recover hydrate wait + remount-safe claim (no false «Partida no encontrada»). */
+export const APP_VERSION = '0.99.422.16';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;

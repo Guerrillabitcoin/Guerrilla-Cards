@@ -137,12 +137,23 @@ export default function PlayScreen() {
 
   // /play?seat= → claim quietly (rematch / normal).
   // /play?seat=&recover=1 → force server board + orange resume banner (recovery links only).
+  // seatClaimRan only after successful apply; cleanup clears key if cancelled before success
+  // so Strict Mode / remount retries instead of skipping a cancelled in-flight claim.
   const seatClaimRan = useRef<string | null>(null);
+  const seatWantEarly = String(seatParam ?? '').trim();
+  const [seatHydrateStatus, setSeatHydrateStatus] = useState<
+    'pending' | 'done' | 'failed'
+  >(seatWantEarly ? 'pending' : 'done');
+  const [seatHydrateError, setSeatHydrateError] = useState<string | null>(null);
   const [resumeHint, setResumeHint] = useState<string | null>(null);
   useEffect(() => {
     if (!ready || !gameCode) return;
     const want = String(seatParam ?? '').trim();
-    if (!want) return;
+    if (!want) {
+      setSeatHydrateStatus('done');
+      setSeatHydrateError(null);
+      return;
+    }
     const recoverRaw = Array.isArray(recoverParam)
       ? recoverParam[0]
       : recoverParam;
@@ -150,50 +161,88 @@ export default function PlayScreen() {
       String(recoverRaw ?? '').trim() === '1' ||
       String(recoverRaw ?? '').toLowerCase() === 'true';
     const key = `${gameCode}:${want}:${isRecover ? 'r' : 'q'}`;
-    if (seatClaimRan.current === key) return;
-    seatClaimRan.current = key;
+    if (seatClaimRan.current === key) {
+      setSeatHydrateStatus('done');
+      return;
+    }
     let cancelled = false;
+    let succeeded = false;
+    setSeatHydrateStatus('pending');
+    setSeatHydrateError(null);
     void (async () => {
-      await setOnlineFlag(gameCode, true);
-      setOnlineRoom(true);
+      try {
+        await setOnlineFlag(gameCode, true);
+        if (cancelled) return;
+        setOnlineRoom(true);
 
-      if (isRecover) {
-        // Drop local UI ghosts that block sending again
-        setPicked([]);
-        setPrivacy(false);
-        setPaintPhase(null);
-        setAdvancingRound(false);
-        setSoloSkipMode(false);
-        discardAckRef.current = null;
-      }
+        if (isRecover) {
+          // Drop local UI ghosts that block sending again
+          setPicked([]);
+          setPrivacy(false);
+          setPaintPhase(null);
+          setAdvancingRound(false);
+          setSoloSkipMode(false);
+          discardAckRef.current = null;
+        }
 
-      let board = null as null | import('@/src/engine/types').GameState;
-      const claimed = await claimSeat(gameCode, want);
-      if (cancelled) return;
-      if (claimed.ok) {
-        await setMySeat(gameCode, claimed.playerId);
-        setMyPlayerId(claimed.playerId);
-        applyRemoteGame(claimed.state, isRecover ? { force: true } : undefined);
-        board = claimed.state;
-      } else {
-        const pulled = await pullRoom(gameCode);
-        if (cancelled || !pulled.ok) return;
-        applyRemoteGame(pulled.state, isRecover ? { force: true } : undefined);
-        board = pulled.state;
-        if (pulled.state.players.some((p) => p.id === want)) {
-          await setMySeat(gameCode, want);
-          setMyPlayerId(want);
+        let board = null as null | import('@/src/engine/types').GameState;
+        let lastErr: string | null = null;
+        const claimed = await claimSeat(gameCode, want);
+        if (cancelled) return;
+        if (claimed.ok) {
+          await setMySeat(gameCode, claimed.playerId);
+          if (cancelled) return;
+          setMyPlayerId(claimed.playerId);
+          applyRemoteGame(claimed.state, isRecover ? { force: true } : undefined);
+          board = claimed.state;
+        } else {
+          lastErr = claimed.error || `claim_failed`;
+          const pulled = await pullRoom(gameCode);
+          if (cancelled) return;
+          if (!pulled.ok) {
+            lastErr = pulled.error || lastErr || 'not_found';
+            setSeatHydrateError(lastErr);
+            setSeatHydrateStatus('failed');
+            return;
+          }
+          applyRemoteGame(pulled.state, isRecover ? { force: true } : undefined);
+          board = pulled.state;
+          if (pulled.state.players.some((p) => p.id === want)) {
+            await setMySeat(gameCode, want);
+            if (cancelled) return;
+            setMyPlayerId(want);
+          }
+        }
+        if (cancelled) return;
+        if (!board) {
+          setSeatHydrateError(lastErr || 'not_found');
+          setSeatHydrateStatus('failed');
+          return;
+        }
+        // Mark success only after apply so remount can retry a cancelled claim.
+        seatClaimRan.current = key;
+        succeeded = true;
+        setSeatHydrateStatus('done');
+        // Banner only for intentional recovery links — not rematch / start with ?seat=
+        if (!isRecover) return;
+        const pending = pendingActionForSeat(board, want);
+        if (pending.label) setResumeHint(pending.label);
+        else setResumeHint('Asiento recuperado — sincronizado con la sala.');
+      } catch (e) {
+        if (cancelled) return;
+        setSeatHydrateError(e instanceof Error ? e.message : 'network_error');
+        setSeatHydrateStatus('failed');
+      } finally {
+        if (cancelled && !succeeded && seatClaimRan.current === key) {
+          seatClaimRan.current = null;
         }
       }
-      if (cancelled || !board) return;
-      // Banner only for intentional recovery links — not rematch / start with ?seat=
-      if (!isRecover) return;
-      const pending = pendingActionForSeat(board, want);
-      if (pending.label) setResumeHint(pending.label);
-      else setResumeHint('Asiento recuperado — sincronizado con la sala.');
     })();
     return () => {
       cancelled = true;
+      if (!succeeded && seatClaimRan.current === key) {
+        seatClaimRan.current = null;
+      }
     };
   }, [ready, gameCode, seatParam, recoverParam, applyRemoteGame]);
 
@@ -697,10 +746,17 @@ export default function PlayScreen() {
 
   if (!ready) return <Loading />;
 
+  // Seat deep-link / recover: wait for claim+pull before «Partida no encontrada».
   if (!game) {
+    const waitingSeat =
+      Boolean(String(seatParam ?? '').trim()) && seatHydrateStatus !== 'failed';
+    if (waitingSeat) return <Loading />;
     return (
       <Screen>
         <Title>Partida no encontrada</Title>
+        {seatHydrateError ? (
+          <Muted>{seatHydrateError}</Muted>
+        ) : null}
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>
     );
