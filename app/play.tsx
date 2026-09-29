@@ -216,12 +216,19 @@ export default function PlayScreen() {
 
   useEffect(() => {
     if (!game) return;
+    const seatParam = myPlayerId ? { seat: myPlayerId } : {};
     if (game.phase === 'results') {
-      router.replace({ pathname: '/results', params: { code: game.code } });
+      router.replace({
+        pathname: '/results',
+        params: { code: game.code, ...seatParam },
+      });
     } else if (game.phase === 'lobby') {
-      router.replace({ pathname: '/lobby', params: { code: game.code } });
+      router.replace({
+        pathname: '/lobby',
+        params: { code: game.code, ...seatParam },
+      });
     }
-  }, [game, router]);
+  }, [game, router, myPlayerId]);
 
   useEffect(() => {
     if (game?.phase !== 'reveal') {
@@ -620,8 +627,42 @@ export default function PlayScreen() {
     );
   }
 
+  // Never infinite-spin: rematch/liga races used to leave /play stuck on Loading.
   if (game.phase === 'results' || game.phase === 'lobby') {
-    return <Loading />;
+    const go =
+      game.phase === 'results'
+        ? () =>
+            router.replace({
+              pathname: '/results',
+              params: {
+                code: game.code,
+                ...(myPlayerId ? { seat: myPlayerId } : {}),
+              },
+            })
+        : () =>
+            router.replace({
+              pathname: '/lobby',
+              params: {
+                code: game.code,
+                ...(myPlayerId ? { seat: myPlayerId } : {}),
+              },
+            });
+    return (
+      <Screen>
+        <Title>
+          {game.phase === 'results' ? 'Final de partida' : 'Lobby'}
+        </Title>
+        <Muted>
+          {game.phase === 'results'
+            ? 'Abriendo resultados…'
+            : 'Volviendo al lobby…'}
+        </Muted>
+        <Button
+          title={game.phase === 'results' ? 'Ver resultados' : 'Ir al lobby'}
+          onPress={go}
+        />
+      </Screen>
+    );
   }
 
   const human = game.players.find((p) => !p.isBot) ?? game.players[0];

@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.06';
+export const APP_VERSION = '0.99.422.07';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.07',
+    date: '2026-09-29',
+    notes:
+      'Fix hang at fin de partida/liga: always accept rematch from results (ignore updatedAt race with liga award); /play no longer infinite Loading on results/lobby — fallback + keep seat in redirects.',
+  },
     {
     version: '0.99.422.06',
     date: '2026-09-29',

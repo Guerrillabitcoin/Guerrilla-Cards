@@ -1,7 +1,8 @@
 import type { GameState } from '../engine/types';
 import { gameProgress } from '../engine/syncProgress';
 
-function rematchLive(g?: GameState | null): boolean {
+/** True while a rematch deal is live (round 1 submitting/discarding). */
+export function rematchLive(g?: GameState | null): boolean {
   if (!g) return false;
   const r = Number(g.round) || 0;
   return (
@@ -30,10 +31,9 @@ export function dropStaleRemote(
   // Live rematch must ignore leftover results (high gameProgress, old match).
   if (rematchLive(local) && remote.phase === 'results') return true;
   if (incomingMatchOver(remote, local)) return false;
+  // Rematch after results: accept even if local liga award bumped updatedAt later.
   const rematch =
-    local.phase === 'results' &&
-    remote.phase !== 'results' &&
-    (remote.updatedAt ?? 0) >= (local.updatedAt ?? 0);
+    local.phase === 'results' && rematchLive(remote);
   if (rematch) return false;
   const richerLobby =
     local.phase === 'lobby' &&

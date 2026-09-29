@@ -10,7 +10,7 @@ import React, {
 } from 'react';
 import * as Engine from '../engine/game';
 import { restartFlexible } from '../engine/startFlexible';
-import { dropStaleRemote } from './remoteGate';
+import { dropStaleRemote, rematchLive } from './remoteGate';
 import { roomPaintKey } from './roomSnap';import {
   buildPreShuffledAnswerDeck,
   buildVariedPromptDeck,
@@ -369,11 +369,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Progress is round-aware: reveal → next submitting is forward, not a downgrade
       const remoteAdvanced = remoteProg > localProg;
       // Rematch from results drops progress; trust newer updatedAt
+      // Rematch from results: ignore updatedAt (liga award often stamps later).
       const isMatchRestart =
-        !!local &&
-        local.phase === 'results' &&
-        remote.phase !== 'results' &&
-        (remote.updatedAt ?? 0) >= (local.updatedAt ?? 0);
+        !!local && local.phase === 'results' && rematchLive(remote);
       const richerLobbyRoster =
         !!local &&
         local.phase === 'lobby' &&
@@ -409,6 +407,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           (remote.submissions?.length ?? 0) > (local.submissions?.length ?? 0);
         const richerDisc = hasRicherDiscards(remote, local);
         if (
+          !isMatchRestart &&
           !richerVotes &&
           !richerSubs &&
           !richerDisc &&
@@ -421,6 +420,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       }
       if (
         local &&
+        !isMatchRestart &&
         !remoteAdvanced &&
         (local.updatedAt ?? 0) === (remote.updatedAt ?? 0) &&
         local.phase === remote.phase &&

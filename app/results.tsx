@@ -91,7 +91,7 @@ export default function ResultsScreen() {
   useEffect(() => {
     if (!ready || !game || !onlineRoom) return;
     if (game.phase !== 'results' && game.phase !== 'lobby') {
-      router.replace({ pathname: '/play', params: { code: game.code } });
+      router.replace({ pathname: '/play', params: { code: game.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
     }
   }, [ready, game?.phase, game?.code, onlineRoom, router]);
 
@@ -214,7 +214,7 @@ export default function ResultsScreen() {
         (p) => p.id === myPlayerId && p.isHost
       );
       if (!iAmHost) {
-        router.replace({ pathname: '/play', params: { code: game.code } });
+        router.replace({ pathname: '/play', params: { code: game.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
         return;
       }
       const next = restartSameSetup(game.code);
@@ -222,7 +222,7 @@ export default function ResultsScreen() {
       if (next.phase === 'lobby') {
         router.replace({ pathname: '/lobby', params: { code: next.code } });
       } else {
-        router.replace({ pathname: '/play', params: { code: next.code } });
+        router.replace({ pathname: '/play', params: { code: next.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
       }
     })();
   }, [
@@ -270,7 +270,7 @@ export default function ResultsScreen() {
         router.replace('/');
         return;
       }
-      router.replace({ pathname: '/play', params: { code: next.code } });
+      router.replace({ pathname: '/play', params: { code: next.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
       return;
     }
     void (async () => {
@@ -278,7 +278,7 @@ export default function ResultsScreen() {
       if (awarded.ok) applyRemoteGame(awarded.state);
       const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
       if (!iAmHost) {
-        router.replace({ pathname: '/play', params: { code: game.code } });
+        router.replace({ pathname: '/play', params: { code: game.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
         return;
       }
       const next = restartSameSetup(game.code);
@@ -286,7 +286,7 @@ export default function ResultsScreen() {
         router.replace('/');
         return;
       }
-      router.replace({ pathname: '/play', params: { code: next.code } });
+      router.replace({ pathname: '/play', params: { code: next.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
     })();
   };
 

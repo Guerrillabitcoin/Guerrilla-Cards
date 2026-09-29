@@ -1091,9 +1091,8 @@ async function handler(req, res) {
           existing.phase !== 'results' &&
           existing.phase !== 'lobby' &&
           (Number(existing.round) || 0) <= 1;
-        const matchRestart =
-          incomingRematch &&
-          (incoming.updatedAt ?? 0) >= (existing.updatedAt ?? 0);
+        // Accept rematch from results even if liga award stamped a newer updatedAt.
+        const matchRestart = !!incomingRematch;
         if (existingRematch && incoming.phase === 'results') {
           return res.status(200).json({
             ok: true,
