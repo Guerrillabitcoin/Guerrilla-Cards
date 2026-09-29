@@ -24,8 +24,13 @@ function HeaderBrand({
   title: string;
   goHome?: boolean;
 }) {
-  const { colors, fontFamily } = useTheme();
+  const { colors, fontFamily, themeId } = useTheme();
   const router = useRouter();
+  // Guerrilla skin: brand title in accent orange (matches home).
+  const titleColor =
+    themeId === 'guerrilla' && title === 'GUERRILLA CARDS'
+      ? colors.accent
+      : colors.text;
   const label = (
     <View
       style={{
@@ -36,7 +41,7 @@ function HeaderBrand({
     >
       <Text
         style={{
-          color: colors.text,
+          color: titleColor,
           fontWeight: '800',
           fontSize: 17,
           fontFamily,
@@ -92,8 +97,10 @@ function ThemedStack() {
         <Stack.Screen
           name="lobby"
           options={{
-            title: 'Lobby',
-            headerTitle: () => <HeaderBrand title="Lobby" />,
+            title: 'GUERRILLA CARDS',
+            headerTitle: () => (
+              <HeaderBrand title="GUERRILLA CARDS" goHome />
+            ),
           }}
         />
         <Stack.Screen

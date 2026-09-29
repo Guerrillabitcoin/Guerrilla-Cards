@@ -1,5 +1,5 @@
-/** 0.99.422.16: recover hydrate wait + remount-safe claim (no false «Partida no encontrada»). */
-export const APP_VERSION = '0.99.422.16';
+/** 0.99.422.17: lobby HeaderBrand GUERRILLA CARDS→home; guerrilla accent orange. */
+export const APP_VERSION = '0.99.422.17';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
