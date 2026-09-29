@@ -21,10 +21,13 @@ import {
 } from '@/src/components/ui';
 import { countCombinedDeck, getBannedCount, getPlayablePackMeta } from '@/src/engine/deck';
 import {
+  MAX_PLAYERS,
+  MULTI_BOT_MAX,
   SOLO_DEFAULT_TARGET,
   type GameMode,
   type JudgeMode,
 } from '@/src/engine/types';
+import { maxLiveBotsAllowed, setLiveBots } from '@/src/engine/liveBots';
 import { useGameStore } from '@/src/store/GameContext';
 import {
   claimSeat,
@@ -38,7 +41,6 @@ import {
   type OpenRoomRow,
 } from '@/src/store/roomSync';
 import { randomNickname } from '@/src/engine/nicknames';
-import * as Engine from '@/src/engine/game';
 import { useTheme } from '@/src/store/ThemeContext';
 import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { displayVersionLabel } from '@/src/version';
@@ -123,6 +125,7 @@ export default function HomeScreen() {
   const [mode, setMode] = useState<GameMode>('solo');
   const [judgeMode, setJudgeMode] = useState<JudgeMode>('zar');
   const [maxPlayers, setMaxPlayers] = useState(4);
+  const [botCount, setBotCount] = useState(0);
   const [openRooms, setOpenRooms] = useState<OpenRoomRow[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [targetScore, setTargetScore] = useState(String(SOLO_DEFAULT_TARGET));
@@ -350,7 +353,7 @@ export default function HomeScreen() {
       try {
         const nick = resolveNick();
         const target = parseTarget();
-        const game = createGame({
+        let game = createGame({
           hostNickname: nick,
           mode: 'async',
           packIds: selectedPlayable,
@@ -358,6 +361,14 @@ export default function HomeScreen() {
           judgeMode: maxPlayers === 2 ? 'vote' : judgeMode,
           maxPlayers,
         });
+        const wantBots = Math.min(
+          botCount,
+          maxLiveBotsAllowed(maxPlayers, game.players.filter((p) => !p.isBot).length)
+        );
+        if (wantBots > 0) {
+          game = setLiveBots(game, wantBots);
+          saveGame(game, { sync: false });
+        }
         const hostId = game.players[0]?.id;
         if (hostId) await setMySeat(game.code, hostId);
         const pushed = await pushRoom(game, hostId);
@@ -527,9 +538,43 @@ export default function HomeScreen() {
           <Label>Jugadores (2–8)</Label>
           <View style={[styles.row, styles.modeRow]}>
             {[2, 3, 4, 5, 6, 7, 8].map((n) => (
-              <Chip key={n} label={String(n)} selected={maxPlayers === n} onPress={() => { setMaxPlayers(n); if (n === 2) setJudgeMode('vote'); }} />
+              <Chip
+                key={n}
+                label={String(n)}
+                selected={maxPlayers === n}
+                onPress={() => {
+                  setMaxPlayers(n);
+                  if (n === 2) setJudgeMode('vote');
+                  setBotCount((c) =>
+                    Math.min(c, maxLiveBotsAllowed(n, 1))
+                  );
+                }}
+              />
             ))}
           </View>
+          <Label>{`Bots (0–${MULTI_BOT_MAX})`}</Label>
+          <View style={[styles.row, styles.modeRow]}>
+            {[0, 1, 2, 3, 4].map((n) => {
+              const maxB = maxLiveBotsAllowed(maxPlayers, 1);
+              const disabled = n > maxB;
+              return (
+                <Chip
+                  key={`bot-${n}`}
+                  label={String(n)}
+                  selected={botCount === n}
+                  disabled={disabled}
+                  onPress={() => {
+                    if (disabled) return;
+                    setBotCount(n);
+                  }}
+                />
+              );
+            })}
+          </View>
+          <Muted>
+            Los bots no ocupan plaza humana. Humanos + bots ≤ {MAX_PLAYERS}.
+            {maxPlayers === 8 ? ' Con 8 jugadores no hay bots.' : ''}
+          </Muted>
           <Label>Juez de la ronda</Label>
           <View style={[styles.row, styles.modeRow]}>
             <Chip label="Zar" selected={judgeMode === 'zar'} disabled={maxPlayers === 2} onPress={() => { if (maxPlayers !== 2) setJudgeMode('zar'); }} />

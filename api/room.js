@@ -159,7 +159,12 @@ async function joinLobbyAtomic(key, code, nicknameDesired) {
         Number.isFinite(capRaw) && capRaw >= 2 ? Math.floor(capRaw) : ASYNC_MAX_PLAYERS
       )
     );
-    if (players.length >= cap) {
+    // maxPlayers = human seats only; bots do not occupy guest slots
+    const humans = players.filter((p) => p && !p.isBot);
+    if (humans.length >= cap) {
+      return { status: 409, body: { ok: false, error: 'lobby_full' } };
+    }
+    if (players.length >= ASYNC_MAX_PLAYERS) {
       return { status: 409, body: { ok: false, error: 'lobby_full' } };
     }
     const before = lobbyStamp(existing);
@@ -531,8 +536,12 @@ function resolveVotesIfCompleteServer(state) {
   if (!state || state.phase !== 'judging') return state;
   if ((state.judgeMode || 'zar') !== 'vote' || state.mode === 'solo') return state;
   const votes = state.votes || {};
+  const botIds = new Set(
+    (state.players || []).filter((p) => p && p.isBot).map((p) => p.id)
+  );
+  // Only humans who submitted must vote; bots never vote
   const eligible = (state.submissions || [])
-    .filter((s) => s && !s.rival)
+    .filter((s) => s && !s.rival && s.playerId && !botIds.has(s.playerId))
     .map((s) => s.playerId)
     .filter(Boolean);
   if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;

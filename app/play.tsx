@@ -326,6 +326,49 @@ export default function PlayScreen() {
     }, 1000);
   }, [game?.phase, game?.round, game?.code]);
 
+  // Host valve: auto-submit / auto-discard Multi bots ASAP (guests only applyRemote)
+  useEffect(() => {
+    if (!ready || !game || !myPlayerId) return;
+    if (game.mode === 'solo') return;
+    const iAmHostNow = !!game.players.find(
+      (p) => p.id === myPlayerId && p.isHost
+    );
+    if (!iAmHostNow) return;
+    if (game.phase === 'submitting') {
+      const zarId = game.players[game.zarIndex]?.id;
+      const voteModeNow = (game.judgeMode ?? 'zar') === 'vote';
+      const pendingBot = game.players.some((p) => {
+        if (!p.isBot) return false;
+        if (!voteModeNow && p.id === zarId) return false;
+        return !Engine.submissionsForRound(game).some(
+          (s) => s.playerId === p.id && !s.rival
+        );
+      });
+      if (!pendingBot) return;
+      updateGame(game.code, (g) => Engine.autoSubmitBots(g));
+      return;
+    }
+    if (game.phase === 'discarding') {
+      const pendingBot = game.players.some(
+        (p) =>
+          p.isBot && !(game.discardDonePlayerIds ?? []).includes(p.id)
+      );
+      if (!pendingBot) return;
+      updateGame(game.code, (g) => Engine.autoDiscardBots(g));
+    }
+  }, [
+    ready,
+    game?.code,
+    game?.phase,
+    game?.round,
+    game?.submissions?.length,
+    game?.discardDonePlayerIds?.length,
+    game?.zarIndex,
+    game?.judgeMode,
+    myPlayerId,
+    updateGame,
+  ]);
+
   // Left in hand at match end (once per game)
   useEffect(() => {
     if (!game) return;
@@ -583,12 +626,19 @@ export default function PlayScreen() {
 
   const roundSubs = Engine.submissionsForRound(game);
   const votesMap = game.votes ?? {};
+  const botIdSet = new Set(
+    game.players.filter((p) => p.isBot).map((p) => p.id)
+  );
   const votersPending = voteMode
     ? game.submissions
-        .filter((s) => !s.rival)
+        .filter((s) => !s.rival && !botIdSet.has(s.playerId))
         .map((s) => s.playerId)
         .filter((id) => !votesMap[id])
     : [];
+  const humanVoterTotal = voteMode
+    ? game.submissions.filter((s) => !s.rival && !botIdSet.has(s.playerId))
+        .length
+    : 0;
   const submitPendingPlayers = game.players.filter((p) => {
     if (zarSkipsSubmit && p.id === zar.id) return false;
     return !roundSubs.some((s) => s.playerId === p.id && !s.rival);
@@ -1609,7 +1659,7 @@ export default function PlayScreen() {
             <>
               <Muted>
                 Votos {Object.keys(votesMap).length}/
-                {game.submissions.filter((s) => !s.rival).length}
+                {humanVoterTotal}
                 {votersPending.length
                   ? ` · faltan: ${votersPending
                       .map(

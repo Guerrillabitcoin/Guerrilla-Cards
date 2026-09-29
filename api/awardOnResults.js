@@ -16,10 +16,10 @@ function awardOnResults(state) {
       leagueMatchCount: Number(state.leagueMatchCount) || 0,
     };
   }
-  const humans = (state.players || []).filter((p) => p && !p.isBot);
-  const top = [...humans].sort(
-    (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)
-  )[0];
+  // Match winner can be a bot (Liga). Rematch-ready still tracks humans only.
+  const top = [...(state.players || [])]
+    .filter((p) => p)
+    .sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0))[0];
   if (!top || !top.id || !(Number(top.score) > 0)) return state;
   const leagueScores = mergeLeague(state.leagueScores, {});
   leagueScores[top.id] = (Number(leagueScores[top.id]) || 0) + 1;

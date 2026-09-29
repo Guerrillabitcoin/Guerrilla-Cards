@@ -8,6 +8,8 @@ function applyBallot(existing, voterId, targetId) {
   const voter = String(voterId || '');
   const target = String(targetId || '');
   if (!voter || !target) return { reject: true, error: 'bad_ballot' };
+  const seat = (existing.players || []).find((p) => p && p.id === voter);
+  if (seat && seat.isBot) return { reject: true, error: 'bot_no_vote' };
   const votes = { ...(existing.votes || {}) };
   if (!votes[voter]) votes[voter] = target;
   return {

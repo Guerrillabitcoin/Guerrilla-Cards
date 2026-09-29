@@ -87,6 +87,8 @@ export interface GameState {
   discardDonePlayerIds: string[];
   lastDiscarded?: { playerId: string; cards: Card[] }[];
   maxPlayers?: number;
+  /** Multi lobby: desired bot seats (0–MULTI_BOT_MAX). Derived from players if absent. */
+  botCount?: number;
   leagueScores?: Record<string, number>;
   restartReadyIds?: string[];
   leagueAwarded?: boolean;
@@ -129,6 +131,7 @@ export const SOLO_MAX_ROUNDS = 10;
 export const SOLO_DEFAULT_TARGET = 10;
 export const SOLO_BOT_COUNT_DEFAULT = 2;
 export const SOLO_BOT_COUNT_MAX = 3;
+export const MULTI_BOT_MAX = 4;
 export const SOLO_RIVAL_COUNT = 3;
 export const DISCARD_AT_ROUND = 5;
 
@@ -161,6 +164,7 @@ export function coerceGameState(g: GameState): GameState {
     discardDonePlayerIds: g.discardDonePlayerIds ?? [],
     lastDiscarded: g.lastDiscarded ?? [],
     maxPlayers: g.maxPlayers ?? (g.mode === 'async' ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS),
+    botCount: g.botCount ?? (g.players ?? []).filter((p) => p.isBot).length,
     leagueScores: g.leagueScores ?? {},
     restartReadyIds: g.restartReadyIds ?? [],
     leagueAwarded: g.leagueAwarded ?? false,

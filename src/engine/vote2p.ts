@@ -57,9 +57,18 @@ function finishTwoPlayerVotes(
     updatedAt: Date.now(),
   };
   if (!hitTarget) return base;
-  const humans = base.players.filter((x) => !x.isBot);
-  const top = [...humans].sort((a, b) => b.score - a.score)[0];
+  // Bot can win Liga if it wins the match
+  const top = [...base.players].sort((a, b) => b.score - a.score)[0];
   return Engine.awardLeagueWin(base, top?.id ?? null);
+}
+
+function humanVoterIds(state: GameState): string[] {
+  const botIds = new Set(
+    state.players.filter((p) => p.isBot).map((p) => p.id)
+  );
+  return state.submissions
+    .filter((s) => !s.rival && s.playerId && !botIds.has(s.playerId))
+    .map((s) => s.playerId);
 }
 
 export function resolveVotesIfComplete(state: GameState): GameState {
@@ -68,9 +77,8 @@ export function resolveVotesIfComplete(state: GameState): GameState {
   }
   if (state.phase !== 'judging') return state;
   const votes = state.votes ?? {};
-  const eligible = state.submissions
-    .filter((s) => !s.rival)
-    .map((s) => s.playerId);
+  // Wait only for humans who submitted — bots never vote
+  const eligible = humanVoterIds(state);
   if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
 
   if (twoPlayerVote(state)) {
@@ -89,9 +97,9 @@ export function castVoteFlexible(
   }
   if (state.phase !== 'judging') throw new Error('No es fase de juicio.');
   state = Engine.ensureRevealOrder(state);
-  if (!state.players.some((p) => p.id === voterId)) {
-    throw new Error('Votante no encontrado.');
-  }
+  const voter = state.players.find((p) => p.id === voterId);
+  if (!voter) throw new Error('Votante no encontrado.');
+  if (voter.isBot) throw new Error('Los bots no votan.');
   if (!state.submissions.some((s) => s.playerId === voterId && !s.rival)) {
     throw new Error('Solo quien envió respuesta puede votar.');
   }
@@ -106,9 +114,7 @@ export function castVoteFlexible(
   if (prev[voterId]) throw new Error('Ya has votado esta ronda.');
 
   const votes = { ...prev, [voterId]: submissionPlayerId };
-  const eligible = state.submissions
-    .filter((s) => !s.rival)
-    .map((s) => s.playerId);
+  const eligible = humanVoterIds(state);
   const pending = eligible.filter((id) => !votes[id]);
   if (pending.length) {
     const nextSeat =

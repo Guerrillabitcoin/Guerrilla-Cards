@@ -62,14 +62,50 @@ function isVoteMode(state: GameState): boolean {
   return (state.judgeMode ?? 'zar') === 'vote';
 }
 
-/** Zar mode (async/live): next Zar is the round winner. Solo stays 0. Vote mode: +1. */
+/** Zar mode (async/live): next Zar is the round winner. Solo stays 0. Vote mode: +1.
+ * Multi: bots NEVER Zar — skip bot seats (if winner is bot, next human / host). */
 function nextZarIndex(state: GameState): number {
   if (state.mode === 'solo') return 0;
+  const n = state.players.length;
+  if (!n) return 0;
+  let idx: number;
   if (!isVoteMode(state) && state.roundWinnerId) {
-    const idx = state.players.findIndex((p) => p.id === state.roundWinnerId);
-    if (idx >= 0) return idx;
+    const wi = state.players.findIndex((p) => p.id === state.roundWinnerId);
+    idx = wi >= 0 ? wi : (state.zarIndex + 1) % n;
+  } else {
+    idx = (state.zarIndex + 1) % n;
   }
-  return (state.zarIndex + 1) % state.players.length;
+  for (let i = 0; i < n; i++) {
+    const j = (idx + i) % n;
+    if (!state.players[j]?.isBot) return j;
+  }
+  // Fallback: host seat or 0
+  const hostIdx = state.players.findIndex((p) => p.isHost && !p.isBot);
+  return hostIdx >= 0 ? hostIdx : 0;
+}
+
+/** Ensure zarIndex points at a human (bots never Zar). */
+function ensureHumanZarIndex(state: GameState): number {
+  const n = state.players.length;
+  if (!n) return 0;
+  let z = Math.max(0, Math.min(n - 1, Number(state.zarIndex) || 0));
+  if (!state.players[z]?.isBot) return z;
+  for (let i = 0; i < n; i++) {
+    const j = (z + i) % n;
+    if (!state.players[j]?.isBot) return j;
+  }
+  const hostIdx = state.players.findIndex((p) => p.isHost && !p.isBot);
+  return hostIdx >= 0 ? hostIdx : 0;
+}
+
+/** Humans who submitted (eligible to cast a vote). Bots never vote. */
+function humanVoterIdsFromState(state: GameState): string[] {
+  const botIds = new Set(
+    state.players.filter((p) => p.isBot).map((p) => p.id)
+  );
+  return state.submissions
+    .filter((s) => !s.rival && s.playerId && !botIds.has(s.playerId))
+    .map((s) => s.playerId);
 }
 
 export function createGame(opts: {
@@ -161,10 +197,9 @@ export function addPlayer(
   opts?: { isBot?: boolean }
 ): GameState {
   if (state.phase !== 'lobby') throw new Error('La partida ya empezó.');
-  const maxSeats =
-    state.mode === 'async' ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
-  if (state.players.length >= maxSeats) {
-    throw new Error(`Máximo ${maxSeats} jugadores.`);
+  // Hard cap = humans + bots <= MAX_PLAYERS. Human join capacity is maxPlayers (server/lobby).
+  if (state.players.length >= MAX_PLAYERS) {
+    throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
   }
   const nick = nickname.trim();
   if (!nick) throw new Error('Pon un apodo.');
@@ -358,11 +393,13 @@ export function pickRandomFromHand(player: Player, pick: number): string[] {
 export function autoSubmitBots(state: GameState): GameState {
   if (state.phase !== 'submitting') return state;
   const zarId = state.players[state.zarIndex]?.id;
+  const voteMode = isVoteMode(state);
   let next = state;
   for (const p of state.players) {
     if (next.phase !== 'submitting') break;
     if (!p.isBot) continue;
-    if (p.id === zarId) continue;
+    // Zar skips answers only in zar judge mode (bots should never be Zar)
+    if (!voteMode && p.id === zarId) continue;
     if (next.submissions.some((s) => s.playerId === p.id)) continue;
     const live = next.players.find((x) => x.id === p.id);
     if (!live) continue;
@@ -530,24 +567,22 @@ function dealHands(state: GameState): GameState {
 }
 
 export function startGame(state: GameState): GameState {
-    if (state.mode === 'solo') {
+  if (state.mode === 'solo') {
     if (state.players.length < 1) {
       throw new Error('Haz falta al menos 1 jugador.');
     }
   } else {
-    const minPlayers = state.mode === 'solo' ? 1 : MIN_PLAYERS;
-    if (state.players.length < minPlayers) {
-      throw new Error(`Haz falta al menos ${minPlayers} jugadores.`);
+    const humans = state.players.filter((p) => !p.isBot);
+    if (humans.length < MIN_PLAYERS) {
+      throw new Error(`Haz falta al menos ${MIN_PLAYERS} jugadores humanos.`);
     }
     if (state.players.length > MAX_PLAYERS) {
-      throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
+      throw new Error(`Máximo ${MAX_PLAYERS} jugadores (humanos + bots).`);
     }
   }
-  const z = Math.max(
-    0,
-    Math.min((state.players.length || 1) - 1, Number(state.zarIndex) || 0)
-  );
-  let next = dealHands({ ...state, zarIndex: z, round: 0 });  next = beginRound(next);
+  const z = ensureHumanZarIndex(state);
+  let next = dealHands({ ...state, zarIndex: z, round: 0 });
+  next = beginRound(next);
   return { ...next, updatedAt: now() };
 }
 
@@ -564,7 +599,9 @@ export function beginRound(state: GameState): GameState {
 
   const human =
     players.find((p) => !p.isBot) ?? players[0];
-  const zar = players[dealt.zarIndex];
+  // Bots never Zar in Multi
+  let zarIndex = ensureHumanZarIndex({ ...dealt, players });
+  const zar = players[zarIndex] ?? players[0];
 
   let activeSeatId: string;
   if (isSolo) {
@@ -576,14 +613,15 @@ export function beginRound(state: GameState): GameState {
     activeSeatId = firstSubmitter?.id ?? zar.id;
   } else {
     const firstSubmitter =
-      players.find((p, i) => i !== dealt.zarIndex && !p.isBot) ??
-      players.find((_, i) => i !== dealt.zarIndex);
+      players.find((p, i) => i !== zarIndex && !p.isBot) ??
+      players.find((_, i) => i !== zarIndex);
     activeSeatId = firstSubmitter?.id ?? zar.id;
   }
 
   return {
     ...dealt,
     players,
+    zarIndex,
     currentPrompt: prompt,
     promptDeck,
     promptDeckPos,
@@ -854,8 +892,8 @@ export function applyRoundWinners(
     updatedAt: now(),
   };
   if (!anyHitTarget) return base;
-  const humans = base.players.filter((p) => !p.isBot);
-  const top = [...humans].sort((a, b) => b.score - a.score)[0];
+  // Match winner (incl. bot) gets Liga
+  const top = [...base.players].sort((a, b) => b.score - a.score)[0];
   return awardLeagueWin(base, top?.id ?? ids[0] ?? null);
 }
 
@@ -896,9 +934,8 @@ export function applyVoteSplitAnnul(
 export function tallyVotesIfComplete(state: GameState): GameState {
   if (state.phase !== 'judging' || !isVoteMode(state)) return state;
   const votes = state.votes ?? {};
-  const eligible = state.submissions
-    .filter((s) => !s.rival)
-    .map((s) => s.playerId);
+  // Only humans who submitted must vote; bots never vote (phrases stay votable).
+  const eligible = humanVoterIdsFromState(state);
   if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
 
   const tallies: Record<string, number> = {};
@@ -1046,6 +1083,7 @@ export function castVote(
   state = ensureRevealOrder(state);
   const voter = state.players.find((p) => p.id === voterId);
   if (!voter) throw new Error('Votante no encontrado.');
+  if (voter.isBot) throw new Error('Los bots no votan.');
   if (!state.submissions.some((s) => s.playerId === voterId)) {
     throw new Error('Solo quien envió respuesta puede votar.');
   }
@@ -1062,10 +1100,8 @@ export function castVote(
 
   const votes = { ...prevVotes, [voterId]: submissionPlayerId };
 
-  // Eligible = everyone who submitted (all humans in vote mode)
-  const eligible = state.submissions
-    .filter((s) => !s.rival)
-    .map((s) => s.playerId);
+  // Eligible voters = humans who submitted (bots never vote)
+  const eligible = humanVoterIdsFromState(state);
   const allVoted = eligible.every((id) => !!votes[id]);
 
   if (!allVoted) {

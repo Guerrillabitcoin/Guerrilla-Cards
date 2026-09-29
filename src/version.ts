@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.421.66';
+export const APP_VERSION = '0.99.422.00';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,17 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.00',
+    date: '2026-09-29',
+    notes: [
+      'Multi: host chips Bots 0–4 (humanos + bots ≤ 8; bots no ocupan plaza)',
+      'Bots: nick aleatorio + " (Bot)"; submit vía autoSubmitBots; nunca votan / Zar / Listo',
+      'Voto: tally/resolve esperan solo humanos que enviaron; frases bot votables',
+      'Rematch: mismos bots/ids/nicks; Puntacos 0; Liga intacta (bot puede ganar Liga)',
+      'canStart / join / Faltan N: solo humanos vs maxPlayers; startFlexible auto-submit bots',
+    ],
+  },
   {
     version: '0.99.421.66',
     date: '2026-09-28',

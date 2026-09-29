@@ -14,17 +14,18 @@ function applyRematch(existing) {
   if (phase !== 'results') {
     return { reject: true, error: 'not_results' };
   }
+  // Keep all seats (humans + bots, same ids/nicks). Zar must be human.
   const humans = playersIn.filter((p) => p && !p.isBot);
-  const ranked = [...humans].sort(
+  const rankedHumans = [...humans].sort(
     (a, b) => (Number(b.score) || 0) - (Number(a.score) || 0)
   );
-  const winner = ranked[0];
+  const zarSeat = rankedHumans[0] || humans[0];
   // Liga +1 solo en results (awardOnResults). Rematch preserva y abre el pestillo.
   const leagueScores = { ...(existing.leagueScores || {}) };
   const leagueMatchCount = Number(existing.leagueMatchCount) || 0;
   const zarIndex = Math.max(
     0,
-    playersIn.findIndex((p) => p && winner && p.id === winner.id)
+    playersIn.findIndex((p) => p && zarSeat && p.id === zarSeat.id)
   );
   const players = playersIn.map((p) => ({
     ...p,

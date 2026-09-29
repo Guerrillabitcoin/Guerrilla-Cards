@@ -19,7 +19,13 @@ import {
   withSeatCap,
 } from '@/src/engine/startFlexible';
 import { randomNickname } from '@/src/engine/nicknames';
-import { MAX_PLAYERS, MIN_PLAYERS } from '@/src/engine/types';
+import { MAX_PLAYERS, MIN_PLAYERS, MULTI_BOT_MAX } from '@/src/engine/types';
+import {
+  botCountOf,
+  humanCount,
+  maxLiveBotsAllowed,
+  setLiveBots,
+} from '@/src/engine/liveBots';
 import { useGameStore } from '@/src/store/GameContext';
 import {
   getMySeat,
@@ -142,7 +148,8 @@ export default function LobbyScreen() {
           2,
           Math.min(8, Number(live.maxPlayers) || 8)
         );
-        if ((live.players?.length ?? 0) >= cap) {
+        const liveHumans = (live.players || []).filter((p) => !p.isBot).length;
+        if (liveHumans >= cap) {
           joiningRef.current = false;
           lobbyJoinInFlight.delete(codeKey);
           notify('Unirse', 'Sala llena');
@@ -274,19 +281,14 @@ export default function LobbyScreen() {
     MIN_PLAYERS,
     Math.min(MAX_PLAYERS, game.maxPlayers ?? MAX_PLAYERS)
   );
+  const humansHere = humanCount(game);
+  const botsHere = botCountOf(game);
   const judgeLabel = (game.judgeMode ?? 'zar') === 'vote' ? 'Voto' : 'Zar';
-  const canStart = game.players.length >= seatMax;
+  // Start when human roster is full — bots do not advance Empezar
+  const canStart = humansHere >= seatMax && humansHere >= MIN_PLAYERS;
+  const maxBotsNow = maxLiveBotsAllowed(seatMax, humansHere);
 
-  const setCap = (n: number) => {
-    if (!iAmHost) return;
-    if (n < game.players.length) {
-      notify(
-        'Sala',
-        `Ya hay ${game.players.length} jugadores. Quita alguno o elige ${game.players.length} o más.`
-      );
-      return;
-    }
-    updateGame(game.code, (g) => withSeatCap(g, n));
+  const pushLobby = () => {
     void (async () => {
       const g = getGame(game.code);
       if (!g) return;
@@ -294,13 +296,46 @@ export default function LobbyScreen() {
     })();
   };
 
+  const setCap = (n: number) => {
+    if (!iAmHost) return;
+    if (n < humansHere) {
+      notify(
+        'Sala',
+        `Ya hay ${humansHere} jugadores humanos. Quita alguno o elige ${humansHere} o más.`
+      );
+      return;
+    }
+    updateGame(game.code, (g) => {
+      let next = withSeatCap(g, n);
+      const maxB = maxLiveBotsAllowed(n, humanCount(next));
+      if (botCountOf(next) > maxB) {
+        next = setLiveBots(next, maxB);
+      }
+      return next;
+    });
+    pushLobby();
+  };
+
+  const setBots = (n: number) => {
+    if (!iAmHost) return;
+    updateGame(game.code, (g) => setLiveBots(g, n));
+    pushLobby();
+  };
+
   const start = () => {
     if (!canStart) {
-      notify('Lobby', `Espera a ${seatMax} jugadores (hay ${game.players.length}).`);
+      notify(
+        'Lobby',
+        `Espera a ${seatMax} jugadores humanos (hay ${humansHere}).`
+      );
       return;
     }
     try {
-      updateGame(game.code, (g) => startFlexible(g));
+      updateGame(game.code, (g) => {
+        let next = startFlexible(g);
+        next = Engine.autoSubmitBots(next);
+        return next;
+      });
       void (async () => {
         const g = getGame(game.code);
         if (!g) return;
@@ -318,7 +353,7 @@ export default function LobbyScreen() {
     <Screen>
       <LobbyShareCard
         code={game.code}
-        seated={game.players.length}
+        seated={humansHere}
         cap={seatMax}
         onCopy={() => {
           void copyRecoveryUrl(game.code).then((url) => notify('Lobby', url));
@@ -330,14 +365,15 @@ export default function LobbyScreen() {
       </Subtitle>
       <Muted>
         Online: cada jugador en su dispositivo. Comparte el enlace lobby.
-        Sala para {seatMax}. Ahora {game.players.length}/{seatMax}.
+        Sala para {seatMax} humanos. Ahora {humansHere}/{seatMax}
+        {botsHere ? ` · ${botsHere} bot${botsHere === 1 ? '' : 's'}` : ''}.
       </Muted>
 
       {iAmHost ? (
         <>
           <JudgeModePicker
             mode={game.judgeMode ?? 'zar'}
-            canEdit={iAmHost && game.players.length !== 2}
+            canEdit={iAmHost && humansHere !== 2}
             onChange={(mode) => {
               if (!iAmHost) return;
               updateGame(game.code, (g) => ({
@@ -362,13 +398,36 @@ export default function LobbyScreen() {
             ))}
           </View>
           <Muted>
-            Cuando haya {seatMax} puedes empezar. Si sois menos, baja el número.
+            Cuando haya {seatMax} humanos puedes empezar. Si sois menos, baja el número.
+          </Muted>
+          <Label>{`Bots (0–${MULTI_BOT_MAX})`}</Label>
+          <View style={styles.capRow}>
+            {[0, 1, 2, 3, 4].map((n) => {
+              const disabled = n > maxBotsNow;
+              return (
+                <Chip
+                  key={`bot-${n}`}
+                  label={String(n)}
+                  selected={botsHere === n}
+                  disabled={disabled}
+                  onPress={() => {
+                    if (disabled) return;
+                    setBots(n);
+                  }}
+                />
+              );
+            })}
+          </View>
+          <Muted>
+            Humanos + bots ≤ {MAX_PLAYERS}. Los bots no ocupan plaza.
+            {seatMax === 8 ? ' Con 8 jugadores no hay bots.' : ''}
           </Muted>
         </>
       ) : null}
 
       <Label>
-        Jugadores ({game.players.length}/{seatMax})
+        Jugadores ({humansHere}/{seatMax}
+        {botsHere ? ` + ${botsHere} bot${botsHere === 1 ? '' : 's'}` : ''})
       </Label>
       {(!myPlayerId ||
         !game.players.some((p) => p.id === myPlayerId)) &&
@@ -486,15 +545,15 @@ export default function LobbyScreen() {
       {isOnline && !iAmHost ? (
         <Muted>
           Esperando al anfitrión
-          {game.players.length < seatMax
-            ? ` · ${game.players.length}/${seatMax}`
+          {humansHere < seatMax
+            ? ` · ${humansHere}/${seatMax}`
             : ' · sala llena'}
         </Muted>
       ) : (
         <Button
           title={
             !canStart
-              ? `Faltan ${Math.max(0, seatMax - game.players.length)} de ${seatMax}`
+              ? `Faltan ${Math.max(0, seatMax - humansHere)} de ${seatMax}`
               : 'Empezar partida'
           }
           onPress={start}

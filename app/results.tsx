@@ -98,8 +98,8 @@ export default function ResultsScreen() {
     useEffect(() => {
         if (!game || game.phase !== 'results' || game.mode === 'solo') return;
   if (game.leagueAwarded) return;
-    const humans = game.players.filter((p) => !p.isBot);
-    const top = [...humans].sort((a, b) => b.score - a.score)[0];
+    // Bot can win Liga if it wins the match
+    const top = [...game.players].sort((a, b) => b.score - a.score)[0];
     if (!top) return;
     updateGame(game.code, (g) => Engine.awardLeagueWin(g, top.id));
   }, [game?.code, game?.phase, game?.leagueAwarded, game?.mode, updateGame]);
@@ -253,12 +253,11 @@ export default function ResultsScreen() {
 
   const isSolo = game.mode === 'solo';
   const humans = game.players.filter((p) => !p.isBot);
-  const board = humans.length ? humans : game.players;
+  // Show humans + bots on board; bots can rank 1st / win Liga
+  const board = game.players;
   const ranked = [...board].sort((a, b) => b.score - a.score);
   const winner = ranked[0];
-  const ligaWinner = !isSolo
-    ? [...humans].sort((a, b) => b.score - a.score)[0]
-    : undefined;
+  const ligaWinner = !isSolo ? ranked[0] : undefined;
 
   const doRestartNow = () => {
     const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;

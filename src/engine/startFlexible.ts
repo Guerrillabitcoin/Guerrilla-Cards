@@ -29,8 +29,12 @@ export function withSeatCap(state: GameState, n: number): GameState {
 export function addPlayerFlexible(state: GameState, nickname: string): GameState {
   const cap = capOf(state);
   if (state.phase !== 'lobby') throw new Error('La partida ya empezó.');
-  if (state.players.length >= cap) {
+  const humans = state.players.filter((p) => !p.isBot);
+  if (humans.length >= cap) {
     throw new Error(`Sala llena (${cap}).`);
+  }
+  if (state.players.length >= MAX_PLAYERS) {
+    throw new Error(`Máximo ${MAX_PLAYERS} (humanos + bots).`);
   }
   const next = Engine.addPlayer({ ...state, mode: 'live' }, nickname);
   return { ...next, mode: state.mode, maxPlayers: cap };
@@ -41,18 +45,30 @@ export function startFlexible(state: GameState): GameState {
     return Engine.startGame(state);
   }
   const cap = capOf(state);
-  if (state.players.length < MIN_PLAYERS) {
-    throw new Error(`Haz falta al menos ${MIN_PLAYERS} jugadores.`);
+  const humans = state.players.filter((p) => !p.isBot);
+  if (humans.length < MIN_PLAYERS) {
+    throw new Error(`Haz falta al menos ${MIN_PLAYERS} jugadores humanos.`);
   }
-  if (state.players.length > cap) {
-    throw new Error(`Máximo ${cap} jugadores.`);
+  // Start when human roster is full (bots do not advance Empezar)
+  if (humans.length < cap) {
+    throw new Error(`Faltan jugadores: ${humans.length}/${cap}.`);
+  }
+  if (state.players.length > MAX_PLAYERS) {
+    throw new Error(`Máximo ${MAX_PLAYERS} (humanos + bots).`);
   }
   let next = state;
-  if (next.players.length === 2 || cap === 2) {
+  if (humans.length === 2 || cap === 2) {
     next = { ...next, judgeMode: 'vote', maxPlayers: cap === 2 ? 2 : next.maxPlayers };
   }
   const started = Engine.startGame({ ...next, mode: 'live' });
-  return { ...started, mode: next.mode, maxPlayers: cap, judgeMode: next.judgeMode };
+  // Host path: fill bot answers immediately
+  const withBots = Engine.autoSubmitBots(started);
+  return {
+    ...withBots,
+    mode: next.mode,
+    maxPlayers: cap,
+    judgeMode: next.judgeMode,
+  };
 }
 
 export function restartFlexible(
@@ -62,18 +78,25 @@ export function restartFlexible(
   const mode = state.mode;
   const cap = capOf(state);
   const judgeMode = state.judgeMode;
-  let src = {
+  let src: GameState = {
     ...state,
     leagueScores: leagueFromState(state),
   };
-  const humans = src.players.filter((x) => !x.isBot);
-  const top = [...humans].sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  const top = [...src.players].sort(
+    (a, b) => (b.score || 0) - (a.score || 0)
+  )[0];
   if (src.phase === 'results' && src.mode !== 'solo' && top) {
     src = Engine.awardLeagueWin(src, top.id);
   }
+  // Prefer human for zar seat (bots never Zar); beginRound also enforces
+  const humans = src.players.filter((x) => !x.isBot);
+  const zarSeat =
+    (top && !top.isBot ? top : null) ||
+    [...humans].sort((a, b) => (b.score || 0) - (a.score || 0))[0] ||
+    humans[0];
   const zarIndex = Math.max(
     0,
-    src.players.findIndex((p) => top && p.id === top.id)
+    src.players.findIndex((p) => zarSeat && p.id === zarSeat.id)
   );
   const kept = mergeLeague(src.leagueScores);
   const matches = leagueMatchCountOf(src);
@@ -90,7 +113,7 @@ export function restartFlexible(
   const leagueScores = mergeLeague(kept, started.leagueScores);
   writeLeague(state.code, leagueScores);
   bumpLeagueDeal(state.code);
-  return {
+  const dealt = Engine.autoSubmitBots({
     ...started,
     mode,
     maxPlayers: cap,
@@ -101,5 +124,6 @@ export function restartFlexible(
     leagueMatchCount: matches,
     leagueAwarded: false,
     restartReadyIds: [],
-  };
+  });
+  return dealt;
 }

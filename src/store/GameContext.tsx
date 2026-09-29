@@ -573,8 +573,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         !remote.leagueAwarded &&
         remote.mode !== 'solo'
       ) {
-        const humans = remote.players.filter((p) => !p.isBot);
-        const top = [...humans].sort((a, b) => b.score - a.score)[0];
+        const top = [...remote.players].sort((a, b) => b.score - a.score)[0];
         if (top) remote = Engine.awardLeagueWin(remote, top.id);
       }
       gamesRef.current = { ...gamesRef.current, [key]: remote };
