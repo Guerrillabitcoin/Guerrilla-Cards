@@ -1,5 +1,5 @@
-/** 0.99.422.18: UI Lobby→Sala; código de sala framing. */
-export const APP_VERSION = '0.99.422.18';
+/** 0.99.422.19: fix api/room.js SyntaxError causing preview /api/room 500. */
+export const APP_VERSION = '0.99.422.19';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.19',
+    date: '2026-09-29',
+    notes:
+      'Fix preview /api/room FUNCTION_INVOCATION_FAILED: remove stray ternary fragment in room.js restartReadyIds merge.',
+  },
     {
     version: '0.99.422.18',
     date: '2026-09-29',

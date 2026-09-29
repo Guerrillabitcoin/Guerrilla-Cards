@@ -1290,8 +1290,7 @@ async function handler(req, res) {
                 ids.push(id);
               }
               return ids;
-            })()
-                    : [],
+            })(),
             submissions: mergeSubmissions(fresh, {
               ...incoming,
               phase: 'lobby',
