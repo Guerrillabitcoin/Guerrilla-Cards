@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.04';
+export const APP_VERSION = '0.99.422.05';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,7 +19,13 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
-  {
+    {
+    version: '0.99.422.05',
+    date: '2026-09-29',
+    notes:
+      'KV: pause poll when tab hidden; poll judging 1s / submitting 2s / lobby 3s / reveal·results 4s; home room list 20s + visible-only; telemetry log-only (no INCR); room SET EX 7d.',
+  },
+{
     version: '0.99.422.04',
     notes:
       'Lobby host: bots/cap no longer re-merge removed bots; host Quitar and bot chips stick on poll.',

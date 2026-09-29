@@ -152,11 +152,28 @@ export default function HomeScreen() {
         if (!cancelled && res.ok) setOpenRooms(res.rooms);
       });
     };
-    load();
-    const timer = setInterval(load, 8000);
+    const loadIfVisible = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+        return;
+      }
+      load();
+    };
+    loadIfVisible();
+    const timer = setInterval(loadIfVisible, 20000);
+    const onVis = () => {
+      if (typeof document !== 'undefined' && document.visibilityState !== 'hidden') {
+        load();
+      }
+    };
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVis);
+    }
     return () => {
       cancelled = true;
       clearInterval(timer);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVis);
+      }
     };
   }, [mode]);
 

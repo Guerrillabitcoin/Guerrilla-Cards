@@ -88,6 +88,12 @@ function kvConfigured() {
   return !!(kvUrl() && kvToken());
 }
 
+const ROOM_TTL_SEC = 7 * 24 * 60 * 60; // 7 days
+
+async function kvSetRoom(key, payload) {
+  return kvCommand(['SET', key, payload, 'EX', String(ROOM_TTL_SEC)]);
+}
+
 async function kvCommand(cmd) {
   const url = kvUrl();
   const token = kvToken();
@@ -195,7 +201,7 @@ async function joinLobbyAtomic(key, code, nicknameDesired) {
     if (!again || lobbyStamp(again) !== before) {
       continue; // raced — retry with fresh roster
     }
-    await kvCommand(['SET', key, payload]);
+    await kvSetRoom(key, payload);
     // Verify our seat survived a trailing concurrent SET
     const verifyData = await kvCommand(['GET', key]);
     const verify = parseExisting(verifyData?.result);
@@ -950,7 +956,7 @@ async function handler(req, res) {
         state = resolveVotesIfCompleteServer(state);
         const { awardOnResults } = require('./awardOnResults');
         state = awardOnResults(state);
-        await kvCommand(['SET', key, JSON.stringify(state)]);
+        await kvSetRoom(key, JSON.stringify(state));
         return res.status(200).json({ ok: true, code, state });
       }
 
@@ -965,7 +971,7 @@ async function handler(req, res) {
         if (out.reject) {
           return res.status(400).json({ ok: false, error: out.error });
         }
-        await kvCommand(['SET', key, JSON.stringify(out.state)]);
+        await kvSetRoom(key, JSON.stringify(out.state));
         return res.status(200).json({ ok: true, code, state: out.state });
       }
 
@@ -986,7 +992,7 @@ async function handler(req, res) {
           p && p.id === playerId ? { ...p, nickname } : p
         );
         const state = { ...existing, players, code, updatedAt: Date.now() };
-        await kvCommand(['SET', key, JSON.stringify(state)]);
+        await kvSetRoom(key, JSON.stringify(state));
         return res.status(200).json({ ok: true, code, state });
       }
 
@@ -1255,7 +1261,7 @@ async function handler(req, res) {
         return res.status(413).json({ ok: false, error: 'state_too_large' });
       }
 
-      await kvCommand(['SET', key, payload]);
+      await kvSetRoom(key, payload);
       return res.status(200).json({ ok: true, code, state, merged: true });
     }
 
