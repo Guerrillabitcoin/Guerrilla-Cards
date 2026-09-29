@@ -25,7 +25,7 @@ import { RoundStandings } from '@/src/components/RoundStandings';
 import { WinnerScreenFlash } from '@/src/components/WinFlash';import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
 import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
-import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, type Card } from '@/src/engine/types';
+import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, REVEAL_COUNTDOWN_MS, type Card } from '@/src/engine/types';
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
 import {
@@ -97,6 +97,9 @@ export default function PlayScreen() {
   const recordedRoundRef = useRef<string | null>(null);
   const discardRecordedRef = useRef<string | null>(null);
   const discardSeedKeyRef = useRef<string | null>(null);
+  /** Sticky: I already discarded this round (survives poll races). */
+  const discardAckRef = useRef<string | null>(null);
+  const discardSendLockRef = useRef(false);
   const prevPhaseRef = useRef<string | null>(null);
   const knownHandIdsRef = useRef<Set<string>>(new Set());
   /** New draws often land while judging — flash when mano is visible again. */
@@ -485,6 +488,24 @@ export default function PlayScreen() {
         discardSeedKeyRef.current = null;
         setForcedDiscardIds([]);
       }
+      if (phase !== 'discarding') {
+        discardSendLockRef.current = false;
+      }
+      // Drop sticky ack once we have left this discard round for good
+      if (
+        discardAckRef.current &&
+        game &&
+        phase !== 'discarding' &&
+        !discardAckRef.current.includes(`:r${game.round}:`)
+      ) {
+        discardAckRef.current = null;
+      }
+      if (
+        discardAckRef.current &&
+        (phase === 'judging' || phase === 'reveal' || phase === 'results' || phase === 'lobby')
+      ) {
+        discardAckRef.current = null;
+      }
       return;
     }
     const seatId =
@@ -495,6 +516,8 @@ export default function PlayScreen() {
           : game.activeSeatId;
     if (!seatId) return;
     if (game.discardDonePlayerIds.includes(seatId)) return;
+    const ackKey = `${game.code}:discard:r${game.round}:${seatId}`;
+    if (discardAckRef.current === ackKey) return;
     const player = game.players.find((p) => p.id === seatId);
     if (!player || player.isBot) return;
     const key = `${game.code}:discard:r${game.round}:${seatId}`;
@@ -523,45 +546,54 @@ export default function PlayScreen() {
     myPlayerId,
   ]);
 
-  // Online reveal: only the next Zar (winner) auto-advances at 10s.
-  // Others wait for poll. Host fallback at 12s if still stuck on reveal.
+  // Online reveal: shared revealEndsAt (max 8s). Only next Zar or host advances.
   useEffect(() => {
     if (!game || game.mode === 'solo') return;
-    if (game.phase !== 'reveal') { // 421.14 annul ties
+    if (game.phase !== 'reveal') {
       if (autoRevealTimerRef.current) {
         clearTimeout(autoRevealTimerRef.current);
         autoRevealTimerRef.current = null;
       }
-      if (game?.phase !== 'reveal') autoRevealKeyRef.current = null;
+      autoRevealKeyRef.current = null;
       return;
     }
     const online = onlineRoom && !!myPlayerId;
-    const iAmNextZar = online && myPlayerId === game.roundWinnerId;
+    const iAmNextZar =
+      online && !!game.roundWinnerId && myPlayerId === game.roundWinnerId;
     const iAmHost =
       online &&
       !!game.players.find((p) => p.id === myPlayerId && p.isHost);
-    // Pass-and-play (one device): anyone may auto-advance
-    const mayAuto = true;
-    const key = `${game.code}:${game.round}:${game.roundWinnerId ?? 'annul'}:${(game.roundWinnerIds ?? []).join(',')}:${
-      mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
+    const votoDividido = online && !game.roundWinnerId;
+    // Pass-and-play: anyone. Online: Zar, host, or annulled vote.
+    const mayAuto = !online || iAmNextZar || iAmHost || votoDividido;
+    if (!mayAuto) {
+      if (autoRevealTimerRef.current) {
+        clearTimeout(autoRevealTimerRef.current);
+        autoRevealTimerRef.current = null;
+      }
+      return;
+    }
+    // Back-compat: stamp shared deadline once if missing
+    let endsAt = game.revealEndsAt || 0;
+    if (!endsAt) {
+      endsAt = (game.updatedAt || Date.now()) + REVEAL_COUNTDOWN_MS;
+      updateGame(game.code, (g) =>
+        g.phase === 'reveal' && !g.revealEndsAt
+          ? { ...g, revealEndsAt: endsAt }
+          : g
+      );
+    }
+    const key = `${game.code}:${game.round}:${endsAt}:${
+      iAmNextZar ? 'zar' : iAmHost ? 'host' : 'auto'
     }`;
     if (autoRevealKeyRef.current === key) return;
     autoRevealKeyRef.current = key;
     if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
-
-    if (mayAuto) {
-      autoRevealTimerRef.current = setTimeout(() => {
-        autoRevealTimerRef.current = null;
-        continueRoundRef.current?.();
-      }, 8000);
-      return;
-    }
-    if (iAmHost) {
-      autoRevealTimerRef.current = setTimeout(() => {
-        autoRevealTimerRef.current = null;
-        continueRoundRef.current?.({ hostFallback: true });
-      }, 12000);
-    }
+    const delay = Math.max(0, endsAt - Date.now());
+    autoRevealTimerRef.current = setTimeout(() => {
+      autoRevealTimerRef.current = null;
+      continueRoundRef.current?.();
+    }, delay);
   }, [
     game?.mode,
     game?.phase,
@@ -569,9 +601,12 @@ export default function PlayScreen() {
     game?.round,
     game?.roundWinnerId,
     game?.roundWinnerIds,
+    game?.revealEndsAt,
+    game?.updatedAt,
     game?.players,
     onlineRoom,
     myPlayerId,
+    updateGame,
   ]);
 
   if (!ready) return <Loading />;
@@ -729,10 +764,15 @@ export default function PlayScreen() {
     width: `calc((100% - ${handGap * (handColumns - 1)}px) / ${handColumns})` as unknown as number,
   };
 
+  const discardAckKey =
+    active && game
+      ? `${game.code}:discard:r${game.round}:${active.id}`
+      : null;
   const alreadyAnswered =
     !!active &&
     (isDiscarding
-      ? game.discardDonePlayerIds.includes(active.id)
+      ? game.discardDonePlayerIds.includes(active.id) ||
+        (!!discardAckKey && discardAckRef.current === discardAckKey)
       : roundSubs.some((s) => s.playerId === active.id && !s.rival));
 
   const pickedCards = picked
@@ -801,6 +841,8 @@ export default function PlayScreen() {
     if (skipMode) setSoloSkipMode(false);
 
     if (discarding) {
+      if (discardSendLockRef.current) return;
+      discardSendLockRef.current = true;
       // Capture slots so the new cards flash “NUEVA” after the swap
       const slots = ids
         .map((id) => hand.findIndex((c) => c.id === id))
@@ -810,25 +852,50 @@ export default function PlayScreen() {
         if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
         engineTimerRef.current = setTimeout(() => {
           engineTimerRef.current = null;
-          setPicked([]);
-          try {
-            updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
-            if (!solo) {
-              const after = getGame(code);
-              if (after?.activeSeatId && after.activeSeatId !== pid) {
-                setPrivacy(true);
+          void (async () => {
+            setPicked([]);
+            try {
+              if (onlineRoom) {
+                try {
+                  const remote = await pullRoom(code);
+                  if (remote.ok) applyRemoteGame(remote.state);
+                } catch {
+                  // keep local
+                }
+                const cur = getGame(code);
+                if (
+                  cur?.phase === 'discarding' &&
+                  (cur.discardDonePlayerIds ?? []).includes(pid)
+                ) {
+                  discardAckRef.current = `${code}:discard:r${cur.round}:${pid}`;
+                  discardSendLockRef.current = false;
+                  return;
+                }
+                if (cur && cur.phase !== 'discarding') {
+                  discardSendLockRef.current = false;
+                  return;
+                }
               }
+              updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
+              const after = getGame(code);
+              discardAckRef.current = `${code}:discard:r${after?.round ?? game.round}:${pid}`;
+              if (!solo) {
+                if (after?.activeSeatId && after.activeSeatId !== pid) {
+                  setPrivacy(true);
+                }
+              }
+              setReplacedSlots(slots);
+              if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
+              if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+              replaceFlashRef.current = setTimeout(() => {
+                replaceFlashRef.current = null;
+                setReplacedSlots([]);
+              }, 700);
+            } catch (e) {
+              discardSendLockRef.current = false;
+              Alert.alert('Descarte', e instanceof Error ? e.message : 'Error');
             }
-            setReplacedSlots(slots);
-            if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
-      if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
-            replaceFlashRef.current = setTimeout(() => {
-              replaceFlashRef.current = null;
-              setReplacedSlots([]);
-            }, 700);
-          } catch (e) {
-            Alert.alert('Descarte', e instanceof Error ? e.message : 'Error');
-          }
+          })();
         }, 160);
       });
       return;
@@ -1292,9 +1359,21 @@ export default function PlayScreen() {
                   <NextRoundBar
                     active={phase === 'reveal'}
                     deadlineAt={
-                      phase === 'reveal' && game.updatedAt
-                        ? game.updatedAt + 8000
+                      phase === 'reveal'
+                        ? game.revealEndsAt ||
+                          (game.updatedAt
+                            ? game.updatedAt + REVEAL_COUNTDOWN_MS
+                            : null)
                         : null
+                    }
+                    canAdvance={
+                      !!isSolo ||
+                      !isOnline ||
+                      !!iAmHostPlayer ||
+                      (!!myPlayerId &&
+                        !!game.roundWinnerId &&
+                        myPlayerId === game.roundWinnerId) ||
+                      !game.roundWinnerId
                     }
                     onDone={() => continueRoundRef.current?.()}
                   />
@@ -1432,7 +1511,7 @@ export default function PlayScreen() {
               : ` Completado: ${game.discardDonePlayerIds.length}/${game.players.length}`}
           </Muted>
 
-          {game.discardDonePlayerIds.includes(active?.id ?? '') ? (
+          {alreadyAnswered ? (
             <View style={styles.doneBox}>
               <Text style={styles.doneBadge}>✓ Descarte enviado</Text>
                             {!isSolo ? (
@@ -2035,11 +2114,13 @@ export default function PlayScreen() {
                     {!isSolo ? (
                       <Muted>
                         {iAmNextZar
-                          ? 'Eres el próximo Zar: empieza ya o en 10 s pasa sola.'
-                          : `Esperando a que ${winnerName} (Zar) empiece la siguiente ronda…`}
+                          ? 'Eres el próximo Zar: empieza ya o en 8 s pasa sola.'
+                          : iAmHostPlayer
+                            ? 'Eres anfitrión: puedes forzar la siguiente ronda o esperar el contador.'
+                            : `Esperando a que ${winnerName} (Zar) o el anfitrión empiece la siguiente ronda…`}
                       </Muted>
                     ) : null}
-                                       {isSolo || iAmNextZar || !isOnline ? (
+                                       {isSolo || iAmNextZar || iAmHostPlayer || !isOnline ? (
                       <AdvanceRoundButton
                         isSolo={!!isSolo}
                         isZar={!!iAmNextZar}

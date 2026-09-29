@@ -31,6 +31,18 @@ import {
   pushRoom,
 } from './roomSync';
 
+function hasRicherDiscards(remote: GameState, local: GameState): boolean {
+  if (remote.phase !== 'discarding' || local.phase !== 'discarding') return false;
+  if ((remote.round ?? 0) !== (local.round ?? 0)) return false;
+  const r = new Set(remote.discardDonePlayerIds ?? []);
+  const l = new Set(local.discardDonePlayerIds ?? []);
+  if (r.size > l.size) return true;
+  for (const id of r) {
+    if (!l.has(id)) return true;
+  }
+  return false;
+}
+
 const STORAGE_KEY = 'guerrilla_cards_games_v1';
 const RECENT_PROMPTS_KEY = 'guerrilla_cards_recent_prompts_v1';
 const RECENT_ANSWERS_KEY = 'guerrilla_cards_recent_answers_v1';
@@ -395,9 +407,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           (local.round ?? 0) === (remote.round ?? 0) &&
           local.phase === remote.phase &&
           (remote.submissions?.length ?? 0) > (local.submissions?.length ?? 0);
+        const richerDisc = hasRicherDiscards(remote, local);
         if (
           !richerVotes &&
           !richerSubs &&
+          !richerDisc &&
           !richerLobbyRoster &&
           !remoteLeagueNewer &&
           !remoteRestartReadyNewer
@@ -413,12 +427,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         (local.submissions?.length ?? 0) >= (remote.submissions?.length ?? 0)
       ) {
         // Same phase/time: still accept if remote has more discards or richer votes
-        const localDisc = local.discardDonePlayerIds?.length ?? 0;
-        const remoteDisc = remote.discardDonePlayerIds?.length ?? 0;
-        const moreDiscards =
-          remote.phase === 'discarding' &&
-          local.phase === 'discarding' &&
-          remoteDisc > localDisc;
+        const moreDiscards = hasRicherDiscards(remote, local);
         const richerVotes = hasRicherVotes(remote, local);
         if (
           !moreDiscards &&
@@ -502,6 +511,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                   ])
                 ),
         };
+      }
+      // Shared reveal countdown: earliest deadline wins (ignore updatedAt drift)
+      if (
+        local &&
+        remote.phase === 'reveal' &&
+        local.phase === 'reveal' &&
+        (local.round ?? 0) === (remote.round ?? 0)
+      ) {
+        const a = local.revealEndsAt || 0;
+        const b = remote.revealEndsAt || 0;
+        const ends = a && b ? Math.min(a, b) : a || b || null;
+        if (ends && ends !== remote.revealEndsAt) {
+          remote = { ...remote, revealEndsAt: ends };
+        } else if (!remote.revealEndsAt && local.revealEndsAt) {
+          remote = { ...remote, revealEndsAt: local.revealEndsAt };
+        }
       }
       // Same discarding round: union who already discarded (sync must not wipe peers)
       if (

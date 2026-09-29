@@ -83,6 +83,8 @@ export interface GameState {
   answerDeckPos: number;
   createdAt: number;
   updatedAt: number;
+  /** Absolute ms when reveal auto-advances (shared countdown). */
+  revealEndsAt?: number | null;
   discardRoundCompleted: boolean;
   discardDonePlayerIds: string[];
   lastDiscarded?: { playerId: string; cards: Card[] }[];
@@ -146,6 +148,8 @@ export function shouldDiscardBeforeRound(
 export const DISCARD_MIN = 2;
 export const DISCARD_MAX = 5;
 export const DISCARD_COUNT = DISCARD_MIN;
+/** Shared reveal → next round countdown (host/Zar + guests). */
+export const REVEAL_COUNTDOWN_MS = 8000;
 
 export const BOT_NICKNAMES = [
   'Bot 1',
@@ -174,6 +178,7 @@ export function coerceGameState(g: GameState): GameState {
     promptDeckPos: g.promptDeckPos ?? 0,
     answerDeck: g.answerDeck ?? [],
     answerDeckPos: g.answerDeckPos ?? 0,
+    revealEndsAt: g.revealEndsAt ?? null,
   };
 }
 

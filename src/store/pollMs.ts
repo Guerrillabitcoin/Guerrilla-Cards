@@ -4,6 +4,8 @@ import type { Phase } from '../engine/types';
 export function pollMs(phase?: Phase | string | null): number {
   if (phase === 'judging') return 1000;
   if (phase === 'submitting') return 2000;
+  if (phase === 'discarding') return 2000; // detect peer discard sooner
+  if (phase === 'reveal') return 2000; // pick up next-round advance
   if (phase === 'lobby') return 3000;
-  return 4000; // reveal, results, discarding, idle
+  return 4000; // results, idle
 }

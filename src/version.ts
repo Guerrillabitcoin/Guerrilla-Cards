@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.05';
+export const APP_VERSION = '0.99.422.06';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 
 export const APP_VERSION_NOTES = [
     {
+    version: '0.99.422.06',
+    date: '2026-09-29',
+    notes:
+      'Reveal: shared revealEndsAt (max 8s) synced host/guest; host always sees advance button; guests wait without false «Empezando». Discard: accept peer discardDone even if local updatedAt newer; sticky discardAck + pull-before-discard + send lock; poll discarding/reveal 2s.',
+  },
+{
     version: '0.99.422.05',
     date: '2026-09-29',
     notes:

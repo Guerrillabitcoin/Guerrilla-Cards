@@ -6,10 +6,13 @@ const SECONDS = 8;
 export function NextRoundBar({
   active,
   deadlineAt,
+  canAdvance,
   onDone,
 }: {
   active: boolean;
   deadlineAt?: number | null;
+  /** Only the next Zar / host should fire onDone (guests just watch). */
+  canAdvance?: boolean;
   onDone?: () => void;
 }) {
   const fired = useRef(false);
@@ -28,13 +31,14 @@ export function NextRoundBar({
 
   useEffect(() => {
     if (!active) return;
+    if (!canAdvance) return;
     const end = deadlineAt || 0;
     if (!end) return;
     if (now < end) return;
     if (fired.current) return;
     fired.current = true;
     onDoneRef.current?.();
-  }, [active, deadlineAt, now]);
+  }, [active, deadlineAt, now, canAdvance]);
 
   if (!active) return null;
 
@@ -42,11 +46,18 @@ export function NextRoundBar({
   const left = Math.max(0, Math.ceil((end - now) / 1000));
   const starting = left <= 0;
 
+  let label: string;
+  if (!starting) {
+    label = `Siguiente ronda ${left}s`;
+  } else if (canAdvance) {
+    label = 'Empezando nueva ronda';
+  } else {
+    label = 'Esperando al Zar / anfitrión…';
+  }
+
   return (
     <View style={[styles.box, starting && styles.boxGo]}>
-      <Text style={styles.text}>
-        {starting ? 'Empezando nueva ronda' : `Siguiente ronda ${left}s`}
-      </Text>
+      <Text style={styles.text}>{label}</Text>
     </View>
   );
 }

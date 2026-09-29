@@ -468,6 +468,8 @@ function phaseRank(phase) {
  * Monotonic progress across rounds. reveal(r) < discarding(r) < submitting(r+1).
  * Prevents treating a legitimate next-round push as a phase "downgrade".
  */
+const REVEAL_COUNTDOWN_MS = 8000;
+
 function gameProgress(state) {
   if (!state || typeof state !== 'object') return 0;
   const round = Number(state.round) || 0;
@@ -544,6 +546,13 @@ function promoteJudgingIfReady(state) {
       : zar?.id || null,
     updatedAt: Date.now(),
   };
+}
+
+function pickRevealEndsAt(a, b) {
+  const ax = typeof a === 'number' && a > 0 ? a : 0;
+  const bx = typeof b === 'number' && b > 0 ? b : 0;
+  if (ax && bx) return Math.min(ax, bx);
+  return ax || bx || null;
 }
 
 function unionDiscardDone(a, b) {
@@ -639,6 +648,7 @@ function resolveVotesIfCompleteServer(state) {
       roundWinnerIds: isSplit ? tied : [],
       phase: hitTarget ? 'results' : 'reveal',
       activeSeatId: hitTarget ? null : hostId,
+      revealEndsAt: hitTarget ? null : now + REVEAL_COUNTDOWN_MS,
       updatedAt: now,
     };
   }
@@ -652,6 +662,7 @@ function resolveVotesIfCompleteServer(state) {
       roundWinnerIds: tied,
       phase: 'reveal',
       activeSeatId: hostId,
+      revealEndsAt: now + REVEAL_COUNTDOWN_MS,
       updatedAt: now,
     };
   }
@@ -665,6 +676,7 @@ function resolveVotesIfCompleteServer(state) {
       roundWinnerIds: eligible.slice(0, 2),
       phase: 'reveal',
       activeSeatId: hostId,
+      revealEndsAt: now + REVEAL_COUNTDOWN_MS,
       updatedAt: now,
     };
   }
@@ -682,6 +694,7 @@ function resolveVotesIfCompleteServer(state) {
     roundWinnerIds: [],
     phase: hitTarget ? 'results' : 'reveal',
     activeSeatId: hitTarget ? null : winnerId,
+    revealEndsAt: hitTarget ? null : now + REVEAL_COUNTDOWN_MS,
     updatedAt: now,
   };
 }
@@ -750,6 +763,10 @@ function applyPrivacyMerges(existing, incoming) {
         ? incoming.votes || existing.votes || {}
         : existing.votes || incoming.votes || {};
   }
+  // Shared countdown: keep earliest non-null revealEndsAt (do not drift with updatedAt)
+  let revealEndsAt = clearWinner
+    ? null
+    : pickRevealEndsAt(existing.revealEndsAt, incoming.revealEndsAt);
   let state = {
     ...incoming,
     phase,
@@ -762,6 +779,7 @@ function applyPrivacyMerges(existing, incoming) {
     roundWinnerIds: clearWinner
       ? incoming.roundWinnerIds || []
       : incoming.roundWinnerIds || existing.roundWinnerIds || [],
+    revealEndsAt,
   };
   // Discarding: never lose a peer who already discarded (avoids double-discard)
   if (

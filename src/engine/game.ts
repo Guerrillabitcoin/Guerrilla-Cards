@@ -27,6 +27,7 @@ import {
   type JudgeMode,
   type Player,
   type Submission,
+  REVEAL_COUNTDOWN_MS,
 } from './types';
 import { awardLeaguePersistent } from '../store/leagueSession';
 
@@ -641,6 +642,7 @@ export function beginRound(state: GameState): GameState {
     phase: 'submitting',
     round: dealt.round + 1,
     activeSeatId,
+    revealEndsAt: null,
     updatedAt: now(),
   };
 }
@@ -848,6 +850,7 @@ function applyRoundWinner(
     roundWinnerId: winnerPlayerId,
     roundWinnerIds: [],
     phase: 'reveal',
+    revealEndsAt: now() + REVEAL_COUNTDOWN_MS,
     updatedAt: now(),
   };
 }
@@ -894,6 +897,7 @@ export function applyRoundWinners(
     roundWinnerId: ids[0] ?? null,
     phase: (anyHitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: anyHitTarget ? null : state.activeSeatId,
+    revealEndsAt: anyHitTarget ? null : now() + REVEAL_COUNTDOWN_MS,
     updatedAt: now(),
   };
   if (!anyHitTarget) return base;
@@ -927,6 +931,7 @@ export function applyVoteSplitAnnul(
     roundWinnerId: null,
     phase: 'reveal',
     activeSeatId: hostId,
+    revealEndsAt: now() + REVEAL_COUNTDOWN_MS,
     updatedAt: now(),
   };
 }
@@ -1137,6 +1142,7 @@ export function startDiscardRound(state: GameState): GameState {
     lastDiscarded: [],
     discardRoundCompleted: false,
     activeSeatId: firstHuman?.id ?? null,
+    revealEndsAt: null,
     updatedAt: now(),
   };
 }
