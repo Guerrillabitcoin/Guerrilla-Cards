@@ -149,7 +149,7 @@ export const DISCARD_MIN = 2;
 export const DISCARD_MAX = 5;
 export const DISCARD_COUNT = DISCARD_MIN;
 /** Shared reveal → next round countdown (host/Zar + guests). */
-export const REVEAL_COUNTDOWN_MS = 8000;
+export const REVEAL_COUNTDOWN_MS = 5000;
 
 export const BOT_NICKNAMES = [
   'Bot 1',

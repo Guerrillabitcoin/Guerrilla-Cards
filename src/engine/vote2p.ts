@@ -1,4 +1,5 @@
 import type { GameState } from './types';
+import { REVEAL_COUNTDOWN_MS } from './types';
 import * as Engine from './game';
 
 export function isTwoPlayerVote(state: GameState): boolean {
@@ -46,6 +47,7 @@ function finishTwoPlayerVotes(
   const hitTarget = players.some((p) => p.score >= state.targetScore);
   const hostId =
     state.players.find((p) => p.isHost)?.id ?? eligible[0] ?? null;
+  const now = Date.now();
   const base = {
     ...state,
     players,
@@ -54,7 +56,8 @@ function finishTwoPlayerVotes(
     roundWinnerIds: isSplit ? winners : [],
     phase: (hitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: hitTarget ? null : hostId,
-    updatedAt: Date.now(),
+    revealEndsAt: hitTarget ? null : now + REVEAL_COUNTDOWN_MS,
+    updatedAt: now,
   };
   if (!hitTarget) return base;
   // Bot can win Liga if it wins the match

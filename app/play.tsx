@@ -640,15 +640,20 @@ export default function PlayScreen() {
       }
       return;
     }
-    // Back-compat: stamp shared deadline once if missing
+    // Stamp once if missing. Cap remaining so host never waits > countdown
+    // (stale updatedAt / late paint used to push past 10s).
+    const now = Date.now();
     let endsAt = game.revealEndsAt || 0;
     if (!endsAt) {
-      endsAt = (game.updatedAt || Date.now()) + REVEAL_COUNTDOWN_MS;
+      endsAt = now + REVEAL_COUNTDOWN_MS;
       updateGame(game.code, (g) =>
         g.phase === 'reveal' && !g.revealEndsAt
           ? { ...g, revealEndsAt: endsAt }
           : g
       );
+    } else {
+      // Never show more than countdown from this paint (shared min still applies via merge)
+      endsAt = Math.min(endsAt, now + REVEAL_COUNTDOWN_MS);
     }
     const key = `${game.code}:${game.round}:${endsAt}:${
       iAmNextZar ? 'zar' : iAmHost ? 'host' : 'auto'
@@ -656,7 +661,7 @@ export default function PlayScreen() {
     if (autoRevealKeyRef.current === key) return;
     autoRevealKeyRef.current = key;
     if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
-    const delay = Math.max(0, endsAt - Date.now());
+    const delay = Math.max(0, endsAt - now);
     autoRevealTimerRef.current = setTimeout(() => {
       autoRevealTimerRef.current = null;
       continueRoundRef.current?.();
@@ -1237,14 +1242,20 @@ export default function PlayScreen() {
     const run = async () => {
       try {
         if (onlineRoom && myPlayerId) {
-          const pulled = await pullRoom(game.code);
+          // Soft sync: don't stall the round on a slow pull (was ~2–4s lag).
+          const pulled = await Promise.race([
+            pullRoom(game.code),
+            new Promise<{ ok: false }>((r) =>
+              setTimeout(() => r({ ok: false }), 450)
+            ),
+          ]);
           if (pulled.ok) applyRemoteGame(pulled.state);
-          const cur = getGame(game.code);
-          if (!cur || cur.phase !== 'reveal') {
+          const cur = getGame(game.code) ?? game;
+          if (cur.phase !== 'reveal') {
             advancingLockRef.current = false;
             return;
           }
-                   const iAmNextZar =
+          const iAmNextZar =
             !!cur.roundWinnerId && myPlayerId === cur.roundWinnerId;
           const iAmHost = !!cur.players.find(
             (p) => p.id === myPlayerId && p.isHost
@@ -1446,7 +1457,7 @@ export default function PlayScreen() {
           phase === 'submitting' &&
           zar &&
           myPlayerId === zar.id
-               ? `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round} · ZAR`
+               ? `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round} · COMANDANTE`
         : `Partida ${(leagueMatchCountOf(game) || 0) + (game.phase === 'results' ? 0 : 1)} · Ronda ${game.round}`;
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
@@ -1461,10 +1472,15 @@ export default function PlayScreen() {
                     active={phase === 'reveal'}
                     deadlineAt={
                       phase === 'reveal'
-                        ? game.revealEndsAt ||
-                          (game.updatedAt
-                            ? game.updatedAt + REVEAL_COUNTDOWN_MS
-                            : null)
+                        ? (() => {
+                            const raw =
+                              game.revealEndsAt ||
+                              Date.now() + REVEAL_COUNTDOWN_MS;
+                            return Math.min(
+                              raw,
+                              Date.now() + REVEAL_COUNTDOWN_MS
+                            );
+                          })()
                         : null
                     }
                     canAdvance={

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-const SECONDS = 8;
+const SECONDS = 5;
 
 export function NextRoundBar({
   active,

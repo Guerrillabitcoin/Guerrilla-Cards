@@ -468,7 +468,7 @@ function phaseRank(phase) {
  * Monotonic progress across rounds. reveal(r) < discarding(r) < submitting(r+1).
  * Prevents treating a legitimate next-round push as a phase "downgrade".
  */
-const REVEAL_COUNTDOWN_MS = 8000;
+const REVEAL_COUNTDOWN_MS = 5000;
 
 function gameProgress(state) {
   if (!state || typeof state !== 'object') return 0;
