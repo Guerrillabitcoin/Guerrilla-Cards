@@ -23,7 +23,7 @@ export function pendingActionForSeat(
       ? { kind: 'none', label: '' }
       : {
           kind: 'discard',
-          label: 'Te falta el descarte — elige cartas y confirma para continuar.',
+          label: 'Recuperación: te falta el descarte — elige cartas y confirma.',
         };
   }
 
@@ -43,7 +43,7 @@ export function pendingActionForSeat(
       ? { kind: 'none', label: '' }
       : {
           kind: 'submit',
-          label: 'Te falta enviar tu respuesta — toca cartas y envía para desatascar la ronda.',
+          label: 'Recuperación: te falta enviar tu respuesta — toca cartas y envía.',
         };
   }
 
@@ -69,7 +69,7 @@ export function pendingActionForSeat(
       ? { kind: 'none', label: '' }
       : {
           kind: 'vote',
-          label: 'Te falta votar — elige una opción para seguir la partida.',
+          label: 'Recuperación: te falta votar — elige una opción.',
         };
   }
 

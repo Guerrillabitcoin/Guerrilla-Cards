@@ -277,17 +277,23 @@ export default function HomeScreen() {
     return n;
   };
 
-  const openGame = (code: string, phase: string, seat?: string) => {
+  const openGame = (
+    code: string,
+    phase: string,
+    seat?: string,
+    recover?: boolean
+  ) => {
     if (phase === 'lobby') router.push({ pathname: '/lobby', params: { code } });
     else if (phase === 'results') router.push({ pathname: '/results', params: { code } });
     else {
-      const params: { code: string; seat?: string } = { code };
+      const params: { code: string; seat?: string; recover?: string } = { code };
       if (seat) params.seat = seat;
+      if (recover) params.recover = '1';
       router.push({ pathname: '/play', params });
     }
   };
 
-  // Recovery / deep links: /?code=XXXX&seat=p_id → claim and jump into the live board
+  // Recovery / deep links: /?code=XXXX&seat=p_id → claim + recover banner on /play
   useEffect(() => {
     if (!ready || deepLinkHandled.current) return;
     const code = String(urlParams.code ?? '').trim().toUpperCase();
@@ -303,7 +309,7 @@ export default function HomeScreen() {
             saveGame(claimed.state, { sync: false });
             await setOnlineFlag(code, true);
             await setMySeat(code, claimed.playerId);
-            openGame(claimed.state.code, claimed.state.phase, claimed.playerId);
+            openGame(claimed.state.code, claimed.state.phase, claimed.playerId, true);
             return;
           }
         }
@@ -313,7 +319,7 @@ export default function HomeScreen() {
           await setOnlineFlag(code, true);
           if (seat && remote.state.players.some((p) => p.id === seat)) {
             await setMySeat(code, seat);
-            openGame(remote.state.code, remote.state.phase, seat);
+            openGame(remote.state.code, remote.state.phase, seat, true);
             return;
           }
           if (remote.state.phase === 'lobby') {

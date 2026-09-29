@@ -1,4 +1,4 @@
-export const APP_VERSION = '0.99.422.11';
+export const APP_VERSION = '0.99.422.12';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -19,6 +19,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+    {
+    version: '0.99.422.12',
+    date: '2026-09-29',
+    notes:
+      'Recovery: banner naranja + force solo con /play?seat=&recover=1 (enlaces Copiar asiento). Rematch/?seat= sin aviso. En partida: host ve enlaces de todos (sin lobby); cada humano ve solo el suyo.',
+  },
     {
     version: '0.99.422.11',
     date: '2026-09-29',

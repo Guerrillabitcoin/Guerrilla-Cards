@@ -52,7 +52,7 @@ export default function PlayScreen() {
   const styles = usePlayStyles();
   const { patches: adminPatches } = useAdmin();
 
-  const { code, seat: seatParam } = useLocalSearchParams<{ code: string; seat?: string }>();
+  const { code, seat: seatParam, recover: recoverParam } = useLocalSearchParams<{ code: string; seat?: string; recover?: string }>();
   const router = useRouter();
   const { getGame, updateGame, ready, applyRemoteGame, restartSameSetup } = useGameStore();
   const {
@@ -133,27 +133,37 @@ export default function PlayScreen() {
     };
   }, [gameCode]);
 
-  // Deep-link /play?code=&seat= → reclaim seat, force server board, clear local ghosts
+  // /play?seat= → claim quietly (rematch / normal).
+  // /play?seat=&recover=1 → force server board + orange resume banner (recovery links only).
   const seatClaimRan = useRef<string | null>(null);
   const [resumeHint, setResumeHint] = useState<string | null>(null);
   useEffect(() => {
     if (!ready || !gameCode) return;
     const want = String(seatParam ?? '').trim();
     if (!want) return;
-    const key = `${gameCode}:${want}`;
+    const recoverRaw = Array.isArray(recoverParam)
+      ? recoverParam[0]
+      : recoverParam;
+    const isRecover =
+      String(recoverRaw ?? '').trim() === '1' ||
+      String(recoverRaw ?? '').toLowerCase() === 'true';
+    const key = `${gameCode}:${want}:${isRecover ? 'r' : 'q'}`;
     if (seatClaimRan.current === key) return;
     seatClaimRan.current = key;
     let cancelled = false;
     void (async () => {
       await setOnlineFlag(gameCode, true);
       setOnlineRoom(true);
-      // Drop local UI ghosts that block sending again
-      setPicked([]);
-      setPrivacy(false);
-      setPaintPhase(null);
-      setAdvancingRound(false);
-      setSoloSkipMode(false);
-      discardAckRef.current = null;
+
+      if (isRecover) {
+        // Drop local UI ghosts that block sending again
+        setPicked([]);
+        setPrivacy(false);
+        setPaintPhase(null);
+        setAdvancingRound(false);
+        setSoloSkipMode(false);
+        discardAckRef.current = null;
+      }
 
       let board = null as null | import('@/src/engine/types').GameState;
       const claimed = await claimSeat(gameCode, want);
@@ -161,12 +171,12 @@ export default function PlayScreen() {
       if (claimed.ok) {
         await setMySeat(gameCode, claimed.playerId);
         setMyPlayerId(claimed.playerId);
-        applyRemoteGame(claimed.state, { force: true });
+        applyRemoteGame(claimed.state, isRecover ? { force: true } : undefined);
         board = claimed.state;
       } else {
         const pulled = await pullRoom(gameCode);
         if (cancelled || !pulled.ok) return;
-        applyRemoteGame(pulled.state, { force: true });
+        applyRemoteGame(pulled.state, isRecover ? { force: true } : undefined);
         board = pulled.state;
         if (pulled.state.players.some((p) => p.id === want)) {
           await setMySeat(gameCode, want);
@@ -174,6 +184,8 @@ export default function PlayScreen() {
         }
       }
       if (cancelled || !board) return;
+      // Banner only for intentional recovery links — not rematch / start with ?seat=
+      if (!isRecover) return;
       const pending = pendingActionForSeat(board, want);
       if (pending.label) setResumeHint(pending.label);
       else setResumeHint('Asiento recuperado — sincronizado con la sala.');
@@ -181,7 +193,7 @@ export default function PlayScreen() {
     return () => {
       cancelled = true;
     };
-  }, [ready, gameCode, seatParam, applyRemoteGame]);
+  }, [ready, gameCode, seatParam, recoverParam, applyRemoteGame]);
 
   // Host recovery: rematch left submitting with currentPrompt=null (624TH hang).
   // Only anfitrión re-deals once; guests wait for poll/push.
@@ -2283,6 +2295,16 @@ export default function PlayScreen() {
           code={game.code}
           players={game.players}
           compact
+          showLobbyLink={false}
+        />
+      ) : null}
+      {isOnline && !iAmHostPlayer && myPlayerId ? (
+        <HostRecoveryLinks
+          code={game.code}
+          players={game.players}
+          compact
+          showLobbyLink={false}
+          selfId={myPlayerId}
         />
       ) : null}
       </ScrollView>
