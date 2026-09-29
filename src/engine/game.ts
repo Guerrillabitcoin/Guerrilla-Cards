@@ -423,7 +423,12 @@ export function autoJudgeBot(state: GameState): GameState {
 export function removePlayer(state: GameState, playerId: string): GameState {
   if (state.phase !== 'lobby') throw new Error('Solo en el lobby.');
   const players = state.players.filter((p) => p.id !== playerId || p.isHost);
-  return { ...state, players, updatedAt: now() };
+  return {
+    ...state,
+    players,
+    botCount: players.filter((p) => p.isBot).length,
+    updatedAt: now(),
+  };
 }
 
 function answerRemaining(state: GameState): number {

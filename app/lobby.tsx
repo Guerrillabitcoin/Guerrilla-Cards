@@ -288,14 +288,6 @@ export default function LobbyScreen() {
   const canStart = humansHere >= seatMax && humansHere >= MIN_PLAYERS;
   const maxBotsNow = maxLiveBotsAllowed(seatMax, humansHere);
 
-  const pushLobby = () => {
-    void (async () => {
-      const g = getGame(game.code);
-      if (!g) return;
-      await pushRoom(g, await getMySeat(game.code));
-    })();
-  };
-
   const setCap = (n: number) => {
     if (!iAmHost) return;
     if (n < humansHere) {
@@ -305,6 +297,7 @@ export default function LobbyScreen() {
       );
       return;
     }
+    // updateGame already pushRoom for async — no extra pushLobby (avoids double-push races)
     updateGame(game.code, (g) => {
       let next = withSeatCap(g, n);
       const maxB = maxLiveBotsAllowed(n, humanCount(next));
@@ -313,13 +306,12 @@ export default function LobbyScreen() {
       }
       return next;
     });
-    pushLobby();
   };
 
   const setBots = (n: number) => {
     if (!iAmHost) return;
+    // updateGame already pushRoom for async
     updateGame(game.code, (g) => setLiveBots(g, n));
-    pushLobby();
   };
 
   const start = () => {
@@ -373,7 +365,7 @@ export default function LobbyScreen() {
         <>
           <JudgeModePicker
             mode={game.judgeMode ?? 'zar'}
-            canEdit={iAmHost && humansHere !== 2}
+            canEdit={iAmHost && seatMax !== 2}
             onChange={(mode) => {
               if (!iAmHost) return;
               updateGame(game.code, (g) => ({

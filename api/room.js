@@ -18,7 +18,7 @@ const {
   mergeLeagueMaps,
   mergePlayerScores,
 } = require('./sanitizeRoom');
-const { applyHostAuthority } = require('./hostGate');
+const { applyHostAuthority, isHostActor } = require('./hostGate');
 function uid(prefix) {
   return (
     prefix +
@@ -215,38 +215,87 @@ async function joinLobbyAtomic(key, code, nicknameDesired) {
 }
 
 
-function mergeLobbyPlayers(existingPlayers, incomingPlayers, actorId) {
-  const byId = new Map();
-  for (const p of existingPlayers || []) {
-    if (p && p.id) byId.set(p.id, { ...p });
+function upsertLobbyPlayer(byId, p, actorId) {
+  if (!p || !p.id) return;
+  const prev = byId.get(p.id);
+  if (!prev) {
+    byId.set(p.id, { ...p });
+    return;
   }
-  for (const p of incomingPlayers || []) {
-    if (!p || !p.id) continue;
-    const prev = byId.get(p.id);
-    if (!prev) {
-      byId.set(p.id, p);
-      continue;
+  const incomingNick =
+    p.nickname != null ? String(p.nickname).trim() : '';
+  let nickname = prev.nickname;
+  if (actorId && String(actorId) === String(p.id) && incomingNick) {
+    nickname = incomingNick;
+  } else if (!nickname && incomingNick) {
+    nickname = incomingNick;
+  }
+  byId.set(p.id, {
+    ...prev,
+    ...p,
+    nickname: nickname || incomingNick || prev.nickname,
+  });
+}
+
+/**
+ * Lobby roster merge for concurrent host/joiner pushes.
+ * Humans: race-safe union; host may kick (drop existing∖incoming) but keep
+ * mid-flight joins (in fresh not existing) and never drop isHost.
+ * Bots: host actor → incoming only (empty = remove all); guests → fresh/existing.
+ */
+function composeBothLobbyPlayers(existingPlayers, freshPlayers, incomingPlayers, actorId, hostActor) {
+  const split = (players) => {
+    const humans = [];
+    const bots = [];
+    for (const p of players || []) {
+      if (!p || !p.id) continue;
+      if (p.isBot) bots.push(p);
+      else humans.push(p);
     }
-    const incomingNick =
-      p.nickname != null ? String(p.nickname).trim() : '';
-    let nickname = prev.nickname;
-    if (actorId && String(actorId) === String(p.id) && incomingNick) {
-      nickname = incomingNick;
-   } else if (!nickname && incomingNick) {
-      nickname = incomingNick;
-    }
-    byId.set(p.id, {
-      ...prev,
-      ...p,
-      nickname: nickname || incomingNick || prev.nickname,
+    return { humans, bots };
+  };
+  const ex = split(existingPlayers);
+  const fr = split(freshPlayers);
+  const inc = split(incomingPlayers);
+
+  const humanById = new Map();
+  for (const list of [ex.humans, fr.humans, inc.humans]) {
+    for (const p of list) upsertLobbyPlayer(humanById, p, actorId);
+  }
+
+  let humans = Array.from(humanById.values());
+  if (hostActor) {
+    const existingIds = new Set(ex.humans.map((p) => p.id));
+    const incomingIds = new Set(inc.humans.map((p) => p.id));
+    const freshOnlyIds = new Set(
+      fr.humans.filter((p) => !existingIds.has(p.id)).map((p) => p.id)
+    );
+    humans = humans.filter((p) => {
+      if (p.isHost) return true;
+      if (freshOnlyIds.has(p.id)) return true;
+      if (existingIds.has(p.id) && !incomingIds.has(p.id)) return false;
+      return true;
     });
   }
-  const merged = Array.from(byId.values());
+
+  let bots;
+  if (hostActor) {
+    bots = inc.bots.map((p) => ({ ...p }));
+  } else {
+    const serverBots = fr.bots.length ? fr.bots : ex.bots;
+    bots = serverBots.map((p) => ({ ...p }));
+  }
+
+  let merged = [...humans, ...bots];
   if (merged.length > ASYNC_MAX_PLAYERS) {
-    return merged.slice(0, ASYNC_MAX_PLAYERS);
+    const h = merged.filter((p) => !p.isBot).slice(0, ASYNC_MAX_PLAYERS);
+    const room = ASYNC_MAX_PLAYERS - h.length;
+    const b = merged.filter((p) => p.isBot).slice(0, room);
+    merged = [...h, ...b];
   }
   return merged;
 }
+
 
 function isRedactedCardText(text) {
   if (text == null) return true;
@@ -1066,41 +1115,69 @@ async function handler(req, res) {
             state.restartReadyIds = [];
           }
         } else if (bothLobby) {
-          // Concurrent host/joiner pushes: union players by id so neither wipes seats
+          // Concurrent host/joiner pushes: union humans; host-authoritative bots/config.
           // Re-GET right before compose to catch joins that landed after our first GET.
           const freshData = await kvCommand(['GET', key]);
           const fresh = parseExisting(freshData?.result) || existing;
-                    const mergedPlayers = mergeLobbyPlayers(
-            mergeLobbyPlayers(fresh.players, existing.players),
+          const hostActor =
+            isHostActor(fresh, actorId) ||
+            isHostActor(existing, actorId) ||
+            isHostActor(incoming, actorId);
+          const mergedPlayers = composeBothLobbyPlayers(
+            existing.players,
+            fresh.players,
             incoming.players,
-            actorId
+            actorId,
+            hostActor
           );
           const withHands = mergeHandsByPlayerId(
             fresh.players,
             mergedPlayers
           );
-          const base =
-            (fresh.updatedAt ?? 0) >= (incoming.updatedAt ?? 0) ||
-            (fresh.players?.length ?? 0) > (incoming.players?.length ?? 0)
-              ? fresh
-              : incoming;
+          const botsLen = withHands.filter((p) => p && p.isBot).length;
           const nextUpdated = Math.max(
             Date.now(),
             (fresh.updatedAt ?? 0) + 1,
             (existing.updatedAt ?? 0) + 1,
             (incoming.updatedAt ?? 0) + 1
           );
+          // Host actor: prefer incoming lobby config. Guests: prefer server/fresh.
+          const judgeMode = hostActor
+            ? incoming.judgeMode || fresh.judgeMode || existing.judgeMode
+            : fresh.judgeMode || existing.judgeMode || incoming.judgeMode;
+          const maxPlayers = hostActor
+            ? incoming.maxPlayers ?? fresh.maxPlayers ?? existing.maxPlayers
+            : fresh.maxPlayers ?? existing.maxPlayers ?? incoming.maxPlayers;
+          // botCount always derived from resulting bots (host incoming bots authoritative above)
+          const packIds = hostActor
+            ? incoming.packIds?.length
+              ? incoming.packIds
+              : fresh.packIds?.length
+                ? fresh.packIds
+                : existing.packIds
+            : fresh.packIds?.length
+              ? fresh.packIds
+              : existing.packIds?.length
+                ? existing.packIds
+                : incoming.packIds;
+          const mode = hostActor
+            ? incoming.mode || fresh.mode || existing.mode
+            : fresh.mode || existing.mode || incoming.mode;
+          const targetScore = hostActor
+            ? incoming.targetScore ?? fresh.targetScore ?? existing.targetScore
+            : fresh.targetScore ?? existing.targetScore ?? incoming.targetScore;
           state = {
-            ...base,
-            ...incoming,
+            ...fresh,
+            ...(hostActor ? incoming : {}),
             code,
             phase: 'lobby',
             players: withHands,
-            packIds: base.packIds?.length ? base.packIds : incoming.packIds,
-            mode: base.mode || incoming.mode,
-            judgeMode: base.judgeMode || incoming.judgeMode,
-            targetScore: base.targetScore ?? incoming.targetScore,
-            maxPlayers: base.maxPlayers ?? incoming.maxPlayers,
+            packIds,
+            mode,
+            judgeMode,
+            targetScore,
+            maxPlayers,
+            botCount: botsLen,
             leagueScores: {
               ...(fresh.leagueScores || {}),
               ...(existing.leagueScores || {}),
