@@ -50,9 +50,17 @@ export function slimForRoom(
       return redactSubmission(s);
     });
   }
+  // Publish every seat's hand until a human has submitted this round.
+  // Multi bots auto-submit before the first push; if we keyed off submissions.length
+  // the guest/bot hands never left the host device and play hung on empty mano.
+  const humanSubCount = (state.submissions ?? []).filter((s) => {
+    if (!s || s.rival) return false;
+    const pl = state.players.find((p) => p.id === s.playerId);
+    return !!pl && !pl.isBot;
+  }).length;
   const publishAllHands =
     state.phase === 'lobby' ||
-    (state.phase === 'submitting' && (state.submissions?.length ?? 0) === 0);
+    (state.phase === 'submitting' && humanSubCount === 0);
   const players =
     !myPlayerId || publishAllHands
       ? state.players
