@@ -1553,7 +1553,7 @@ export default function PlayScreen() {
           zar &&
           myPlayerId === zar.id
                ? `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round} · COMANDANTE`
-        : `Partida ${(leagueMatchCountOf(game) || 0) + (game.phase === 'results' ? 0 : 1)} · Ronda ${game.round}`;
+        : `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round}`; // results screen returns earlier
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
     : '';
@@ -1593,8 +1593,7 @@ export default function PlayScreen() {
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
             <Text style={{ color: colors.zar }}>
               Partida{' '}
-              {(leagueMatchCountOf(game) || 0) +
-                (game.phase === 'results' ? 0 : 1)}
+              {(leagueMatchCountOf(game) || 0) + 1}
             </Text>
             <Text style={{ color: colors.textDim }}> · </Text>
             <Text style={{ color: colors.accentSoft }}>

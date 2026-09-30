@@ -499,7 +499,7 @@ export default function HomeScreen() {
   const recent = Object.values(games).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 5);
   const modeHint =
     mode === 'async'
-      ? 'Multijugador: 2–8 personas, un código. 2 jugadores siempre votan. Salas con hueco salen abajo.'
+      ? 'Multijugador: 2–8 personas, un código. 2 jugadores siempre votan.'
       : 'Solo = tú respondes cada ronda y juzgas. Los rivales se rellenan al azar del mazo.';
 
   return (

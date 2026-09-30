@@ -465,7 +465,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             own && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)
               ? prev?.nickname || p.nickname
               : p.nickname || prev?.nickname;
-          byId.set(p.id, { ...(prev || {}), ...p, nickname });
+          byId.set(p.id, { ...(prev || {}), ...p, nickname: nickname ?? '' });
         }
         remote = { ...remote, players: Array.from(byId.values()) };
       }

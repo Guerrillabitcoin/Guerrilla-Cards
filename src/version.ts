@@ -1,5 +1,5 @@
-/** 0.99.422.26: v0.99.422.26 */
-export const APP_VERSION = '0.99.422.26';
+/** 0.99.422.27: v0.99.422.27 */
+export const APP_VERSION = '0.99.422.27';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.27',
+    date: '2026-09-30',
+    notes:
+      'tsc a 0 errores, fuera código muerto (Mano/MesaPrompt, play.tsx.bak, apply_play_patch)',
+  },
   {
     version: '0.99.422.26',
     date: '2026-09-30',
