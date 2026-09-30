@@ -7,20 +7,20 @@ let PACKS = null;
 function packs() {
   if (PACKS) return PACKS;
   PACKS = {
-    _banned: require('../deck/packs/_banned.json'),
-    core: require('../deck/packs/core.json'),
-    politica: require('../deck/packs/politica.json'),
-    celebridades: require('../deck/packs/celebridades.json'),
-    plus18: require('../deck/packs/plus18.json'),
-    economia: require('../deck/packs/economia.json'),
-    animales: require('../deck/packs/animales.json'),
-    sexo: require('../deck/packs/sexo.json'),
-    drogas: require('../deck/packs/drogas.json'),
-    familia: require('../deck/packs/familia.json'),
-    religion: require('../deck/packs/religion.json'),
-    tech: require('../deck/packs/tech.json'),
-    salud: require('../deck/packs/salud.json'),
-    espana: require('../deck/packs/espana.json'),
+    _banned: require('../../deck/packs/_banned.json'),
+    core: require('../../deck/packs/core.json'),
+    politica: require('../../deck/packs/politica.json'),
+    celebridades: require('../../deck/packs/celebridades.json'),
+    plus18: require('../../deck/packs/plus18.json'),
+    economia: require('../../deck/packs/economia.json'),
+    animales: require('../../deck/packs/animales.json'),
+    sexo: require('../../deck/packs/sexo.json'),
+    drogas: require('../../deck/packs/drogas.json'),
+    familia: require('../../deck/packs/familia.json'),
+    religion: require('../../deck/packs/religion.json'),
+    tech: require('../../deck/packs/tech.json'),
+    salud: require('../../deck/packs/salud.json'),
+    espana: require('../../deck/packs/espana.json'),
   };
   return PACKS;
 }

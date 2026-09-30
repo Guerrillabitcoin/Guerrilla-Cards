@@ -141,40 +141,9 @@ export default function HomeScreen() {
     });
   }, []);
 
+  // v0.99.422.26: no «Salas con hueco» polling — /api/room?list=1 never existed (always 400).
   useEffect(() => {
-    if (mode !== 'async' || Platform.OS !== 'web') {
-      setOpenRooms([]);
-      return;
-    }
-    let cancelled = false;
-    const load = () => {
-      void listOpenRooms().then((res) => {
-        if (!cancelled && res.ok) setOpenRooms(res.rooms);
-      });
-    };
-    const loadIfVisible = () => {
-      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
-        return;
-      }
-      load();
-    };
-    loadIfVisible();
-    const timer = setInterval(loadIfVisible, 20000);
-    const onVis = () => {
-      if (typeof document !== 'undefined' && document.visibilityState !== 'hidden') {
-        load();
-      }
-    };
-    if (typeof document !== 'undefined') {
-      document.addEventListener('visibilitychange', onVis);
-    }
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-      if (typeof document !== 'undefined') {
-        document.removeEventListener('visibilitychange', onVis);
-      }
-    };
+    setOpenRooms([]);
   }, [mode]);
 
   const markAdultOk = useCallback(() => {
@@ -614,14 +583,11 @@ export default function HomeScreen() {
               ? 'Todos votan (sin votar la propia). Con 2 jugadores siempre es voto.'
               : 'Un Comandante elige la mejor jugada; el ganador será el próximo Comandante.'}
           </Muted>
-          <Label>Salas con hueco</Label>
-          {openRooms.length === 0 ? (
-            <Muted>Ninguna sala abierta ahora. Crea una o pega un código.</Muted>
-          ) : (
-            openRooms.map((r) => (
-              <Button key={r.code} title={`${r.code} · ${r.seated}/${r.maxPlayers} · ${r.players.join(', ') || 'vacía'}`} variant="ghost" onPress={() => onJoin(r.code)} />
-            ))
-          )}
+          {openRooms.length > 0
+            ? openRooms.map((r) => (
+                <Button key={r.code} title={`${r.code} · ${r.seated}/${r.maxPlayers} · ${r.players.join(', ') || 'vacía'}`} variant="ghost" onPress={() => onJoin(r.code)} />
+              ))
+            : null}
           <Label>Código de sala</Label>
           <Input value={joinCode} onChangeText={setJoinCode} placeholder="ABC12" autoCapitalize="characters" maxLength={8} />
            <Button title="Unirse" onPress={() => onJoin()} variant="outline" />

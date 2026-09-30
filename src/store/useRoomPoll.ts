@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { GameState, Phase } from '../engine/types';
-import { pollMs } from './pollMs';
+import { pollMaxMs, pollMs } from './pollMs';
 import { pullRoom } from './roomSync';
 
 function tabVisible(): boolean {
@@ -8,7 +8,7 @@ function tabVisible(): boolean {
   return document.visibilityState !== 'hidden';
 }
 
-/** Poll room KV only while the tab is visible. Rhythm from pollMs(phase). */
+/** Poll room KV only while the tab is visible. Rhythm from pollMs(phase); lobby/results back off when idle. */
 export function useRoomPoll({
   ready,
   code,
@@ -25,25 +25,44 @@ export function useRoomPoll({
   useEffect(() => {
     if (!ready || !code || !enabled) return;
     let cancelled = false;
-    let id: ReturnType<typeof setInterval> | null = null;
+    let id: ReturnType<typeof setTimeout> | null = null;
+    let running = false;
+    const base = pollMs(phase);
+    const max = pollMaxMs(phase);
+    let delay = base;
+    let lastStamp = '';
 
     const tick = async () => {
+      id = null;
       if (cancelled) return;
-      if (!tabVisible()) return;
+      if (!tabVisible()) {
+        running = false; // onVis restarts
+        return;
+      }
       const res = await pullRoom(code);
-      if (cancelled || !res.ok) return;
-      applyRemoteGame(res.state);
+      if (cancelled) return;
+      if (res.ok) {
+        const st = res.state;
+        const stamp = `${st.updatedAt ?? 0}|${st.phase}|${st.players?.length ?? 0}|${(st.restartReadyIds ?? []).length}`;
+        // Idle backoff (lobby/results only): ×1.5 while unchanged, reset on change.
+        delay = stamp === lastStamp ? Math.min(max, Math.round(delay * 1.5)) : base;
+        lastStamp = stamp;
+        applyRemoteGame(st);
+      }
+      if (!cancelled && running) id = setTimeout(tick, delay);
     };
 
     const start = () => {
-      if (cancelled || id != null) return;
+      if (cancelled || running) return;
+      running = true;
+      delay = base;
       void tick();
-      id = setInterval(tick, pollMs(phase));
     };
 
     const stop = () => {
+      running = false;
       if (id != null) {
-        clearInterval(id);
+        clearTimeout(id);
         id = null;
       }
     };

@@ -17,8 +17,8 @@ const {
   currentRoundSubs,
   mergeLeagueMaps,
   mergePlayerScores,
-} = require('./sanitizeRoom');
-const { applyHostAuthority, isHostActor } = require('./hostGate');
+} = require('./_lib/sanitizeRoom');
+const { applyHostAuthority, isHostActor } = require('./_lib/hostGate');
 function uid(prefix) {
   return (
     prefix +
@@ -139,7 +139,7 @@ function sleep(ms) {
 
 const { AsyncLocalStorage } = require('async_hooks');
 const lockCtx = new AsyncLocalStorage();
-const seatAuth = require('./seatAuth');
+const seatAuth = require('./_lib/seatAuth');
 
 async function kvPipeline(cmds) {
   const res = await fetch(kvUrl().replace(/\/+$/, '') + '/pipeline', {
@@ -664,7 +664,7 @@ function autoSubmitBotsServer(state) {
     let remain = hand.slice(pick);
     // Refill the bot hand server-side (never hold < HAND_SIZE after a server pick).
     try {
-      const { drawFresh } = require('./serverDeck');
+      const { drawFresh } = require('./_lib/serverDeck');
       const fresh = drawFresh(
         { ...state, players, submissions: [...submissions, { playerId: p.id, cards }] },
         Math.max(0, HAND_SIZE_MERGE - remain.length)
@@ -1072,10 +1072,10 @@ function applyPrivacyMerges(existing, incoming) {
       incoming && incoming.leagueScores,
       state.leagueScores
     );
-        const { awardOnResults } = require('./awardOnResults');
+        const { awardOnResults } = require('./_lib/awardOnResults');
     state = awardOnResults(state);
     // Results: union restartReadyIds (never LWW-wipe when incoming is []).
-    const { unionRestartReady } = require('./unionReady');
+    const { unionRestartReady } = require('./_lib/unionReady');
     state = unionRestartReady(existing, incoming, state);
     const mergingRematch =
     state &&
@@ -1195,7 +1195,7 @@ async function handlePostLocked(body, action, res) {
 
 
       if (action === 'vote') {
-        const { applyBallot } = require('./castBallot');
+        const { applyBallot } = require('./_lib/castBallot');
         const code = normalizeCode(body.code);
         const voterId = String(body.voterId || '').trim();
         const targetId = String(body.targetId || '').trim();
@@ -1222,14 +1222,15 @@ async function handlePostLocked(body, action, res) {
         }
         let state = out.state;
         state = resolveVotesIfCompleteServer(state);
-        const { awardOnResults } = require('./awardOnResults');
+        const { awardOnResults } = require('./_lib/awardOnResults');
         state = awardOnResults(state);
         await kvSetRoom(key, JSON.stringify(state));
+        await require('./_lib/stats').recordRoom(kvPipeline, existing, state);
         return res.status(200).json({ ok: true, code, state });
       }
 
       if (action === 'rematch') {
-        const { applyRematch } = require('./rematchApply');
+        const { applyRematch } = require('./_lib/rematchApply');
         const code = normalizeCode(body.code);
         if (!code) return res.status(400).json({ ok: false, error: 'bad_code' });
         const key = `${ROOM_PREFIX}${code}`;
@@ -1245,6 +1246,9 @@ async function handlePostLocked(body, action, res) {
           return res.status(400).json({ ok: false, error: out.error });
         }
         await kvSetRoom(key, JSON.stringify(out.state));
+        if (out.state !== existing) {
+          await require('./_lib/stats').recordRoom(kvPipeline, existing, out.state);
+        }
         return res.status(200).json({ ok: true, code, state: out.state });
       }
 
@@ -1354,7 +1358,7 @@ async function handlePostLocked(body, action, res) {
         if (
           (existing.phase === 'reveal' || existing.phase === 'discarding') &&
           gameProgress(incoming) > gameProgress(existing) &&
-          !require('./dealer').mayAdvanceFrom(existing, actorId)
+          !require('./_lib/dealer').mayAdvanceFrom(existing, actorId)
         ) {
           return res.status(200).json({ ok: true, skipped: true, dealer: 'host', state: existing, code });
         }
@@ -1597,7 +1601,7 @@ async function handlePostLocked(body, action, res) {
       state = promoteJudgingIfReady(state);
       state = resolveVotesIfCompleteServer(state);
       {
-        const { awardOnResults } = require('./awardOnResults');
+        const { awardOnResults } = require('./_lib/awardOnResults');
         state = awardOnResults(state);
       }
       state = sanitizeRoomState(state);
@@ -1613,6 +1617,7 @@ async function handlePostLocked(body, action, res) {
       }
 
       await kvSetRoom(key, payload);
+      await require('./_lib/stats').recordRoom(kvPipeline, existing, state);
       return res.status(200).json({
         ok: true,
         code,

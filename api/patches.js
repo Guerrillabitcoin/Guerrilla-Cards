@@ -1,10 +1,10 @@
 /**
  * Runtime deck overlays in KV. GET is public (clients apply on boot).
- * POST needs pin === PATCH_PIN or body.pin === 'guerrilla'.
+ * POST needs body.pin === env PATCH_PIN (no default; unset → POST disabled).
  * This is how the Taller updates the live deck without a git commit.
  */
 const KEY = 'gc:deck:patches';
-const PIN = process.env.PATCH_PIN || 'guerrilla';
+const PIN = process.env.PATCH_PIN || '';
 
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -67,6 +67,9 @@ module.exports = async function handler(req, res) {
     if (req.method === 'POST') {
       const body =
         typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
+      if (!PIN) {
+        return res.status(503).json({ ok: false, error: 'patch_pin_not_configured' });
+      }
       if (String(body.pin || '') !== PIN) {
         return res.status(403).json({ ok: false, error: 'bad_pin' });
       }

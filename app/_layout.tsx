@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { pingDeviceDaily } from '@/src/store/deviceId';
 import { StatusBar } from 'expo-status-bar';
 import { Pressable, Text, View } from 'react-native';
 import 'react-native-reanimated';
@@ -134,6 +135,9 @@ function ThemedStack() {
 export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync();
+    // Deferred so it never competes with first paint.
+    const t = setTimeout(() => pingDeviceDaily(), 3000);
+    return () => clearTimeout(t);
   }, []);
 
   return (

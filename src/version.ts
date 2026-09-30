@@ -1,5 +1,5 @@
-/** 0.99.422.25: reparto único, robos sin duplicados, bots rellenan, core auto. */
-export const APP_VERSION = '0.99.422.25';
+/** 0.99.422.26: v0.99.422.26 */
+export const APP_VERSION = '0.99.422.26';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.26',
+    date: '2026-09-30',
+    notes:
+      'Stats (rooms/partidas/jugadores/únicos/recurrentes, GET con STATS_PIN), sin polling de Salas con hueco, poll lobby/resultados con backoff, sin PIN por defecto en patches/admin',
+  },
   {
     version: '0.99.422.25',
     date: '2026-09-30',

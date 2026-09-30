@@ -2,7 +2,7 @@
  * Single dealer (online rooms): only the host deals / advances rounds
  * (reveal → next round, discard → next round). If the host is away, ONE
  * designated fallback seat may deal after a grace period. Mirrored on the
- * server in api/dealer.js.
+ * server in api/_lib/dealer.js.
  */
 import type { GameState } from './types';
 
