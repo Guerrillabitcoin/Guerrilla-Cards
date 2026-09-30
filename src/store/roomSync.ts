@@ -234,7 +234,7 @@ export function hasRicherVotes(
 }
 
 export type PushResult =
-  | { ok: true; skipped?: false }
+  | { ok: true; skipped?: false; state?: GameState }
   | { ok: true; skipped: true; state: GameState }
   | { ok: false; error: string; status?: number };
 
@@ -279,6 +279,64 @@ export async function pushRoom(
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'network_error' };
   }
+}
+
+/**
+ * True when `local` holds one of MY actions (submit / discard / vote) for the
+ * same round+phase that the server state `remote` does not show yet.
+ */
+export function missingMyAction(
+  local: GameState,
+  remote: GameState | null | undefined,
+  myPlayerId?: string | null
+): boolean {
+  if (!remote || !myPlayerId) return false;
+  if ((local.round ?? 0) !== (remote.round ?? 0)) return false;
+  if (local.phase !== remote.phase) return false;
+  if (local.phase === 'submitting') {
+    const mine = (local.submissions ?? []).some(
+      (s) => s && !s.rival && s.playerId === myPlayerId
+    );
+    if (!mine) return false;
+    return !(remote.submissions ?? []).some(
+      (s) => s && !s.rival && s.playerId === myPlayerId
+    );
+  }
+  if (local.phase === 'discarding') {
+    if (!(local.discardDonePlayerIds ?? []).includes(myPlayerId)) return false;
+    return !(remote.discardDonePlayerIds ?? []).includes(myPlayerId);
+  }
+  if (local.phase === 'judging') {
+    if (!local.votes?.[myPlayerId]) return false;
+    return !remote.votes?.[myPlayerId];
+  }
+  return false;
+}
+
+/**
+ * pushRoom + confirm: retry (backoff) until the server state shows my
+ * submit/discard/vote, or the server moved past this phase. Network / 503
+ * (room_busy) errors are retried too.
+ */
+export async function pushRoomConfirmed(
+  state: GameState,
+  myPlayerId?: string | null,
+  attempts = 4
+): Promise<PushResult> {
+  let last: PushResult = { ok: false, error: 'not_sent' };
+  for (let i = 0; i < attempts; i++) {
+    if (i > 0) {
+      await new Promise((r) => setTimeout(r, 250 * 2 ** (i - 1) + Math.random() * 150));
+    }
+    last = await pushRoom(state, myPlayerId);
+    if (!last.ok) {
+      if (last.status && last.status >= 400 && last.status < 500) return last;
+      continue;
+    }
+    const remote = last.state;
+    if (!remote || !missingMyAction(state, remote, myPlayerId)) return last;
+  }
+  return last;
 }
 
 export type JoinResult =

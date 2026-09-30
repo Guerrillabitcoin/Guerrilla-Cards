@@ -112,6 +112,53 @@ async function kvCommand(cmd) {
   return res.json();
 }
 
+const LOCK_PREFIX = 'gc:lock:';
+const LOCK_TTL_MS = 8000;
+const LOCK_WAIT_MS = 9000;
+const UNLOCK_LUA =
+  "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Per-room mutex (SET NX PX + compare-and-delete). Every POST write path runs
+ * inside it, so GET→merge→SET is atomic per room: parallel submits / votes /
+ * discards can no longer overwrite each other. TTL guards crashed functions.
+ */
+async function withRoomLock(code, fn) {
+  const key = LOCK_PREFIX + code;
+  const token = uid('lk');
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  let got = false;
+  let wait = 15;
+  while (!got) {
+    const r = await kvCommand(['SET', key, token, 'NX', 'PX', String(LOCK_TTL_MS)]);
+    if (r && r.result === 'OK') {
+      got = true;
+      break;
+    }
+    if (Date.now() > deadline) break;
+    await sleep(wait + Math.floor(Math.random() * wait));
+    wait = Math.min(120, Math.floor(wait * 1.5));
+  }
+  if (!got) {
+    const e = new Error('room_busy');
+    e.code = 'room_busy';
+    throw e;
+  }
+  try {
+    return await fn();
+  } finally {
+    try {
+      await kvCommand(['EVAL', UNLOCK_LUA, '1', key, token]);
+    } catch {
+      /* lock expires by TTL */
+    }
+  }
+}
+
 function normalizeCode(raw) {
   return String(raw || '')
     .trim()
@@ -981,6 +1028,20 @@ async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
+      return await handlePost(req, res);
+    }
+
+    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
+  } catch (err) {
+    if (err && err.code === 'room_busy') {
+      return res.status(503).json({ ok: false, error: 'room_busy' });
+    }
+    console.warn('room_kv_error', String(err));
+    return res.status(500).json({ ok: false, error: 'kv_error' });
+  }
+}
+
+async function handlePost(req, res) {
       let body = {};
       try {
         body =
@@ -992,6 +1053,14 @@ async function handler(req, res) {
       }
 
       const action = body.action || 'upsert';
+      const lockCode = normalizeCode(body.code || (body.state && body.state.code));
+      if (!lockCode || lockCode.length < 3) {
+        return res.status(400).json({ ok: false, error: 'bad_code' });
+      }
+      return withRoomLock(lockCode, () => handlePostLocked(body, action, res));
+}
+
+async function handlePostLocked(body, action, res) {
 
       // Atomic join: server assigns a unique seat + nick (CAS + verify)
       if (action === 'join') {
@@ -1309,7 +1378,10 @@ async function handler(req, res) {
           remoteNewer &&
           existingProg === incomingProg &&
           existing.phase === incoming.phase &&
-          (existing.phase === 'submitting' || existing.phase === 'judging')
+          (existing.phase === 'submitting' ||
+            existing.phase === 'judging' ||
+            existing.phase === 'discarding' ||
+            existing.phase === 'results')
         ) {
           // Same submitting/judging tick, remote newer: still merge peer
           // answers / votes (union) so concurrent pushes do not hang.
@@ -1352,14 +1424,7 @@ async function handler(req, res) {
 
       await kvSetRoom(key, payload);
       return res.status(200).json({ ok: true, code, state, merged: true });
-    }
-
-    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-  } catch (err) {
-    console.warn('room_kv_error', String(err));
-    return res.status(500).json({ ok: false, error: 'kv_error' });
-  }
-};
+}
 
 handler.mergeHandsByPlayerId = mergeHandsByPlayerId;
 handler.isNextCycleAdvance = isNextCycleAdvance;

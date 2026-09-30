@@ -1,5 +1,5 @@
-/** 0.99.422.22: fix pregunta «Dos recuerdos de mi infancia» (2 huecos). */
-export const APP_VERSION = '0.99.422.22';
+/** 0.99.422.23: lock atómico por sala + reintentos confirmados. */
+export const APP_VERSION = '0.99.422.23';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.23',
+    date: '2026-09-30',
+    notes:
+      'Servidor: escrituras atómicas por sala (lock Upstash SET NX PX + liberación Lua). Envíos/votos/descartes en paralelo ya no se pierden; descartes/listo se unen aunque lleguen tarde. Cliente reintenta envío/voto/descarte hasta que el servidor lo confirma.',
+  },
   {
     version: '0.99.422.22',
     date: '2026-09-30',

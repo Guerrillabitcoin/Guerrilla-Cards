@@ -29,6 +29,7 @@ import {
   hasRicherVotes,
   mergeHandsPreserveLocal,
   pushRoom,
+  pushRoomConfirmed,
 } from './roomSync';
 
 function hasRicherDiscards(remote: GameState, local: GameState): boolean {
@@ -664,7 +665,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (next.mode === 'async') {
         void (async () => {
           const seat = await getMySeat(code);
-          const r = await pushRoom(next, seat);
+          const r = await pushRoomConfirmed(next, seat);
           if (r.ok && r.state) {
             const key = r.state.code.trim().toUpperCase();
             let remote = hydrateDecks(
