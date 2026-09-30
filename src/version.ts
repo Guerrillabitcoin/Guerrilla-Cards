@@ -1,5 +1,5 @@
-/** 0.99.422.29: v0.99.422.29 */
-export const APP_VERSION = '0.99.422.29';
+/** 0.99.422.30: v0.99.422.30 */
+export const APP_VERSION = '0.99.422.30';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.30',
+    date: '2026-09-30',
+    notes:
+      'Toque en Jugar antes de que carguen los packs: se encola (sin aviso «Un momento»); Unirse espera a los packs',
+  },
   {
     version: '0.99.422.29',
     date: '2026-09-30',

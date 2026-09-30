@@ -19,7 +19,7 @@ import {
   Screen,
   Subtitle,
 } from '@/src/components/ui';
-import { countCombinedDeck, getBannedCount, getPlayablePackMeta } from '@/src/engine/deck';
+import { countCombinedDeck, getBannedCount, getPlayablePackMeta, loadAllPacks } from '@/src/engine/deck';
 import {
   MAX_PLAYERS,
   MULTI_BOT_MAX,
@@ -318,10 +318,21 @@ export default function HomeScreen() {
     return gen;
   };
 
+  // v0.99.422.30: packs are lazy chunks — a tap before they arrive is queued, not rejected.
+  const pendingStartRef = useRef<null | 'solo' | 'async'>(null);
+  useEffect(() => {
+    if (!ready || !pendingStartRef.current) return;
+    const kind = pendingStartRef.current;
+    pendingStartRef.current = null;
+    if (kind === 'solo') startSoloNow();
+    else startAsyncNow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
   const startSoloNow = () => {
     try {
       if (!ready) {
-        notify('Un momento', 'Cargando mazo y partidas guardadas…');
+        pendingStartRef.current = 'solo';
         return;
       }
       const nick = resolveNick();
@@ -339,7 +350,7 @@ export default function HomeScreen() {
 
   const startAsyncNow = () => {
     if (!ready) {
-      notify('Un momento', 'Cargando mazo y partidas guardadas…');
+      pendingStartRef.current = 'async';
       return;
     }
     void (async () => {
@@ -400,6 +411,7 @@ export default function HomeScreen() {
     }
     setJoinCode(code);
     void (async () => {
+      await loadAllPacks(); // instant once loaded; decks hydrate from full packs
       try {
         if (wantSeat) {
           const claimed = await claimSeat(code, wantSeat);
