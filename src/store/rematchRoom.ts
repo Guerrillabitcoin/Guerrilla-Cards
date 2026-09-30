@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { coerceGameState, type GameState } from '../engine/types';
+import { getSeatToken } from './roomSync';
 
 export async function rematchRoom(
   code: string,
@@ -16,6 +17,7 @@ export async function rematchRoom(
         action: 'rematch',
         code: room,
         actorId: actorId || undefined,
+        token: getSeatToken(room, actorId),
       }),
     });
     const data = (await res.json().catch(() => ({}))) as {

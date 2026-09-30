@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import { coerceGameState, type GameState } from '../engine/types';
+import { getSeatToken } from './roomSync';
 
 export async function renameRoom(
   code: string,
@@ -20,6 +21,7 @@ export async function renameRoom(
         code: room,
         playerId: id,
         nickname: name,
+        token: getSeatToken(room, id),
       }),
     });
     const data = (await res.json().catch(() => ({}))) as {

@@ -1,5 +1,5 @@
-/** 0.99.422.23: lock atómico por sala + reintentos confirmados. */
-export const APP_VERSION = '0.99.422.23';
+/** 0.99.422.24: tokens de asiento + validación + puntos en servidor. */
+export const APP_VERSION = '0.99.422.24';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.24',
+    date: '2026-09-30',
+    notes:
+      'Seguridad: token secreto por asiento (crear/unirse; enlaces de asiento llevan &t=; anfitrión obtiene los de todos). Token obligatorio para upsert, votar, renombrar, revancha (solo anfitrión) y reclamar; salas antiguas sin token siguen igual. Votos solo de humanos que enviaron, a una opción existente (autovoto solo 1v1). Nombres saneados ≤42. Puntos y Liga los calcula el servidor. GET sin token no muestra manos. Lock en 2 viajes (pipeline).',
+  },
   {
     version: '0.99.422.23',
     date: '2026-09-30',

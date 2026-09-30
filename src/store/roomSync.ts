@@ -13,6 +13,86 @@ const ONLINE_KEY = (code: string) =>
 
 const seatCache: Record<string, string> = {};
 
+// ---- Seat tokens (secret per seat; issued by /api/room on create/join) ----
+const TOKEN_KEY = (code: string) => `guerrilla_seattok_${code.trim().toUpperCase()}`;
+
+function readTokenMap(code: string): Record<string, string> {
+  try {
+    if (typeof localStorage === 'undefined') return {};
+    const raw = localStorage.getItem(TOKEN_KEY(code));
+    const m = raw ? JSON.parse(raw) : {};
+    return m && typeof m === 'object' ? m : {};
+  } catch {
+    return {};
+  }
+}
+
+export function getSeatToken(code: string, seatId?: string | null): string | undefined {
+  captureTokenFromUrl();
+  if (!code || !seatId) return undefined;
+  return readTokenMap(code)[seatId] || undefined;
+}
+
+export function setSeatToken(code: string, seatId: string, token: string): void {
+  if (!code || !seatId || !token) return;
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const m = readTokenMap(code);
+    if (m[seatId] === token) return;
+    m[seatId] = token;
+    localStorage.setItem(TOKEN_KEY(code), JSON.stringify(m));
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Seat links carry &t=<token>: store it for that code+seat before claiming. */
+export function captureTokenFromUrl(): void {
+  try {
+    if (typeof window === 'undefined' || !window.location?.search) return;
+    const q = new URLSearchParams(window.location.search);
+    const t = q.get('t');
+    const seat = q.get('seat');
+    const code = q.get('code');
+    if (t && seat && code) setSeatToken(code, seat, t);
+  } catch {
+    /* ignore */
+  }
+}
+
+function seatHeaders(code: string): Record<string, string> {
+  const seat = seatCache[normalizeCode(code)];
+  const tok = seat ? getSeatToken(code, seat) : undefined;
+  return seat && tok ? { 'X-Seat': seat, 'X-Seat-Token': tok } : {};
+}
+
+/** Host only: tokens of every human seat (for «Enlaces de asiento»). */
+export async function fetchSeatTokens(
+  code: string,
+  actorId: string
+): Promise<Record<string, string>> {
+  const url = roomApiUrl();
+  if (!url) return {};
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'seatTokens',
+        code: normalizeCode(code),
+        actorId,
+        token: getSeatToken(code, actorId),
+      }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { tokens?: Record<string, string> };
+    const tokens = data.tokens || {};
+    for (const [id, t] of Object.entries(tokens)) setSeatToken(code, id, t);
+    return tokens;
+  } catch {
+    return {};
+  }
+}
+
 function roomApiUrl(query?: string): string | null {
   if (Platform.OS !== 'web') return null;
   return query ? `/api/room?${query}` : '/api/room';
@@ -253,6 +333,7 @@ export async function pushRoom(
       action: 'upsert',
       code: state.code,
       actorId: myPlayerId || undefined,
+      token: getSeatToken(state.code, myPlayerId) || undefined,
       state: slimForRoom(state, myPlayerId),
     });
     const res = await fetch(url, {
@@ -265,7 +346,9 @@ export async function pushRoom(
       error?: string;
       skipped?: boolean;
       state?: GameState;
+      seatToken?: string;
     };
+    if (data.seatToken && myPlayerId) setSeatToken(state.code, myPlayerId, data.seatToken);
     if (!res.ok || !data.ok) {
       return { ok: false, error: data.error || `http_${res.status}`, status: res.status };
     }
@@ -365,10 +448,12 @@ export async function joinRoom(
       error?: string;
       state?: GameState;
       playerId?: string;
+      seatToken?: string;
     };
     if (!res.ok || !data.ok || !data.state || !data.playerId) {
       return { ok: false, error: data.error || `http_${res.status}`, status: res.status };
     }
+    if (data.seatToken) setSeatToken(normalized, data.playerId, data.seatToken);
     return { ok: true, state: coerceGameState(data.state), playerId: data.playerId };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'network_error' };
@@ -410,7 +495,12 @@ export async function claimSeat(code: string, playerId: string): Promise<JoinRes
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'claim', code: normalizeCode(code), playerId }),
+      body: JSON.stringify({
+        action: 'claim',
+        code: normalizeCode(code),
+        playerId,
+        token: getSeatToken(code, playerId),
+      }),
     });
     const data = (await res.json().catch(() => ({}))) as {
       ok?: boolean;
@@ -432,7 +522,7 @@ export async function pullRoom(code: string): Promise<PullResult> {
   const url = roomApiUrl(`code=${encodeURIComponent(normalized)}`);
   if (!url) return { ok: false, error: 'not_web' };
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: seatHeaders(normalized) });
     const data = (await res.json().catch(() => ({}))) as {
       ok?: boolean;
       error?: string;

@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Button, Label, Muted } from './ui';
 import { useTheme } from '../store/ThemeContext';
 import type { GameState } from '../engine/types';
+import { fetchSeatTokens, getMySeatSync, getSeatToken } from '../store/roomSync';
 
 export function ClaimSeat({
   game,
@@ -42,7 +43,9 @@ export function recoveryUrl(
   if (seat) {
     const recover =
       opts?.recover === false ? '' : '&recover=1';
-    return `${origin}/play?code=${codeQ}&seat=${encodeURIComponent(seat)}${recover}`;
+    const tok = getSeatToken(code, seat);
+    const t = tok ? `&t=${encodeURIComponent(tok)}` : '';
+    return `${origin}/play?code=${codeQ}&seat=${encodeURIComponent(seat)}${t}${recover}`;
   }
   return `${origin}/lobby?code=${codeQ}`;
 }
@@ -52,6 +55,11 @@ export async function copyRecoveryUrl(
   seat?: string | null,
   opts?: { recover?: boolean }
 ): Promise<string> {
+  if (seat && !getSeatToken(code, seat)) {
+    // Host: fetch every seat token once (server checks host token).
+    const me = getMySeatSync(code);
+    if (me) await fetchSeatTokens(code, me);
+  }
   const url = recoveryUrl(code, seat, opts);
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {

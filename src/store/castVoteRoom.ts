@@ -1,4 +1,5 @@
 import { coerceGameState, type GameState } from '../engine/types';
+import { getSeatToken } from './roomSync';
 
 export async function castVoteRoom(
   code: string,
@@ -32,6 +33,7 @@ async function castVoteOnce(
         code: raw,
         voterId,
         targetId,
+        token: getSeatToken(raw, voterId),
       }),
     });
     if (res.status >= 500) return { ok: false, retry: true };

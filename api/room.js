@@ -73,7 +73,7 @@ function uniqueNick(desired, players) {
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Seat, X-Seat-Token');
 }
 
 function kvUrl() {
@@ -91,6 +91,21 @@ function kvConfigured() {
 const ROOM_TTL_SEC = 7 * 24 * 60 * 60; // 7 days
 
 async function kvSetRoom(key, payload) {
+  const ctx = lockCtx.getStore();
+  if (ctx && ctx.roomKey === key && !ctx.released) {
+    // Write + (tokens) + unlock in one round trip.
+    const cmds = [['SET', key, payload, 'EX', String(ROOM_TTL_SEC)]];
+    if (ctx.tokens && ctx.tokensDirty) {
+      cmds.push(['SET', ctx.tokKey, JSON.stringify(ctx.tokens), 'EX', String(ROOM_TTL_SEC)]);
+    }
+    cmds.push(['EVAL', UNLOCK_LUA, '1', ctx.lockKey, ctx.token]);
+    const out = await kvPipeline(cmds);
+    if (out[0] && out[0].error) throw new Error('kv_set_error');
+    ctx.released = true;
+    ctx.tokensDirty = false;
+    ctx.roomRaw = payload;
+    return out[0];
+  }
   return kvCommand(['SET', key, payload, 'EX', String(ROOM_TTL_SEC)]);
 }
 
@@ -122,21 +137,68 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+const { AsyncLocalStorage } = require('async_hooks');
+const lockCtx = new AsyncLocalStorage();
+const seatAuth = require('./seatAuth');
+
+async function kvPipeline(cmds) {
+  const res = await fetch(kvUrl().replace(/\/+$/, '') + '/pipeline', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${kvToken()}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(cmds),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`kv_http_${res.status}:${text.slice(0, 120)}`);
+  }
+  const out = await res.json();
+  return Array.isArray(out) ? out : [];
+}
+
+/** Room GET; inside the lock returns the snapshot read with the lock (1 RTT saved). */
+async function kvGetRoomData(key) {
+  const ctx = lockCtx.getStore();
+  if (ctx && ctx.roomKey === key) return { result: ctx.roomRaw };
+  return kvGetRoomData(key);
+}
+
+function lockTokens() {
+  const ctx = lockCtx.getStore();
+  return ctx ? ctx.tokens : null;
+}
+
+function setLockTokens(map) {
+  const ctx = lockCtx.getStore();
+  if (!ctx) return;
+  ctx.tokens = map;
+  ctx.tokensDirty = true;
+}
+
 /**
- * Per-room mutex (SET NX PX + compare-and-delete). Every POST write path runs
- * inside it, so GET→merge→SET is atomic per room: parallel submits / votes /
- * discards can no longer overwrite each other. TTL guards crashed functions.
+ * Per-room mutex (SET NX PX + Lua compare-and-delete). Every POST write path
+ * runs inside it, so GET→merge→SET is atomic per room: parallel submits /
+ * votes / discards can no longer overwrite each other. TTL guards crashed
+ * functions. Acquire+read and write+release are pipelined (2 RTT per write).
  */
 async function withRoomLock(code, fn) {
-  const key = LOCK_PREFIX + code;
+  const lockKey = LOCK_PREFIX + code;
+  const roomKey = ROOM_PREFIX + code;
+  const tokKey = seatAuth.tokensKey(code);
   const token = uid('lk');
   const deadline = Date.now() + LOCK_WAIT_MS;
-  let got = false;
+  let got = null;
   let wait = 15;
   while (!got) {
-    const r = await kvCommand(['SET', key, token, 'NX', 'PX', String(LOCK_TTL_MS)]);
-    if (r && r.result === 'OK') {
-      got = true;
+    const r = await kvPipeline([
+      ['SET', lockKey, token, 'NX', 'PX', String(LOCK_TTL_MS)],
+      ['GET', roomKey],
+      ['GET', tokKey],
+    ]);
+    if (r[0] && r[0].result === 'OK') {
+      got = r;
       break;
     }
     if (Date.now() > deadline) break;
@@ -148,13 +210,30 @@ async function withRoomLock(code, fn) {
     e.code = 'room_busy';
     throw e;
   }
+  const ctx = {
+    lockKey,
+    token,
+    roomKey,
+    tokKey,
+    roomRaw: got[1] ? got[1].result : null,
+    tokens: seatAuth.parseTokens(got[2] ? got[2].result : null),
+    tokensDirty: false,
+    released: false,
+  };
   try {
-    return await fn();
+    return await lockCtx.run(ctx, fn);
   } finally {
-    try {
-      await kvCommand(['EVAL', UNLOCK_LUA, '1', key, token]);
-    } catch {
-      /* lock expires by TTL */
+    if (!ctx.released) {
+      const cmds = [];
+      if (ctx.tokensDirty && ctx.tokens) {
+        cmds.push(['SET', tokKey, JSON.stringify(ctx.tokens), 'EX', String(ROOM_TTL_SEC)]);
+      }
+      cmds.push(['EVAL', UNLOCK_LUA, '1', lockKey, token]);
+      try {
+        await kvPipeline(cmds);
+      } catch {
+        /* lock expires by TTL */
+      }
     }
   }
 }
@@ -195,7 +274,7 @@ function lobbyStamp(state) {
 async function joinLobbyAtomic(key, code, nicknameDesired) {
   const MAX_ATTEMPTS = 5;
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const existingData = await kvCommand(['GET', key]);
+    const existingData = await kvGetRoomData(key);
     const existing = parseExisting(existingData?.result);
     if (!existing) {
       return { status: 404, body: { ok: false, error: 'not_found' } };
@@ -243,14 +322,14 @@ async function joinLobbyAtomic(key, code, nicknameDesired) {
       return { status: 413, body: { ok: false, error: 'state_too_large' } };
     }
     // Re-check immediately before write (closes most host-upsert wipe windows)
-    const againData = await kvCommand(['GET', key]);
+    const againData = await kvGetRoomData(key);
     const again = parseExisting(againData?.result);
     if (!again || lobbyStamp(again) !== before) {
       continue; // raced — retry with fresh roster
     }
     await kvSetRoom(key, payload);
     // Verify our seat survived a trailing concurrent SET
-    const verifyData = await kvCommand(['GET', key]);
+    const verifyData = await kvGetRoomData(key);
     const verify = parseExisting(verifyData?.result);
     const stillThere =
       verify &&
@@ -1012,8 +1091,18 @@ async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'bad_code' });
       }
       const key = `${ROOM_PREFIX}${code}`;
-      const data = await kvCommand(['GET', key]);
-      const raw = data?.result;
+      const mget = await kvCommand(['MGET', key, seatAuth.tokensKey(code)]);
+      const pair = Array.isArray(mget?.result) ? mget.result : [];
+      const raw = pair[0];
+      const getTokens = seatAuth.parseTokens(pair[1]);
+      const hdr = (req.headers || {});
+      const viewerOk =
+        !getTokens ||
+        seatAuth.seatAuthOk(
+          getTokens,
+          String(hdr['x-seat'] || '').trim(),
+          String(hdr['x-seat-token'] || '').trim()
+        );
       if (raw == null || raw === '') {
         return res.status(404).json({ ok: false, error: 'not_found' });
       }
@@ -1024,6 +1113,7 @@ async function handler(req, res) {
         return res.status(500).json({ ok: false, error: 'corrupt_state' });
       }
         state = sanitizeRoomState(state);
+      if (!viewerOk) state = seatAuth.stripHands(state);
       return res.status(200).json({ ok: true, state });
     }
 
@@ -1061,6 +1151,9 @@ async function handlePost(req, res) {
 }
 
 async function handlePostLocked(body, action, res) {
+      const reqToken = String(body.token || '').trim();
+      const denied = () =>
+        res.status(403).json({ ok: false, error: 'seat_token' });
 
       // Atomic join: server assigns a unique seat + nick (CAS + verify)
       if (action === 'join') {
@@ -1069,7 +1162,29 @@ async function handlePostLocked(body, action, res) {
           return res.status(400).json({ ok: false, error: 'bad_code' });
         }
         const key = `${ROOM_PREFIX}${code}`;
-        const joined = await joinLobbyAtomic(key, code, body.nickname);
+        const joined = await joinLobbyAtomic(
+          key,
+          code,
+          seatAuth.sanitizeNick(body.nickname)
+        );
+        if (joined.status === 200 && joined.body && joined.body.playerId) {
+          const prevTokens = lockTokens();
+          if (prevTokens) {
+            // Token room: issue a secret for the new seat (legacy rooms stay tokenless).
+            const tokens = { ...prevTokens };
+            const seatToken = seatAuth.newToken();
+            tokens[joined.body.playerId] = seatToken;
+            await kvPipeline([
+              ['SET', seatAuth.tokensKey(code), JSON.stringify(tokens), 'EX', String(ROOM_TTL_SEC)],
+            ]);
+            const ctx = lockCtx.getStore();
+            if (ctx) {
+              ctx.tokens = tokens;
+              ctx.tokensDirty = false;
+            }
+            joined.body.seatToken = seatToken;
+          }
+        }
         return res.status(joined.status).json(joined.body);
       }
 
@@ -1086,10 +1201,15 @@ async function handlePostLocked(body, action, res) {
           return res.status(400).json({ ok: false, error: 'bad_ballot' });
         }
         const key = `${ROOM_PREFIX}${code}`;
-        const existingData = await kvCommand(['GET', key]);
+        const existingData = await kvGetRoomData(key);
         const existing = parseExisting(existingData?.result);
         if (!existing) {
           return res.status(404).json({ ok: false, error: 'missing_room' });
+        }
+        if (!seatAuth.seatAuthOk(lockTokens(), voterId, reqToken)) return denied();
+        const bErr = seatAuth.ballotError(existing, voterId, targetId);
+        if (bErr && bErr !== 'not_judging') {
+          return res.status(400).json({ ok: false, error: bErr });
         }
         const out = applyBallot(existing, voterId, targetId);
         if (out.reject) {
@@ -1108,8 +1228,13 @@ async function handlePostLocked(body, action, res) {
         const code = normalizeCode(body.code);
         if (!code) return res.status(400).json({ ok: false, error: 'bad_code' });
         const key = `${ROOM_PREFIX}${code}`;
-        const existingData = await kvCommand(['GET', key]);
+        const existingData = await kvGetRoomData(key);
         const existing = parseExisting(existingData?.result);
+        const rmActor = String(body.actorId || '').trim();
+        if (existing && !isHostActor(existing, rmActor)) {
+          return res.status(403).json({ ok: false, error: 'host_only' });
+        }
+        if (!seatAuth.seatAuthOk(lockTokens(), rmActor, reqToken)) return denied();
         const out = applyRematch(existing);
         if (out.reject) {
           return res.status(400).json({ ok: false, error: out.error });
@@ -1121,18 +1246,23 @@ async function handlePostLocked(body, action, res) {
 
       if (action === 'rename') {       const code = normalizeCode(body.code);
         const playerId = String(body.playerId || '').trim();
-        const nickname = String(body.nickname || '').trim();
+        const nickname = seatAuth.sanitizeNick(body.nickname);
         if (!code || !playerId || !nickname) {
           return res.status(400).json({ ok: false, error: 'bad_rename' });
         }
         const key = `${ROOM_PREFIX}${code}`;
-        const existingData = await kvCommand(['GET', key]);
+        const existingData = await kvGetRoomData(key);
         const existing = parseExisting(existingData?.result);
         if (!existing) {
           return res.status(404).json({ ok: false, error: 'missing_room' });
         }
+        if (!seatAuth.seatAuthOk(lockTokens(), playerId, reqToken)) return denied();
+        if (!(existing.players || []).some((p) => p && p.id === playerId && !p.isBot)) {
+          return res.status(404).json({ ok: false, error: 'seat_missing' });
+        }
+        const others = (existing.players || []).filter((x) => x && x.id !== playerId);
         const players = (existing.players || []).map((p) =>
-          p && p.id === playerId ? { ...p, nickname } : p
+          p && p.id === playerId ? { ...p, nickname: uniqueNick(nickname, others) } : p
         );
         const state = { ...existing, players, code, updatedAt: Date.now() };
         await kvSetRoom(key, JSON.stringify(state));
@@ -1149,7 +1279,7 @@ async function handlePostLocked(body, action, res) {
           return res.status(400).json({ ok: false, error: 'missing_seat' });
         }
         const key = `${ROOM_PREFIX}${code}`;
-        const existingData = await kvCommand(['GET', key]);
+        const existingData = await kvGetRoomData(key);
         const existing = parseExisting(existingData?.result);
         if (!existing) {
           return res.status(404).json({ ok: false, error: 'not_found' });
@@ -1159,6 +1289,7 @@ async function handlePostLocked(body, action, res) {
         if (!seat) {
           return res.status(404).json({ ok: false, error: 'seat_missing' });
         }
+        if (!seatAuth.seatAuthOk(lockTokens(), seat.id, reqToken)) return denied();
         // Seat recovery: fill pending bots + promote if ready so reclaim unsticks.
         let claimedState = sanitizeRoomState(
           promoteJudgingIfReady({ ...existing, code })
@@ -1172,6 +1303,25 @@ async function handlePostLocked(body, action, res) {
           playerId: seat.id,
           state: claimedState,
         });
+      }
+
+      // Host-only: seat tokens for «Enlaces de asiento» (recovery links).
+      if (action === 'seatTokens') {
+        const code = normalizeCode(body.code);
+        const actor = String(body.actorId || '').trim();
+        const key = `${ROOM_PREFIX}${code}`;
+        const existing = parseExisting((await kvGetRoomData(key))?.result);
+        if (!existing) return res.status(404).json({ ok: false, error: 'not_found' });
+        const tokens = lockTokens();
+        if (!tokens) return res.status(200).json({ ok: true, legacy: true, tokens: {} });
+        if (!isHostActor(existing, actor) || !seatAuth.seatAuthOk(tokens, actor, reqToken)) {
+          return denied();
+        }
+        const out = {};
+        for (const p of existing.players || []) {
+          if (p && !p.isBot && tokens[p.id]) out[p.id] = tokens[p.id];
+        }
+        return res.status(200).json({ ok: true, tokens: out });
       }
 
       // Default action: upsert (host create / pushRoom)
@@ -1188,8 +1338,31 @@ async function handlePostLocked(body, action, res) {
       const key = `${ROOM_PREFIX}${code}`;
 
       // Load existing for merge / stale skip
-      const existingData = await kvCommand(['GET', key]);
+      const existingData = await kvGetRoomData(key);
       const existing = parseExisting(existingData?.result);
+      let issuedToken = null;
+      if (existing && typeof existing === 'object') {
+        if (!seatAuth.seatAuthOk(lockTokens(), actorId, reqToken)) return denied();
+        incoming = seatAuth.restrictIncoming(existing, incoming, actorId);
+        incoming = seatAuth.applyServerScoring(existing, incoming, actorId);
+      } else {
+        // New room: the pushing host gets the first seat token; server-owned scores.
+        const hostSeat = (incoming.players || []).find((p) => p && p.isHost);
+        if (!hostSeat || !actorId || hostSeat.id !== actorId) {
+          return res.status(400).json({ ok: false, error: 'bad_create' });
+        }
+        incoming = {
+          ...incoming,
+          players: (incoming.players || []).map((p) =>
+            p ? { ...p, score: 0, nickname: seatAuth.sanitizeNick(p.nickname) || 'Jugador' } : p
+          ),
+          leagueScores: {},
+          leagueAwarded: false,
+          votes: {},
+        };
+        issuedToken = seatAuth.newToken();
+        setLockTokens({ [actorId]: issuedToken });
+      }
       if (existing && typeof existing === 'object') {
         const auth = applyHostAuthority(existing, incoming, actorId);
         if (auth.reject) {
@@ -1272,7 +1445,7 @@ async function handlePostLocked(body, action, res) {
         } else if (bothLobby) {
           // Concurrent host/joiner pushes: union humans; host-authoritative bots/config.
           // Re-GET right before compose to catch joins that landed after our first GET.
-          const freshData = await kvCommand(['GET', key]);
+          const freshData = await kvGetRoomData(key);
           const fresh = parseExisting(freshData?.result) || existing;
           const hostActor =
             isHostActor(fresh, actorId) ||
@@ -1410,6 +1583,10 @@ async function handlePostLocked(body, action, res) {
 
       state = promoteJudgingIfReady(state);
       state = resolveVotesIfCompleteServer(state);
+      {
+        const { awardOnResults } = require('./awardOnResults');
+        state = awardOnResults(state);
+      }
       state = sanitizeRoomState(state);
       state.leagueScores = mergeLeagueMaps(
         existing && existing.leagueScores,
@@ -1423,7 +1600,13 @@ async function handlePostLocked(body, action, res) {
       }
 
       await kvSetRoom(key, payload);
-      return res.status(200).json({ ok: true, code, state, merged: true });
+      return res.status(200).json({
+        ok: true,
+        code,
+        state,
+        merged: true,
+        ...(issuedToken ? { seatToken: issuedToken } : {}),
+      });
 }
 
 handler.mergeHandsByPlayerId = mergeHandsByPlayerId;

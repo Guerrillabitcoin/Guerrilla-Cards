@@ -442,7 +442,12 @@ export default function HomeScreen() {
             openGame(claimed.state.code, claimed.state.phase, claimed.playerId, true);
             return;
           }
-          notify('Asiento', claimed.error || 'No se pudo reclamar');
+          notify(
+            'Asiento',
+            claimed.error === 'seat_token'
+              ? 'Ese asiento está protegido. Pide al anfitrión tu enlace de asiento.'
+              : claimed.error || 'No se pudo reclamar'
+          );
         }
         const desiredNick = resolveNick();
         const joined = await joinRoom(code, desiredNick);
