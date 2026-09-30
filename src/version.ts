@@ -1,5 +1,5 @@
-/** 0.99.422.27: v0.99.422.27 */
-export const APP_VERSION = '0.99.422.27';
+/** 0.99.422.28: v0.99.422.28 */
+export const APP_VERSION = '0.99.422.28';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.28',
+    date: '2026-09-30',
+    notes:
+      'Packs de cartas en chunks lazy (entry 3,05→2,45 MB; gzip 726→584 KB); el juego espera a los packs antes de hidratar',
+  },
   {
     version: '0.99.422.27',
     date: '2026-09-30',

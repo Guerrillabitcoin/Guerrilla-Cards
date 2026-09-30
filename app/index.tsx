@@ -181,7 +181,8 @@ export default function HomeScreen() {
   const selectedDeckCounts = useMemo(() => {
     const c = countCombinedDeck(selectedPlayable.length ? selectedPlayable : ['core']);
     return { prompts: c.prompts, answers: c.answers, packs: selectedPlayable.length || 1 };
-  }, [selectedKey, selectedPlayable]);
+    // `ready` flips after pack chunks load → recount
+  }, [selectedKey, selectedPlayable, ready]);
   const bannedCount = useMemo(() => getBannedCount(), []);
   const allTemasOn = temaIds.length > 0 && temaIds.every((id) => selectedSet.has(id));
   const allAdultOn = adultIds.length > 0 && adultIds.every((id) => selectedSet.has(id));

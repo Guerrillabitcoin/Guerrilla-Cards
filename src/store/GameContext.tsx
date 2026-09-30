@@ -15,6 +15,7 @@ import { dropStaleRemote, rematchLive } from './remoteGate';
 import { roomPaintKey } from './roomSnap';import {
   buildPreShuffledAnswerDeck,
   buildVariedPromptDeck,
+  loadAllPacks,
   loadCombinedDeck,
 } from '../engine/deck';
 import {
@@ -222,7 +223,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     Promise.all([
-      loadAll(),
+      // Packs first: loadAll() hydrates decks from them.
+      loadAllPacks().then(() => loadAll()),
       loadRecentIds(RECENT_PROMPTS_KEY),
       loadRecentIds(RECENT_ANSWERS_KEY),
     ]).then(([g, rp, ra]) => {
