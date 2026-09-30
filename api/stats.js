@@ -2,6 +2,10 @@
  * POST { deviceId }  → counts an anonymous device (unique/returning per day). Public.
  * GET  ?days=14      → daily stats JSON. Needs header x-stats-pin (or ?pin=) equal to
  *                      env STATS_PIN. No default PIN: without STATS_PIN it answers 503.
+ * GET  ?cards=answers|prompts|pairs|discarded|never|neverwon
+ *        &sort=fun|winrate|won|played|votes|pickrate|discarded (answers) · shown|annulled|annul_rate|won (prompts)
+ *        &min=N &limit=N (≤5000) &m=5 (Bayes prior) &format=csv &ns=test (ZZT rooms)
+ *      → per-card stats from Multi rooms (see api/_lib/cardStats.js). Same PIN.
  */
 const crypto = require('crypto');
 const { recordDevice, readDays } = require('./_lib/stats');
@@ -46,7 +50,26 @@ module.exports = async function handler(req, res) {
       const ok = pinOk((req.headers && req.headers['x-stats-pin']) || (req.query && req.query.pin));
       if (ok === null) return res.status(503).json({ ok: false, error: 'stats_pin_not_configured' });
       if (!ok) return res.status(403).json({ ok: false, error: 'bad_pin' });
-      const days = Math.max(1, Math.min(90, Number(req.query && req.query.days) || 14));
+      const q = req.query || {};
+      if (q.cards) {
+        const cs = require('./_lib/cardStats');
+        const ns = q.ns === 'test' ? 'gc:cst' : 'gc:cs';
+        const all = await cs.readAll(kvPipeline, ns);
+        let index = null;
+        try {
+          index = require('./_lib/serverDeck').cardIndex();
+        } catch {
+          index = null; // ids only
+        }
+        const report = cs.buildReport(all, q, index);
+        if (q.format === 'csv') {
+          res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+          res.setHeader('Content-Disposition', `attachment; filename="guerrilla-${report.view}.csv"`);
+          return res.status(200).end(cs.toCsv(report.rows));
+        }
+        return res.status(200).json({ ok: true, ns, ...report });
+      }
+      const days = Math.max(1, Math.min(90, Number(q.days) || 14));
       const data = await readDays(kvPipeline, days);
       return res.status(200).json({ ok: true, ...data });
     }

@@ -1,5 +1,5 @@
-/** 0.99.422.30: v0.99.422.30 */
-export const APP_VERSION = '0.99.422.30';
+/** 0.99.422.31: v0.99.422.31 */
+export const APP_VERSION = '0.99.422.31';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.31',
+    date: '2026-09-30',
+    notes:
+      'Estadísticas por carta en Multi (servidor, dentro del lock, idempotente): jugadas/ganadas humano vs bot, votos, no usadas, descartes, preguntas y parejas; lectura/CSV en /api/stats?cards= con STATS_PIN',
+  },
   {
     version: '0.99.422.30',
     date: '2026-09-30',

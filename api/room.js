@@ -98,6 +98,11 @@ async function kvSetRoom(key, payload) {
     if (ctx.tokens && ctx.tokensDirty) {
       cmds.push(['SET', ctx.tokKey, JSON.stringify(ctx.tokens), 'EX', String(ROOM_TTL_SEC)]);
     }
+    // Card stats (v0.99.422.31): one idempotent EVAL, still inside the lock.
+    if (ctx.cardCmd) {
+      cmds.push(ctx.cardCmd);
+      ctx.cardCmd = null;
+    }
     cmds.push(['EVAL', UNLOCK_LUA, '1', ctx.lockKey, ctx.token]);
     const out = await kvPipeline(cmds);
     if (out[0] && out[0].error) throw new Error('kv_set_error');
@@ -107,6 +112,17 @@ async function kvSetRoom(key, payload) {
     return out[0];
   }
   return kvCommand(['SET', key, payload, 'EX', String(ROOM_TTL_SEC)]);
+}
+
+/** Queue per-card stats for the next kvSetRoom of this locked request. Never throws. */
+function queueCardStats(existing, next) {
+  try {
+    const ctx = lockCtx.getStore();
+    if (!ctx) return;
+    ctx.cardCmd = require('./_lib/cardStats').cardStatsCmd(existing, next);
+  } catch {
+    /* stats must never break play */
+  }
 }
 
 async function kvCommand(cmd) {
@@ -1224,6 +1240,7 @@ async function handlePostLocked(body, action, res) {
         state = resolveVotesIfCompleteServer(state);
         const { awardOnResults } = require('./_lib/awardOnResults');
         state = awardOnResults(state);
+        queueCardStats(existing, state);
         await kvSetRoom(key, JSON.stringify(state));
         await require('./_lib/stats').recordRoom(kvPipeline, existing, state);
         return res.status(200).json({ ok: true, code, state });
@@ -1616,6 +1633,7 @@ async function handlePostLocked(body, action, res) {
         return res.status(413).json({ ok: false, error: 'state_too_large' });
       }
 
+      queueCardStats(existing, state);
       await kvSetRoom(key, payload);
       await require('./_lib/stats').recordRoom(kvPipeline, existing, state);
       return res.status(200).json({

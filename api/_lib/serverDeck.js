@@ -69,3 +69,21 @@ function drawFresh(state, n) {
 }
 
 module.exports = { answerPool, drawFresh };
+
+let CARD_INDEX = null;
+/** id → { text, type, pack } for every card in every pack (first pack wins). */
+function cardIndex() {
+  if (CARD_INDEX) return CARD_INDEX;
+  const P = packs();
+  const m = new Map();
+  for (const [pack, file] of Object.entries(P)) {
+    if (pack === '_banned') continue;
+    for (const c of (file && file.cards) || []) {
+      if (!m.has(c.id)) m.set(c.id, { text: c.text, type: c.type, pack });
+    }
+  }
+  CARD_INDEX = m;
+  return m;
+}
+
+module.exports.cardIndex = cardIndex;
