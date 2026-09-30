@@ -1201,7 +1201,7 @@
     {
       "id": "politica-a-0029",
       "type": "answer",
-      "text": "tener un novio Israelí",
+      "text": "tener un novio israelí",
       "pick": 1
     },
     {
@@ -1581,12 +1581,144 @@
       "type": "prompt",
       "text": "El apodo de mi mujer entre mi grupo de amigos: ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3666",
+      "type": "answer",
+      "text": "la Familia Addams",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3703",
+      "type": "answer",
+      "text": "ser mema (médico y madre)",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3767",
+      "type": "answer",
+      "text": "servicios sociales llevándose a mi hijo mientras estoy en directo en TikTok",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3779",
+      "type": "answer",
+      "text": "yo que sé hermano....",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3793",
+      "type": "answer",
+      "text": "mi madre como cámara de mis videos de TikTok",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3822",
+      "type": "answer",
+      "text": "faltar el respeto a tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3900",
+      "type": "answer",
+      "text": "mis amigos y mi familia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4110",
+      "type": "answer",
+      "text": "otra película de vampiros con sida del hijo maricón con sida de Aída",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4139",
+      "type": "answer",
+      "text": "yo te creo, hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4140",
+      "type": "answer",
+      "text": "un abuelete con varias cardiopatías",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4265",
+      "type": "answer",
+      "text": "tirar a su madre por el balcón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4266",
+      "type": "answer",
+      "text": "pegar un puñetazo a mi suegra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4267",
+      "type": "answer",
+      "text": "matasuegras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4429",
+      "type": "answer",
+      "text": "mi medio hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4430",
+      "type": "answer",
+      "text": "mi prima hermana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4449",
+      "type": "answer",
+      "text": "andá a la concha de tu madre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4553",
+      "type": "answer",
+      "text": "hacerme padre",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0353",
+      "type": "prompt",
+      "text": "Pedí un Bizum a mi madre porque necesitaba __________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0386",
+      "type": "prompt",
+      "text": "La primera cita de mis padres consistió en ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0405",
+      "type": "prompt",
+      "text": "El cuento que le leo a mi hija todas las noches se titula «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0414",
+      "type": "prompt",
+      "text": "Padres y ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0441",
+      "type": "prompt",
+      "text": "El bebé se llamará ______ en honor a ________.",
+      "pick": 2
     }
   ],
   "counts": {
-    "total": 263,
-    "prompts": 58,
-    "answers": 205
+    "total": 285,
+    "prompts": 63,
+    "answers": 222
   },
   "playable": true
 }

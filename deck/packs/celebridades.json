@@ -85,7 +85,7 @@
     {
       "id": "celebridades-a-0013",
       "type": "answer",
-      "text": "un trio con Messi y Cristiano Ronaldo",
+      "text": "un trío con Messi y Cristiano Ronaldo",
       "pick": 1
     },
     {
@@ -133,7 +133,7 @@
     {
       "id": "celebridades-a-0023",
       "type": "answer",
-      "text": "ibai hasta el culo de Ozempic",
+      "text": "Ibai hasta el culo de Ozempic",
       "pick": 1
     },
     {
@@ -151,7 +151,7 @@
     {
       "id": "celebridades-a-0027",
       "type": "answer",
-      "text": "onlyfans",
+      "text": "OnlyFans",
       "pick": 1
     },
     {
@@ -241,13 +241,13 @@
     {
       "id": "celebridades-a-0052",
       "type": "answer",
-      "text": "mbappé lesionado",
+      "text": "Mbappé lesionado",
       "pick": 1
     },
     {
       "id": "celebridades-a-0053",
       "type": "answer",
-      "text": "eurovisión",
+      "text": "Eurovisión",
       "pick": 1
     },
     {
@@ -331,7 +331,7 @@
     {
       "id": "celebridades-a-0074",
       "type": "answer",
-      "text": "onlyfans inverso: enviar fotopollas a todos tus conocidos y exigir un pago para dejar de recibirlas",
+      "text": "OnlyFans inverso: enviar fotopollas a todos tus conocidos y exigir un pago para dejar de recibirlas",
       "pick": 1
     },
     {
@@ -531,12 +531,168 @@
       "type": "prompt",
       "text": "El nuevo plato estrella de Dabiz Muñoz se llama ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3661",
+      "type": "answer",
+      "text": "Arturo Pérez-Reverte",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3720",
+      "type": "answer",
+      "text": "la Pantoja de la Darkweb",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3799",
+      "type": "answer",
+      "text": "Paz Padilla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3835",
+      "type": "answer",
+      "text": "Daft Punk pinchando en mi casa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3886",
+      "type": "answer",
+      "text": "Javier Bardem y Penélope Cruz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3893",
+      "type": "answer",
+      "text": "Iker Jiménez y Harry Potter",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3911",
+      "type": "answer",
+      "text": "Mia Kalefa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3953",
+      "type": "answer",
+      "text": "Elon Musk y Trump",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4058",
+      "type": "answer",
+      "text": "Leonardo DiCaprio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4065",
+      "type": "answer",
+      "text": "Daddy Yankee",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4092",
+      "type": "answer",
+      "text": "Gru, tu villano favorito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4123",
+      "type": "answer",
+      "text": "el final de Los Soprano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4152",
+      "type": "answer",
+      "text": "Constantino Romero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4176",
+      "type": "answer",
+      "text": "Neymar Junior",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4177",
+      "type": "answer",
+      "text": "Bolsonaro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4210",
+      "type": "answer",
+      "text": "Toni Soprano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4268",
+      "type": "answer",
+      "text": "quitapenas milagroso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4421",
+      "type": "answer",
+      "text": "DJ Tiësto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4422",
+      "type": "answer",
+      "text": "con música de Pink Floyd de fondo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4440",
+      "type": "answer",
+      "text": "un poema de Pablo Neruda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4479",
+      "type": "answer",
+      "text": "Luka Modric o Mercedes Milá",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4502",
+      "type": "answer",
+      "text": "la peli porno de Carmen de Mairena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4517",
+      "type": "answer",
+      "text": "Gengis Khan",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4575",
+      "type": "answer",
+      "text": "Copito de Nieve",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4578",
+      "type": "answer",
+      "text": "Hulk",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4580",
+      "type": "answer",
+      "text": "Irene Montero en el Consejo de Administración del Mercadona",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 88,
+    "total": 114,
     "prompts": 12,
-    "answers": 76
+    "answers": 102
   },
   "playable": true
 }

@@ -175,6 +175,8 @@
     }
   ],
   "counts": {
-    "total": 21
+    "total": 21,
+    "prompts": 2,
+    "answers": 19
   }
 }

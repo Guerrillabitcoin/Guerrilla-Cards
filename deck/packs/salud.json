@@ -85,7 +85,7 @@
     {
       "id": "core-a-1054",
       "type": "answer",
-      "text": "alzheimer prematuro camuflado en la vacuna del COVID",
+      "text": "Alzheimer prematuro camuflado en la vacuna del COVID",
       "pick": 1
     },
     {
@@ -543,12 +543,132 @@
       "type": "prompt",
       "text": "He sustituido el café de la mañana por ______ y ahora soy otra persona.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3671",
+      "type": "answer",
+      "text": "equivocarme con la medicación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3682",
+      "type": "answer",
+      "text": "la vacuna contra la adicción a la cocaína",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3691",
+      "type": "answer",
+      "text": "muchísima impotencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3697",
+      "type": "answer",
+      "text": "positivo en cocaína y en anfetaminas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3703",
+      "type": "answer",
+      "text": "ser mema (médico y madre)",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3778",
+      "type": "answer",
+      "text": "ya no tengo fimosis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3785",
+      "type": "answer",
+      "text": "una pastilla contra la calvicie",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3860",
+      "type": "answer",
+      "text": "terapia de electroshock por ninfomanía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3863",
+      "type": "answer",
+      "text": "taquicardias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3885",
+      "type": "answer",
+      "text": "que alguien llame a un médico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3890",
+      "type": "answer",
+      "text": "Síndrome de Up, lo opuesto al Síndrome de Down",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4050",
+      "type": "answer",
+      "text": "reasignación de género mediante electroshock",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4110",
+      "type": "answer",
+      "text": "otra película de vampiros con sida del hijo maricón con sida de Aída",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4233",
+      "type": "answer",
+      "text": "el ejército alemán hasta el culo de anfetaminas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4234",
+      "type": "answer",
+      "text": "oxicodona",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4264",
+      "type": "answer",
+      "text": "una discapacidad superior al 50%",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4307",
+      "type": "answer",
+      "text": "3 noches en urgencias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4390",
+      "type": "answer",
+      "text": "oler un poco de popper \"por curiosidad\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4561",
+      "type": "answer",
+      "text": "el atentado terrorista con mayor diversidad de la historia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4566",
+      "type": "answer",
+      "text": "ganas de estar juntos pese a tanta adversidad",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 90,
+    "total": 110,
     "prompts": 19,
-    "answers": 71
+    "answers": 91
   },
   "playable": true
 }

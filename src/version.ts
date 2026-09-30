@@ -1,5 +1,5 @@
-/** 0.99.422.19: fix api/room.js SyntaxError causing preview /api/room 500. */
-export const APP_VERSION = '0.99.422.19';
+/** 0.99.422.21: mazos barrido + lote nuevo. Glue 422.20 en el motor. */
+export const APP_VERSION = '0.99.422.21';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,18 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.21',
+    date: '2026-09-30',
+    notes:
+      'Mazos: barrido mayúsculas (Frijolito, Cthulhu, Ibai…) + lote nuevo (~956 respuestas, ~106 preguntas glue). Sin Hola soy de 2 huecos. Glue 422.20 ya en el motor.',
+  },
+  {
+    version: '0.99.422.20',
+    date: '2026-09-30',
+    notes:
+      'Glue: email a@b / a@__ / __@__; url _____._____.com y www; archivos pdf/jpg/exe/zip/mp3/xls/txt/mp4/gif; título solo «»/""; nombres San/Calle; censura y tachado; siglas; y/e o/u; no repetir la palabra del hueco.',
+  },
   {
     version: '0.99.422.19',
     date: '2026-09-29',

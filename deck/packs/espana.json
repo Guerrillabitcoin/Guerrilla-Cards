@@ -427,7 +427,7 @@
     {
       "id": "espana-a-0003",
       "type": "answer",
-      "text": "david Meca después de nadar desde Finisterre a Miami",
+      "text": "David Meca después de nadar desde Finisterre a Miami",
       "pick": 1
     },
     {
@@ -537,12 +537,114 @@
       "type": "prompt",
       "text": "El problema de este país no es la política. Es ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3665",
+      "type": "answer",
+      "text": "la matanza de Puerto Hurraco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3706",
+      "type": "answer",
+      "text": "la puta Semana Santa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3710",
+      "type": "answer",
+      "text": "en un hilo de ForoCoches",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3868",
+      "type": "answer",
+      "text": "pagar 3000€ para que una mafia te lleve en patera desde Argelia a Almería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3884",
+      "type": "answer",
+      "text": "Cruzcampo caliente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3902",
+      "type": "answer",
+      "text": "Desatranques Jaén",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3952",
+      "type": "answer",
+      "text": "ir al mercadona a ligar con una piña en el culo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4082",
+      "type": "answer",
+      "text": "Lobezno rajando la valla de Melilla con sus garras de adamantium",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4148",
+      "type": "answer",
+      "text": "Don PSOE",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4314",
+      "type": "answer",
+      "text": "un lugar de La Mancha",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4336",
+      "type": "answer",
+      "text": "mancharme",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4527",
+      "type": "answer",
+      "text": "ser de Badajoz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4552",
+      "type": "answer",
+      "text": "un jugador del Getafe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4580",
+      "type": "answer",
+      "text": "Irene Montero en el Consejo de Administración del Mercadona",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0370",
+      "type": "prompt",
+      "text": "Para conseguir una habitación en Malasaña tuve que _______ al casero.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0417",
+      "type": "prompt",
+      "text": "La sede electrónica de tu pueblo: www.______.ayto.es",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0440",
+      "type": "prompt",
+      "text": "Tengo mucha suerte de vivir en la Calle ______",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 89,
-    "prompts": 35,
-    "answers": 54
+    "total": 106,
+    "prompts": 38,
+    "answers": 68
   },
   "playable": true
 }

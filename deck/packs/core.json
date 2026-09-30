@@ -5983,7 +5983,7 @@
     {
       "id": "core-a-1187",
       "type": "answer",
-      "text": "cthulhu",
+      "text": "Cthulhu",
       "pick": 1
     },
     {
@@ -14905,7 +14905,7 @@
     {
       "id": "core-a-2903",
       "type": "answer",
-      "text": "adolescentes Ucranianas clonadas",
+      "text": "adolescentes ucranianas clonadas",
       "pick": 1
     },
     {
@@ -17161,7 +17161,7 @@
     {
       "id": "core-a-3346",
       "type": "answer",
-      "text": "frijolito",
+      "text": "Frijolito",
       "pick": 1
     },
     {
@@ -17515,7 +17515,7 @@
     {
       "id": "core-p-0013",
       "type": "prompt",
-      "text": "¿Qué redujo drásticamente la esperanza de vida media de los Japoneses en menos de una década?",
+      "text": "¿Qué redujo drásticamente la esperanza de vida media de los japoneses en menos de una década?",
       "pick": 1
     },
     {
@@ -18619,7 +18619,7 @@
     {
       "id": "core-p-0256",
       "type": "prompt",
-      "text": "¿qué te gustaría que desapareciera de la Tierra?",
+      "text": "¿Qué te gustaría que desapareciera de la Tierra?",
       "pick": 1
     },
     {
@@ -18793,7 +18793,7 @@
     {
       "id": "politica-a-0112",
       "type": "answer",
-      "text": "nanobots Israelís",
+      "text": "nanobots israelíes",
       "pick": 1
     },
     {
@@ -21249,12 +21249,6384 @@
       "type": "prompt",
       "text": "Vaya vaya, ¿qué tenemos aquí? ______",
       "pick": 1
+    },
+    {
+      "id": "core-a-3660",
+      "type": "answer",
+      "text": "sueños eróticos con un anciano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3661",
+      "type": "answer",
+      "text": "Arturo Pérez-Reverte",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3662",
+      "type": "answer",
+      "text": "Game Over",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3663",
+      "type": "answer",
+      "text": "pantallazo azul",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3664",
+      "type": "answer",
+      "text": "escrotocircuito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3665",
+      "type": "answer",
+      "text": "la matanza de Puerto Hurraco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3666",
+      "type": "answer",
+      "text": "la Familia Addams",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3667",
+      "type": "answer",
+      "text": "un tiempo jodido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3668",
+      "type": "answer",
+      "text": "deforestación en el Amazonas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3669",
+      "type": "answer",
+      "text": "Casper el fantasma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3670",
+      "type": "answer",
+      "text": "un Bugatti siniestro total",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3671",
+      "type": "answer",
+      "text": "equivocarme con la medicación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3672",
+      "type": "answer",
+      "text": "Terrorismo de Estado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3673",
+      "type": "answer",
+      "text": "estar a punto de hacerlo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3674",
+      "type": "answer",
+      "text": "Basuko Nazario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3675",
+      "type": "answer",
+      "text": "una cebra albina que resultó ser un caballo blanco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3676",
+      "type": "answer",
+      "text": "el CEO de Pescanova",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3677",
+      "type": "answer",
+      "text": "Luis Putón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3678",
+      "type": "answer",
+      "text": "papel, filtros y tabaco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3679",
+      "type": "answer",
+      "text": "multa y cárcel",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3680",
+      "type": "answer",
+      "text": "desgarro anal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3681",
+      "type": "answer",
+      "text": "bajaciones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3682",
+      "type": "answer",
+      "text": "la vacuna contra la adicción a la cocaína",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3683",
+      "type": "answer",
+      "text": "un pedo con nicotina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3684",
+      "type": "answer",
+      "text": "el perro haciendo caca en el sofá",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3685",
+      "type": "answer",
+      "text": "la mujer que susurraba a los camellos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3686",
+      "type": "answer",
+      "text": "automejora recursiva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3687",
+      "type": "answer",
+      "text": "China y EE. UU. poniéndose de acuerdo en prohibir la IA.",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3688",
+      "type": "answer",
+      "text": "un señor con barba sentado en una nube",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3689",
+      "type": "answer",
+      "text": "pasión y drama",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3690",
+      "type": "answer",
+      "text": "eyaculación muy precoz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3691",
+      "type": "answer",
+      "text": "muchísima impotencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3692",
+      "type": "answer",
+      "text": "gracias, Perro Sánchez",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3693",
+      "type": "answer",
+      "text": "pensión no contributiva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3694",
+      "type": "answer",
+      "text": "Ana Botieso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3695",
+      "type": "answer",
+      "text": "en su mundo \"todo es gratis\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3696",
+      "type": "answer",
+      "text": "colocar incompetentes en puestos clave",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3697",
+      "type": "answer",
+      "text": "positivo en cocaína y en anfetaminas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3698",
+      "type": "answer",
+      "text": "el ruido de un árbol partiéndose en el bosque",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3699",
+      "type": "answer",
+      "text": "el primero que se me acerque por la calle",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3700",
+      "type": "answer",
+      "text": "Attention Whore de manual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3701",
+      "type": "answer",
+      "text": "Vitamina C",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3702",
+      "type": "answer",
+      "text": "el Carapolla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3703",
+      "type": "answer",
+      "text": "ser mema (médico y madre)",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3704",
+      "type": "answer",
+      "text": "un ciclisto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3705",
+      "type": "answer",
+      "text": "especialidad en tocar los cojones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3706",
+      "type": "answer",
+      "text": "la puta Semana Santa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3707",
+      "type": "answer",
+      "text": "mucha liberación femenina pero poco topless en la playa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3708",
+      "type": "answer",
+      "text": "la mochila del Basic Fit: la mochila de los pobres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3709",
+      "type": "answer",
+      "text": "colectivos antifascistas de la extrema izquierda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3710",
+      "type": "answer",
+      "text": "en un hilo de ForoCoches",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3711",
+      "type": "answer",
+      "text": "La Casa de Papel",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3712",
+      "type": "answer",
+      "text": "problemas al gestar bebés",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3713",
+      "type": "answer",
+      "text": "la Spice Girl deportista",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3714",
+      "type": "answer",
+      "text": "pelea de súcubos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3715",
+      "type": "answer",
+      "text": "gallina vieja hace buen caldo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3716",
+      "type": "answer",
+      "text": "el Doctor Far López",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3717",
+      "type": "answer",
+      "text": "cualquier cosa parecida a una mujer",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3718",
+      "type": "answer",
+      "text": "500gr en cada pecho",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3719",
+      "type": "answer",
+      "text": "el que se lo quede, pierde",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3720",
+      "type": "answer",
+      "text": "la Pantoja de la Darkweb",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3721",
+      "type": "answer",
+      "text": "ser kuki",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3722",
+      "type": "answer",
+      "text": "caramelos mentolados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3723",
+      "type": "answer",
+      "text": "MDMA para celiacos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3724",
+      "type": "answer",
+      "text": "popper sin plomo 95",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3725",
+      "type": "answer",
+      "text": "subir el litro de diesel a 4€",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3726",
+      "type": "answer",
+      "text": "indigencia máxima",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3727",
+      "type": "answer",
+      "text": "delirium tremens",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3728",
+      "type": "answer",
+      "text": "ano palpitante",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3729",
+      "type": "answer",
+      "text": "buttplug de 1Kg",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3730",
+      "type": "answer",
+      "text": "tener poca ropa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3731",
+      "type": "answer",
+      "text": "cipotismo dactilar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3732",
+      "type": "answer",
+      "text": "dátiles",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3733",
+      "type": "answer",
+      "text": "quedar con un hombre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3734",
+      "type": "answer",
+      "text": "quedar con una mujer",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3735",
+      "type": "answer",
+      "text": "Don Pimpón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3736",
+      "type": "answer",
+      "text": "todos tenemos un pasado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3737",
+      "type": "answer",
+      "text": "una mujer con un pasado muy turbio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3738",
+      "type": "answer",
+      "text": "seres queridos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3739",
+      "type": "answer",
+      "text": "la gente, que es muy sibarita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3740",
+      "type": "answer",
+      "text": "gente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3741",
+      "type": "answer",
+      "text": "amor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3742",
+      "type": "answer",
+      "text": "aprender a volar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3743",
+      "type": "answer",
+      "text": "vivir la vida como vaya surgiendo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3744",
+      "type": "answer",
+      "text": "ser un disfrutón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3745",
+      "type": "answer",
+      "text": "¡Astro Rey, dame tu calor!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3746",
+      "type": "answer",
+      "text": "no hay bar que por bien no venga",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3747",
+      "type": "answer",
+      "text": "consejos de una IA muy experimental",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3748",
+      "type": "answer",
+      "text": "reventar varios medidores de HODIO",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3749",
+      "type": "answer",
+      "text": "distfrutar y ser disfrutado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3750",
+      "type": "answer",
+      "text": "Judas Iscariote",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3751",
+      "type": "answer",
+      "text": "café para cafeteros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3752",
+      "type": "answer",
+      "text": "despertar de la bestia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3753",
+      "type": "answer",
+      "text": "drogas, putas y lo que quiera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3754",
+      "type": "answer",
+      "text": "ver al Diablo todos los días",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3755",
+      "type": "answer",
+      "text": "votante promedio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3756",
+      "type": "answer",
+      "text": "un Lord Sith",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3757",
+      "type": "answer",
+      "text": "espada láser personalizada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3758",
+      "type": "answer",
+      "text": "con mis dos huevos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3759",
+      "type": "answer",
+      "text": "Lucifer y Darth Vader",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3760",
+      "type": "answer",
+      "text": "llega la nueva era",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3761",
+      "type": "answer",
+      "text": "nacer ya drogado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3762",
+      "type": "answer",
+      "text": "perder los dientes de tanto parar balas con ellos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3763",
+      "type": "answer",
+      "text": "¡Alá es grande!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3764",
+      "type": "answer",
+      "text": "no poder cerrar los ojos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3765",
+      "type": "answer",
+      "text": "maltrato infantil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3766",
+      "type": "answer",
+      "text": "gran agresividad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3767",
+      "type": "answer",
+      "text": "servicios sociales llevándose a mi hijo mientras estoy en directo en TikTok",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3768",
+      "type": "answer",
+      "text": "¡HOLAAAA!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3769",
+      "type": "answer",
+      "text": "pedir que me hablen sin gritar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3770",
+      "type": "answer",
+      "text": "consumo indirecto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3771",
+      "type": "answer",
+      "text": "hacerme siempre la víctima",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3772",
+      "type": "answer",
+      "text": "ojos de pollo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3773",
+      "type": "answer",
+      "text": "tú estás conmigo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3774",
+      "type": "answer",
+      "text": "la rueda cuadrada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3775",
+      "type": "answer",
+      "text": "no es lo mismo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3776",
+      "type": "answer",
+      "text": "pinchar la luz y la vena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3777",
+      "type": "answer",
+      "text": "dar clases de yoga en el parque",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3778",
+      "type": "answer",
+      "text": "ya no tengo fimosis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3779",
+      "type": "answer",
+      "text": "yo que sé hermano....",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3780",
+      "type": "answer",
+      "text": "una locura, bro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3781",
+      "type": "answer",
+      "text": "no dormir",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3782",
+      "type": "answer",
+      "text": "paguita para todos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3783",
+      "type": "answer",
+      "text": "una rumana que está buenísima",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3784",
+      "type": "answer",
+      "text": "reversión de pelo cano en melena veinteañera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3785",
+      "type": "answer",
+      "text": "una pastilla contra la calvicie",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3786",
+      "type": "answer",
+      "text": "no quiero tu dinero, quiero tu salvación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3787",
+      "type": "answer",
+      "text": "reexaminar mi vida",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3788",
+      "type": "answer",
+      "text": "a imagen y semejanza de Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3789",
+      "type": "answer",
+      "text": "El Corán con ilustraciones de Mahoma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3790",
+      "type": "answer",
+      "text": "todas esas cosas importantes",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3791",
+      "type": "answer",
+      "text": "me pasó el crack",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3792",
+      "type": "answer",
+      "text": "probar la mercancía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3793",
+      "type": "answer",
+      "text": "mi madre como cámara de mis videos de TikTok",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3794",
+      "type": "answer",
+      "text": "muy casero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3795",
+      "type": "answer",
+      "text": "Confucio confundido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3796",
+      "type": "answer",
+      "text": "mentalidad \"moderna\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3797",
+      "type": "answer",
+      "text": "jefe de clan narco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3798",
+      "type": "answer",
+      "text": "bullying en las pelotas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3799",
+      "type": "answer",
+      "text": "Paz Padilla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3800",
+      "type": "answer",
+      "text": "bajo la persiana y fumo marihuana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3801",
+      "type": "answer",
+      "text": "no quiero medio, lo quiero entero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3802",
+      "type": "answer",
+      "text": "trenes explotando sincronizadamente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3803",
+      "type": "answer",
+      "text": "Speedball: una mezcla de heroína y cocaína vía intravenosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3804",
+      "type": "answer",
+      "text": "una mansión en el poblado chabolista",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3805",
+      "type": "answer",
+      "text": "aguantar sin follar 5 años",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3806",
+      "type": "answer",
+      "text": "estar sin follar desde la pandemia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3807",
+      "type": "answer",
+      "text": "abstinencia sexual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3808",
+      "type": "answer",
+      "text": "bendiciones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3809",
+      "type": "answer",
+      "text": "leakear el GTA VI para PC",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3810",
+      "type": "answer",
+      "text": "en mi honor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3811",
+      "type": "answer",
+      "text": "con toda la puestada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3812",
+      "type": "answer",
+      "text": "buen rollo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3813",
+      "type": "answer",
+      "text": "todo mal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3814",
+      "type": "answer",
+      "text": "un reservado muy turbio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3815",
+      "type": "answer",
+      "text": "arañazos en la espalda y en las nalgas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3816",
+      "type": "answer",
+      "text": "la pipa de fumar que llevo siempre en el bolsillo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3817",
+      "type": "answer",
+      "text": "jaco en vena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3818",
+      "type": "answer",
+      "text": "tener el chocho torcido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3819",
+      "type": "answer",
+      "text": "montarme en el FakeTaxi",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3820",
+      "type": "answer",
+      "text": "compartir Uber",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3821",
+      "type": "answer",
+      "text": "me quedé sin batería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3822",
+      "type": "answer",
+      "text": "faltar el respeto a tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3823",
+      "type": "answer",
+      "text": "Coca-Cola",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3824",
+      "type": "answer",
+      "text": "fumar base",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3825",
+      "type": "answer",
+      "text": "¡BUM, BUM! y al suelo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3826",
+      "type": "answer",
+      "text": "pinta muy feo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3827",
+      "type": "answer",
+      "text": "mala pinta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3828",
+      "type": "answer",
+      "text": "Crónicas Marcianas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3829",
+      "type": "answer",
+      "text": "duro pero real",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3830",
+      "type": "answer",
+      "text": "pruebas reales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3831",
+      "type": "answer",
+      "text": "pagar por enchufarme",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3832",
+      "type": "answer",
+      "text": "corrupción total",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3833",
+      "type": "answer",
+      "text": "una presunta agresión sexual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3834",
+      "type": "answer",
+      "text": "¡BANGARANG!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3835",
+      "type": "answer",
+      "text": "Daft Punk pinchando en mi casa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3836",
+      "type": "answer",
+      "text": "pakistaní bueno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3837",
+      "type": "answer",
+      "text": "cortisol muy bajo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3838",
+      "type": "answer",
+      "text": "que Pitufina me haga una pitufada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3839",
+      "type": "answer",
+      "text": "ser mi apoyadura",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3840",
+      "type": "answer",
+      "text": "¿Cómo están los máquinas?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3841",
+      "type": "answer",
+      "text": "porno de enanas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3842",
+      "type": "answer",
+      "text": "apuestas y ruletas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3843",
+      "type": "answer",
+      "text": "no saber ni hacer la O con un canuto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3844",
+      "type": "answer",
+      "text": "ir a EuroDisney",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3845",
+      "type": "answer",
+      "text": "desatrancador de fosas sépticas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3846",
+      "type": "answer",
+      "text": "tener cromosomas de sobra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3847",
+      "type": "answer",
+      "text": "privatizar la sanidad y la educación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3848",
+      "type": "answer",
+      "text": "decir mentiras por redes sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3849",
+      "type": "answer",
+      "text": "carreras ilegales de caracoles rebozados en speed",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3850",
+      "type": "answer",
+      "text": "cartillas de racionamiento",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3851",
+      "type": "answer",
+      "text": "una belleza andrógina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3852",
+      "type": "answer",
+      "text": "una talla 120 copa H",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3853",
+      "type": "answer",
+      "text": "necesitas un chubasquero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3854",
+      "type": "answer",
+      "text": "gracias por llamar a Emergencias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3855",
+      "type": "answer",
+      "text": "Conocimiento del Medio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3856",
+      "type": "answer",
+      "text": "educación para la ciudadanía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3857",
+      "type": "answer",
+      "text": "esbirros y esbirras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3858",
+      "type": "answer",
+      "text": "la serie completa de Sexo en Nueva York",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3859",
+      "type": "answer",
+      "text": "trabajadoras sexuales feministas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3860",
+      "type": "answer",
+      "text": "terapia de electroshock por ninfomanía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3861",
+      "type": "answer",
+      "text": "terrorismo religioso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3862",
+      "type": "answer",
+      "text": "no soy gay, pero 20€ son 20€",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3863",
+      "type": "answer",
+      "text": "taquicardias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3864",
+      "type": "answer",
+      "text": "la Gollum",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3865",
+      "type": "answer",
+      "text": "el jaque-mate del pastor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3866",
+      "type": "answer",
+      "text": "el Principote",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3867",
+      "type": "answer",
+      "text": "eso no pertenece a aquí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3868",
+      "type": "answer",
+      "text": "pagar 3000€ para que una mafia te lleve en patera desde Argelia a Almería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3869",
+      "type": "answer",
+      "text": "nunca digas nunca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3870",
+      "type": "answer",
+      "text": "multas por ir de putas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3871",
+      "type": "answer",
+      "text": "Susano el Gusano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3872",
+      "type": "answer",
+      "text": "DracuLaura",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3873",
+      "type": "answer",
+      "text": "Rubén Gisbert revolcándose en el barro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3874",
+      "type": "answer",
+      "text": "ludopatía: ser muy malo en estadística",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3875",
+      "type": "answer",
+      "text": "engancharse al bingo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3876",
+      "type": "answer",
+      "text": "un piso-discoteca donde compran farlopa los famosos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3877",
+      "type": "answer",
+      "text": "permaban",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3878",
+      "type": "answer",
+      "text": "comportamiento muy tóxico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3879",
+      "type": "answer",
+      "text": "contenido premium",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3880",
+      "type": "answer",
+      "text": "así va el país",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3881",
+      "type": "answer",
+      "text": "criado en el vicio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3882",
+      "type": "answer",
+      "text": "enchufarte un calabacín por el puerto USB",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3883",
+      "type": "answer",
+      "text": "deja-vú",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3884",
+      "type": "answer",
+      "text": "Cruzcampo caliente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3885",
+      "type": "answer",
+      "text": "que alguien llame a un médico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3886",
+      "type": "answer",
+      "text": "Javier Bardem y Penélope Cruz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3887",
+      "type": "answer",
+      "text": "lanzar aceitunas con el ano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3888",
+      "type": "answer",
+      "text": "1000€ por comer mierda del retrete",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3889",
+      "type": "answer",
+      "text": "una era de escasez, inflación y tipos altos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3890",
+      "type": "answer",
+      "text": "Síndrome de Up, lo opuesto al Síndrome de Down",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3891",
+      "type": "answer",
+      "text": "fetichismo de pies",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3892",
+      "type": "answer",
+      "text": "hobbits",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3893",
+      "type": "answer",
+      "text": "Iker Jiménez y Harry Potter",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3894",
+      "type": "answer",
+      "text": "unas parapsicofonías",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3895",
+      "type": "answer",
+      "text": "la Niña de la Curva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3896",
+      "type": "answer",
+      "text": "la taquígrafa del Congreso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3897",
+      "type": "answer",
+      "text": "Reserva Estratégica de Esmegma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3898",
+      "type": "answer",
+      "text": "un queso en una caja fuerte",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3899",
+      "type": "answer",
+      "text": "ron y whisky",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3900",
+      "type": "answer",
+      "text": "mis amigos y mi familia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3901",
+      "type": "answer",
+      "text": "descubrir que tu novia tiene OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3902",
+      "type": "answer",
+      "text": "Desatranques Jaén",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3903",
+      "type": "answer",
+      "text": "sacar mucha leche",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3904",
+      "type": "answer",
+      "text": "Central Lechera Asturiana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3905",
+      "type": "answer",
+      "text": "un video de tu parto en directo en OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3906",
+      "type": "answer",
+      "text": "el Dueño de Batidos Puleva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3907",
+      "type": "answer",
+      "text": "mil-leches",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3908",
+      "type": "answer",
+      "text": "un canalillo no replicable ni con cálculo estructural avanzado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3909",
+      "type": "answer",
+      "text": "ser selectivo: no se la chupo a cualquiera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3910",
+      "type": "answer",
+      "text": "50euros y un gramo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3911",
+      "type": "answer",
+      "text": "Mia Kalefa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3912",
+      "type": "answer",
+      "text": "más kilómetros que la Ruta 66",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3913",
+      "type": "answer",
+      "text": "buscar aprobación externa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3914",
+      "type": "answer",
+      "text": "culito respingón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3915",
+      "type": "answer",
+      "text": "La Tragona",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3916",
+      "type": "answer",
+      "text": "turbomongolo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3917",
+      "type": "answer",
+      "text": "desparasitación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3918",
+      "type": "answer",
+      "text": "el plan para envenenar con disruptores hormonales todo el papel higiénico del mundo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3919",
+      "type": "answer",
+      "text": "arcontes haciéndome la vida imposible",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3920",
+      "type": "answer",
+      "text": "te lo rompe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3921",
+      "type": "answer",
+      "text": "puro jugo de zanahoria",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3922",
+      "type": "answer",
+      "text": "seguid sin mi",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3923",
+      "type": "answer",
+      "text": "apoyo a las trabajadoras sexuales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3924",
+      "type": "answer",
+      "text": "tener que cerrar mis redes sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3925",
+      "type": "answer",
+      "text": "probar el MDMA",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3926",
+      "type": "answer",
+      "text": "acabar reventado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3927",
+      "type": "answer",
+      "text": "estar muy petado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3928",
+      "type": "answer",
+      "text": "creo que nuestros impuestos no se están usando muy bien",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3929",
+      "type": "answer",
+      "text": "poseer información confidencial para los arquitectos del mundo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3930",
+      "type": "answer",
+      "text": "un cáliz con cicuta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3931",
+      "type": "answer",
+      "text": "un paquete de Ducados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3932",
+      "type": "answer",
+      "text": "me divierto por todos los lugares",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3933",
+      "type": "answer",
+      "text": "mis nenas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3934",
+      "type": "answer",
+      "text": "querer venirse conmigo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3935",
+      "type": "answer",
+      "text": "me pagas o lo cuento todo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3936",
+      "type": "answer",
+      "text": "ese semen",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3937",
+      "type": "answer",
+      "text": "ser su confidente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3938",
+      "type": "answer",
+      "text": "no tener permiso para salir por la noche con mis amigos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3939",
+      "type": "answer",
+      "text": "no tener permiso para tener opinión sobre temas importantes",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3940",
+      "type": "answer",
+      "text": "nosotros compartimos de todo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3941",
+      "type": "answer",
+      "text": "los únicos que se rien son los que no han estado ahí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3942",
+      "type": "answer",
+      "text": "pedir perdón antes que permiso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3943",
+      "type": "answer",
+      "text": "Toro Sentado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3944",
+      "type": "answer",
+      "text": "con sumo gusto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3945",
+      "type": "answer",
+      "text": "¡demuéstralo!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3946",
+      "type": "answer",
+      "text": "vivir de subvenciones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3947",
+      "type": "answer",
+      "text": "una cena y follar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3948",
+      "type": "answer",
+      "text": "pruebas del pañuelo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3949",
+      "type": "answer",
+      "text": "echar líquido por debajo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3950",
+      "type": "answer",
+      "text": "Hackerman",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3951",
+      "type": "answer",
+      "text": "tenemos retraso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3952",
+      "type": "answer",
+      "text": "ir al mercadona a ligar con una piña en el culo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3953",
+      "type": "answer",
+      "text": "Elon Musk y Trump",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3954",
+      "type": "answer",
+      "text": "con el dinero de otro es muy barato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3955",
+      "type": "answer",
+      "text": "callar y limpiar la casa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3956",
+      "type": "answer",
+      "text": "0%",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3957",
+      "type": "answer",
+      "text": "1000 maneras de morir",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3958",
+      "type": "answer",
+      "text": "una puntita de keta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3959",
+      "type": "answer",
+      "text": "¡wombo combo!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3960",
+      "type": "answer",
+      "text": "¡Leroy Jenkins!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3961",
+      "type": "answer",
+      "text": "eres la flor de mi vida",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3962",
+      "type": "answer",
+      "text": "tu amor vale más que mil millones de estrellas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3963",
+      "type": "answer",
+      "text": "si tu me dices ven lo dejo todo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3964",
+      "type": "answer",
+      "text": "cocaína para trabajar porque mi curro me lo exige",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3965",
+      "type": "answer",
+      "text": "fumar salvia escuchando Carmina Burana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3966",
+      "type": "answer",
+      "text": "como un brazo de gitano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3967",
+      "type": "answer",
+      "text": "como cajón que no cierra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3968",
+      "type": "answer",
+      "text": "como la clavícula de Óptimus Prime",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3969",
+      "type": "answer",
+      "text": "¡Pechos fuera!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3970",
+      "type": "answer",
+      "text": "La Catapulta Infernal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3971",
+      "type": "answer",
+      "text": "El Tiro del Tigre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3972",
+      "type": "answer",
+      "text": "gogórda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3973",
+      "type": "answer",
+      "text": "el mito de la caverna",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3974",
+      "type": "answer",
+      "text": "la tuneladora polaca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3975",
+      "type": "answer",
+      "text": "una rumana carterista",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3976",
+      "type": "answer",
+      "text": "¡PICK POCKET! ¡Peligro! ¡PICK POCKET!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3977",
+      "type": "answer",
+      "text": "el Túnel de la Bruja",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3978",
+      "type": "answer",
+      "text": "donde caben 2 caben 3",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3979",
+      "type": "answer",
+      "text": "Las Supernenas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3980",
+      "type": "answer",
+      "text": "reforma integral de interiores",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3981",
+      "type": "answer",
+      "text": "solo primeras marcas nacionales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3982",
+      "type": "answer",
+      "text": "se acabaron las pajas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3983",
+      "type": "answer",
+      "text": "mi gymbro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3984",
+      "type": "answer",
+      "text": "el mes de vacaciones del Presidente del Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3985",
+      "type": "answer",
+      "text": "y aun así me quedé",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3986",
+      "type": "answer",
+      "text": "no es no",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3987",
+      "type": "answer",
+      "text": "Bank of America",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3988",
+      "type": "answer",
+      "text": "una jodienda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3989",
+      "type": "answer",
+      "text": "coños que te atrapan",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3990",
+      "type": "answer",
+      "text": "un pene para gobernarlos a todos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3991",
+      "type": "answer",
+      "text": "un contorsionista de genitales que sometió su pene a todo tipo de torturas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3992",
+      "type": "answer",
+      "text": "¡Suelta el palo!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3993",
+      "type": "answer",
+      "text": "paralizar cualquier tipo de desarrollo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3994",
+      "type": "answer",
+      "text": "inventos gubernamentales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3995",
+      "type": "answer",
+      "text": "abuso de dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3996",
+      "type": "answer",
+      "text": "sólamente ha hecho daño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3997",
+      "type": "answer",
+      "text": "la desnacionalización del dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3998",
+      "type": "answer",
+      "text": "prohibir el dinero en efectivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3999",
+      "type": "answer",
+      "text": "crédito social muy bajo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4000",
+      "type": "answer",
+      "text": "introducir algo que no se puede parar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4001",
+      "type": "answer",
+      "text": "un cartoncito con LSD",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4002",
+      "type": "answer",
+      "text": "una movida mazo de adulterada que compré a un moro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4003",
+      "type": "answer",
+      "text": "fondos MUY insuficientes",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4004",
+      "type": "answer",
+      "text": "naces, creces, te jodes y mueres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4005",
+      "type": "answer",
+      "text": "homos erectus",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4006",
+      "type": "answer",
+      "text": "contranatura",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4007",
+      "type": "answer",
+      "text": "un discman y un pepino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4008",
+      "type": "answer",
+      "text": "y mañana exámen oral",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4009",
+      "type": "answer",
+      "text": "Veni, vidi, vici",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4010",
+      "type": "answer",
+      "text": "coitus interruptus",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4011",
+      "type": "answer",
+      "text": "Pijus Magnificus",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4012",
+      "type": "answer",
+      "text": "tabique de platino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4013",
+      "type": "answer",
+      "text": "quedar completamente retratado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4014",
+      "type": "answer",
+      "text": "malas praxis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4015",
+      "type": "answer",
+      "text": "Super Skunk",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4016",
+      "type": "answer",
+      "text": "Amnesia Haze",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4017",
+      "type": "answer",
+      "text": "varios kilos de White Widow de los gitanos de Granada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4018",
+      "type": "answer",
+      "text": "muerto en un portal como Enrique Urquijo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4019",
+      "type": "answer",
+      "text": "tu amante bandido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4020",
+      "type": "answer",
+      "text": "golpes bajos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4021",
+      "type": "answer",
+      "text": "malos tiempos para la lírica",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4022",
+      "type": "answer",
+      "text": "el que no esté colocado, que se coloque",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4023",
+      "type": "answer",
+      "text": "\"semos uropeos\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4024",
+      "type": "answer",
+      "text": "enamorado de la moda juvenil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4025",
+      "type": "answer",
+      "text": "era el remedio sin receta y tu amor mi enfermedad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4026",
+      "type": "answer",
+      "text": "parece que la fiesta terminó",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4027",
+      "type": "answer",
+      "text": "el mundo me hizo así y no puedo cambiar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4028",
+      "type": "answer",
+      "text": "huele a porro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4029",
+      "type": "answer",
+      "text": "drones murcianos para la Guerra de Ucrania",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4030",
+      "type": "answer",
+      "text": "merienda de negros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4031",
+      "type": "answer",
+      "text": "Hakuna Matata: vive y sé feliz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4032",
+      "type": "answer",
+      "text": "pillar el anisakis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4033",
+      "type": "answer",
+      "text": "la viruela del mono",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4034",
+      "type": "answer",
+      "text": "perfecto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4035",
+      "type": "answer",
+      "text": "una noche muy productiva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4036",
+      "type": "answer",
+      "text": "muy ambicioso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4037",
+      "type": "answer",
+      "text": "muy ahorradores",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4038",
+      "type": "answer",
+      "text": "las sobras de las sobras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4039",
+      "type": "answer",
+      "text": "el violador eres tú",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4040",
+      "type": "answer",
+      "text": "yo pondría la mano en el fuego por ella",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4041",
+      "type": "answer",
+      "text": "morir carbonizado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4042",
+      "type": "answer",
+      "text": "una relación basada en el puro interés económico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4043",
+      "type": "answer",
+      "text": "Rita la Cantaora",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4044",
+      "type": "answer",
+      "text": "La Doctrina del Shock",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4045",
+      "type": "answer",
+      "text": "shock total",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4046",
+      "type": "answer",
+      "text": "Ken y Ryu",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4047",
+      "type": "answer",
+      "text": "el Robot Emilio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4048",
+      "type": "answer",
+      "text": "la Real Academia de la Droga",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4049",
+      "type": "answer",
+      "text": "no tener mierda en las tripas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4050",
+      "type": "answer",
+      "text": "reasignación de género mediante electroshock",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4051",
+      "type": "answer",
+      "text": "leviatán burocrático",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4052",
+      "type": "answer",
+      "text": "medidas orwellianas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4053",
+      "type": "answer",
+      "text": "Agenda 2045",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4054",
+      "type": "answer",
+      "text": "anteponerse a la evidencia científica",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4055",
+      "type": "answer",
+      "text": "acero para los barcos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4056",
+      "type": "answer",
+      "text": "Maricarmen",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4057",
+      "type": "answer",
+      "text": "Papá Huevos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4058",
+      "type": "answer",
+      "text": "Leonardo DiCaprio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4059",
+      "type": "answer",
+      "text": "las mujeres son el diablo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4060",
+      "type": "answer",
+      "text": "la del culo gordo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4061",
+      "type": "answer",
+      "text": "no sé como puedes estar tan triste teniendo ese culo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4062",
+      "type": "answer",
+      "text": "hasta que no puedas respirar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4063",
+      "type": "answer",
+      "text": "que se me acabe la tinta del boli",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4064",
+      "type": "answer",
+      "text": "bragas Geox, para que me transpire el coño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4065",
+      "type": "answer",
+      "text": "Daddy Yankee",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4066",
+      "type": "answer",
+      "text": "Mr. Worldwide",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4067",
+      "type": "answer",
+      "text": "ya tu sabe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4068",
+      "type": "answer",
+      "text": "confundirse de agujero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4069",
+      "type": "answer",
+      "text": "ir al urólogo es de gays",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4070",
+      "type": "answer",
+      "text": "experiencia cercana a la muerte",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4071",
+      "type": "answer",
+      "text": "mejor no volver a sacar ese tema, por favor.",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4072",
+      "type": "answer",
+      "text": "picos entre colegas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4073",
+      "type": "answer",
+      "text": "rebuscar en la basura del Eroski",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4074",
+      "type": "answer",
+      "text": "cagar en la puerta del Palacio Real",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4075",
+      "type": "answer",
+      "text": "diente de dragón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4076",
+      "type": "answer",
+      "text": "una pluma de un Ave Fénix",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4077",
+      "type": "answer",
+      "text": "chistorra con huevos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4078",
+      "type": "answer",
+      "text": "camello de carrera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4079",
+      "type": "answer",
+      "text": "depende de un negro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4080",
+      "type": "answer",
+      "text": "gema rosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4081",
+      "type": "answer",
+      "text": "morir en menos de 5 años",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4082",
+      "type": "answer",
+      "text": "Lobezno rajando la valla de Melilla con sus garras de adamantium",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4083",
+      "type": "answer",
+      "text": "Lobezno en la Guerra Civil ayudando a los republicanos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4084",
+      "type": "answer",
+      "text": "convertirse en una preciosa mujercita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4085",
+      "type": "answer",
+      "text": "una isla repleta de transexuales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4086",
+      "type": "answer",
+      "text": "la India",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4087",
+      "type": "answer",
+      "text": "sopa de piedras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4088",
+      "type": "answer",
+      "text": "barritas de proteínas hechas con cucarachas y grillos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4089",
+      "type": "answer",
+      "text": "hamburguesa de mosquitos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4090",
+      "type": "answer",
+      "text": "mantén R1 para besar a Lucía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4091",
+      "type": "answer",
+      "text": "gasolina para tus pesadillas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4092",
+      "type": "answer",
+      "text": "Gru, tu villano favorito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4093",
+      "type": "answer",
+      "text": "por delante",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4094",
+      "type": "answer",
+      "text": "Sala Boyberry",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4095",
+      "type": "answer",
+      "text": "un espacio para lesbianas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4096",
+      "type": "answer",
+      "text": "mucho dolor al hacer pis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4097",
+      "type": "answer",
+      "text": "con tropezones y todo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4098",
+      "type": "answer",
+      "text": "la zurraspa del Diablo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4099",
+      "type": "answer",
+      "text": "Gran Coñón de la Colorada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4100",
+      "type": "answer",
+      "text": "centroamericanos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4101",
+      "type": "answer",
+      "text": "tampoco te pases tanto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4102",
+      "type": "answer",
+      "text": "hacer recall en la base",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4103",
+      "type": "answer",
+      "text": "spawnear en un sitio muy malo del server",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4104",
+      "type": "answer",
+      "text": "experto en bigotes y perillas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4105",
+      "type": "answer",
+      "text": "largas sesiones de masturbación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4106",
+      "type": "answer",
+      "text": "gente con un aliento asqueroso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4107",
+      "type": "answer",
+      "text": "olor a cerrado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4108",
+      "type": "answer",
+      "text": "FP en informática",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4109",
+      "type": "answer",
+      "text": "otra wokeada más",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4110",
+      "type": "answer",
+      "text": "otra película de vampiros con sida del hijo maricón con sida de Aída",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4111",
+      "type": "answer",
+      "text": "hacer gárgaras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4112",
+      "type": "answer",
+      "text": "el poder detrás del poder de la gente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4113",
+      "type": "answer",
+      "text": "el dueño de Matutano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4114",
+      "type": "answer",
+      "text": "rellenar el culo de leche",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4115",
+      "type": "answer",
+      "text": "extrañar tu pija",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4116",
+      "type": "answer",
+      "text": "la pena es la novia del pene",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4117",
+      "type": "answer",
+      "text": "pocas muertes hay",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4118",
+      "type": "answer",
+      "text": "continuamos para bingo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4119",
+      "type": "answer",
+      "text": "¡Línea!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4120",
+      "type": "answer",
+      "text": "hacer creer a la gente que votar es la solución",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4121",
+      "type": "answer",
+      "text": "cómo convertir el sufrimiento en votos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4122",
+      "type": "answer",
+      "text": "traumatismo craneoencefálico con daño cerebral irreversible",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4123",
+      "type": "answer",
+      "text": "el final de Los Soprano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4124",
+      "type": "answer",
+      "text": "payasos que causan terror",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4125",
+      "type": "answer",
+      "text": "un fallo entrópico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4126",
+      "type": "answer",
+      "text": "una reunión de tuppersex",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4127",
+      "type": "answer",
+      "text": "donde hay pelito no hay delito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4128",
+      "type": "answer",
+      "text": "unos osito muy peludo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4129",
+      "type": "answer",
+      "text": "Deportes Guerra: aire, mar y tierra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4130",
+      "type": "answer",
+      "text": "Mariscos Recio: el mar al mejor precio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4131",
+      "type": "answer",
+      "text": "lubina para una cena fina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4132",
+      "type": "answer",
+      "text": "bogavante para una cena elegante",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4133",
+      "type": "answer",
+      "text": "las Conejitas de Playboy",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4134",
+      "type": "answer",
+      "text": "¿no huele un poco raro aquí?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4135",
+      "type": "answer",
+      "text": "un país donde no hay que pagar impuestos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4136",
+      "type": "answer",
+      "text": "comer demasiada carne",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4137",
+      "type": "answer",
+      "text": "tarot para mascotas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4138",
+      "type": "answer",
+      "text": "pedir un Glovo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4139",
+      "type": "answer",
+      "text": "yo te creo, hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4140",
+      "type": "answer",
+      "text": "un abuelete con varias cardiopatías",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4141",
+      "type": "answer",
+      "text": "trazar unas paralelas con la tarjeta de crédito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4142",
+      "type": "answer",
+      "text": "alergia a los bukkakes de flores y plantas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4143",
+      "type": "answer",
+      "text": "Samantha, la que la chupa con la garganta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4144",
+      "type": "answer",
+      "text": "un cuerno de demonio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4145",
+      "type": "answer",
+      "text": "olor a ciervas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4146",
+      "type": "answer",
+      "text": "Nazismo y Comunismo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4147",
+      "type": "answer",
+      "text": "bochorno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4148",
+      "type": "answer",
+      "text": "Don PSOE",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4149",
+      "type": "answer",
+      "text": "el líder del partido liberal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4150",
+      "type": "answer",
+      "text": "la regulación franquista en materia de vivienda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4151",
+      "type": "answer",
+      "text": "usar perfume de mujer",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4152",
+      "type": "answer",
+      "text": "Constantino Romero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4153",
+      "type": "answer",
+      "text": "insectoides genéticamente mutados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4154",
+      "type": "answer",
+      "text": "falocracia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4155",
+      "type": "answer",
+      "text": "voy a ir a por ti",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4156",
+      "type": "answer",
+      "text": "un ángel caído",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4157",
+      "type": "answer",
+      "text": "mi chica ideal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4158",
+      "type": "answer",
+      "text": "jovencita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4159",
+      "type": "answer",
+      "text": "una MILF cariñosa, pero que no cobre mucho...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4160",
+      "type": "answer",
+      "text": "cuando lo veas, lo entenderás perfectamente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4161",
+      "type": "answer",
+      "text": "mecanismos ancestrales de defensa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4162",
+      "type": "answer",
+      "text": "Scorpion y Sub-Zero del Mortal Kombat",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4163",
+      "type": "answer",
+      "text": "hay que ser muy ignorante para seguir creyendo que votar vale para algo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4164",
+      "type": "answer",
+      "text": "¡Felicidades a todos!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4165",
+      "type": "answer",
+      "text": "¿de qué cojones van los viejos?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4166",
+      "type": "answer",
+      "text": "unos Petazetas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4167",
+      "type": "answer",
+      "text": "una relación demasiado abierta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4168",
+      "type": "answer",
+      "text": "amigues",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4169",
+      "type": "answer",
+      "text": "ganar sin ropa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4170",
+      "type": "answer",
+      "text": "una teta pocha",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4171",
+      "type": "answer",
+      "text": "una chica con muy buenos valores y sentimientos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4172",
+      "type": "answer",
+      "text": "500 burpees a las 6 de la mañana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4173",
+      "type": "answer",
+      "text": "mi ganga",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4174",
+      "type": "answer",
+      "text": "está evolucionando a algo peor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4175",
+      "type": "answer",
+      "text": "mi novio peruano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4176",
+      "type": "answer",
+      "text": "Neymar Junior",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4177",
+      "type": "answer",
+      "text": "Bolsonaro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4178",
+      "type": "answer",
+      "text": "buen fin de semana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4179",
+      "type": "answer",
+      "text": "ponerme brackets",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4180",
+      "type": "answer",
+      "text": "empezar a comportarse como un adulto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4181",
+      "type": "answer",
+      "text": "Expresso Macchiato, por favore, mio amore",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4182",
+      "type": "answer",
+      "text": "mañana cumpliré 15 años",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4183",
+      "type": "answer",
+      "text": "la que es bonita, es bonita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4184",
+      "type": "answer",
+      "text": "soy una princesa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4185",
+      "type": "answer",
+      "text": "el calvo de Brazzers",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4186",
+      "type": "answer",
+      "text": "Agustín de Hipona y su concepto del tiempo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4187",
+      "type": "answer",
+      "text": "no me lo recuerdes...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4188",
+      "type": "answer",
+      "text": "la picadura de la cobra gay, si te pica te convierte en gay",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4189",
+      "type": "answer",
+      "text": "vendiendo cocaína se puede sacar mucha pasta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4190",
+      "type": "answer",
+      "text": "postureo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4191",
+      "type": "answer",
+      "text": "tó pa mi saca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4192",
+      "type": "answer",
+      "text": "¡que te calles, hijodeputa!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4193",
+      "type": "answer",
+      "text": "ven si tienes huevos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4194",
+      "type": "answer",
+      "text": "¡me cago en todos tus muertos!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4195",
+      "type": "answer",
+      "text": "13 centímetros de pura pasión",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4196",
+      "type": "answer",
+      "text": "fumaba crack a diario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4197",
+      "type": "answer",
+      "text": "chino-gitano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4198",
+      "type": "answer",
+      "text": "me molesta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4199",
+      "type": "answer",
+      "text": "me pone de mala ostia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4200",
+      "type": "answer",
+      "text": "comer un paquete de fideos que sacó un chino de una alcantarilla a las 6 de la mañana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4201",
+      "type": "answer",
+      "text": "ser un reventao de la vida",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4202",
+      "type": "answer",
+      "text": "el dinero es una hermosa herramienta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4203",
+      "type": "answer",
+      "text": "a mi no me compete",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4204",
+      "type": "answer",
+      "text": "siempre hay que poner dos huevos más",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4205",
+      "type": "answer",
+      "text": "batir los huevos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4206",
+      "type": "answer",
+      "text": "¡Uno, dos y tres!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4207",
+      "type": "answer",
+      "text": "dime los precios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4208",
+      "type": "answer",
+      "text": "lo que más se valora es la tranquilidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4209",
+      "type": "answer",
+      "text": "Peter la Anguila",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4210",
+      "type": "answer",
+      "text": "Toni Soprano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4211",
+      "type": "answer",
+      "text": "algo sobre el patriarcado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4212",
+      "type": "answer",
+      "text": "no se puede ser de izquierdas sin ser vegano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4213",
+      "type": "answer",
+      "text": "una mujer con pito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4214",
+      "type": "answer",
+      "text": "clítoris gigantescos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4215",
+      "type": "answer",
+      "text": "¡Alerta de flequillo!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4216",
+      "type": "answer",
+      "text": "trastorno límite de la personalidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4217",
+      "type": "answer",
+      "text": "niveles de THC altísimos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4218",
+      "type": "answer",
+      "text": "miccionar en una botella",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4219",
+      "type": "answer",
+      "text": "todo sin electricidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4220",
+      "type": "answer",
+      "text": "el litro de diesel a 4 euros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4221",
+      "type": "answer",
+      "text": "¿tú lo ves normal?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4222",
+      "type": "answer",
+      "text": "una persona poseída por la cocaína",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4223",
+      "type": "answer",
+      "text": "cocaína rosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4224",
+      "type": "answer",
+      "text": "fomentar el odio entre razas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4225",
+      "type": "answer",
+      "text": "enema de café",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4226",
+      "type": "answer",
+      "text": "oler sujetadores",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4227",
+      "type": "answer",
+      "text": "teñirme los pelos de coño de color morado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4228",
+      "type": "answer",
+      "text": "la ceja del coño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4229",
+      "type": "answer",
+      "text": "tener el coño lleno de piercings que parece una herrería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4230",
+      "type": "answer",
+      "text": "sólo por eso ya te dicen \"facha\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4231",
+      "type": "answer",
+      "text": "adicto al opio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4232",
+      "type": "answer",
+      "text": "el Monte Olímpico farmacológico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4233",
+      "type": "answer",
+      "text": "el ejército alemán hasta el culo de anfetaminas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4234",
+      "type": "answer",
+      "text": "oxicodona",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4235",
+      "type": "answer",
+      "text": "el néctar de los dioses",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4236",
+      "type": "answer",
+      "text": "el Imperio Austrohúngaro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4237",
+      "type": "answer",
+      "text": "drogadicto de ojos azules",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4238",
+      "type": "answer",
+      "text": "escaneador de bultos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4239",
+      "type": "answer",
+      "text": "los Village People",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4240",
+      "type": "answer",
+      "text": "concha seca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4241",
+      "type": "answer",
+      "text": "una trans bailando música trance",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4242",
+      "type": "answer",
+      "text": "evitar varios controles de alcoholemia por ir por otra ruta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4243",
+      "type": "answer",
+      "text": "otro nuevo escándalo para tapar el anterior",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4244",
+      "type": "answer",
+      "text": "la Princesa Bultos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4245",
+      "type": "answer",
+      "text": "jugar a las Magic",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4246",
+      "type": "answer",
+      "text": "uruk-hais y goblins",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4247",
+      "type": "answer",
+      "text": "se avecina una sequía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4248",
+      "type": "answer",
+      "text": "hacerle un truco de magia a Hacienda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4249",
+      "type": "answer",
+      "text": "Fanta de higo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4250",
+      "type": "answer",
+      "text": "vamos a ser la pareja ideal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4251",
+      "type": "answer",
+      "text": "es una broma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4252",
+      "type": "answer",
+      "text": "ná de ná",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4253",
+      "type": "answer",
+      "text": "un chupón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4254",
+      "type": "answer",
+      "text": "la lámpara del genio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4255",
+      "type": "answer",
+      "text": "Jaimito Borromeo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4256",
+      "type": "answer",
+      "text": "tener muchas pretendientas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4257",
+      "type": "answer",
+      "text": "lo guay es amar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4258",
+      "type": "answer",
+      "text": "celibato involuntario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4259",
+      "type": "answer",
+      "text": "una brillante carrera en la industria del porno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4260",
+      "type": "answer",
+      "text": "bien peña bien",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4261",
+      "type": "answer",
+      "text": "tener miedo a que me hagan daño de nuevo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4262",
+      "type": "answer",
+      "text": "vamos fluyendo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4263",
+      "type": "answer",
+      "text": "a ver cuándo espabilas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4264",
+      "type": "answer",
+      "text": "una discapacidad superior al 50%",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4265",
+      "type": "answer",
+      "text": "tirar a su madre por el balcón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4266",
+      "type": "answer",
+      "text": "pegar un puñetazo a mi suegra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4267",
+      "type": "answer",
+      "text": "matasuegras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4268",
+      "type": "answer",
+      "text": "quitapenas milagroso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4269",
+      "type": "answer",
+      "text": "casi quedo en silla de ruedas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4270",
+      "type": "answer",
+      "text": "cantos tiroleses",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4271",
+      "type": "answer",
+      "text": "un pagafantas de leyenda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4272",
+      "type": "answer",
+      "text": "la caja B",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4273",
+      "type": "answer",
+      "text": "ya no tomo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4274",
+      "type": "answer",
+      "text": "contactar con mi proveedor local",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4275",
+      "type": "answer",
+      "text": "consumo excesivo de farlopa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4276",
+      "type": "answer",
+      "text": "comerme el nepe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4277",
+      "type": "answer",
+      "text": "el Caníbal de Rottemburgo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4278",
+      "type": "answer",
+      "text": "un ingeniero bisexual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4279",
+      "type": "answer",
+      "text": "darle a la carne y el pescado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4280",
+      "type": "answer",
+      "text": "el Monstruo de Amtetten",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4281",
+      "type": "answer",
+      "text": "que te reinicien el Tamagotchi",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4282",
+      "type": "answer",
+      "text": "mi amiga nigga",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4283",
+      "type": "answer",
+      "text": "nunca me han dado por culo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4284",
+      "type": "answer",
+      "text": "hace 5 minutos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4285",
+      "type": "answer",
+      "text": "ayer mismo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4286",
+      "type": "answer",
+      "text": "relajación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4287",
+      "type": "answer",
+      "text": "el sabor de un buen pene limpio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4288",
+      "type": "answer",
+      "text": "gatillazo yendo de putas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4289",
+      "type": "answer",
+      "text": "ni muy rapido ni muy lento",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4290",
+      "type": "answer",
+      "text": "prohibir el burkini",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4291",
+      "type": "answer",
+      "text": "agujeros de ventilación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4292",
+      "type": "answer",
+      "text": "billetes de 1000€",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4293",
+      "type": "answer",
+      "text": "coño frondoso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4294",
+      "type": "answer",
+      "text": "arruinarlo todo en menos de un año",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4295",
+      "type": "answer",
+      "text": "¿ein?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4296",
+      "type": "answer",
+      "text": "¿cómorl?",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4297",
+      "type": "answer",
+      "text": "ser un pecador de la pradera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4298",
+      "type": "answer",
+      "text": "sus muertos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4299",
+      "type": "answer",
+      "text": "pedirlo a gritos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4300",
+      "type": "answer",
+      "text": "playas nudistas infantiles",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4301",
+      "type": "answer",
+      "text": "Fentanilo Sesto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4302",
+      "type": "answer",
+      "text": "el Emperador de la Conferencia Intergaláctica",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4303",
+      "type": "answer",
+      "text": "Chichi y Bulma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4304",
+      "type": "answer",
+      "text": "no voy a estar trabajando todo el día",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4305",
+      "type": "answer",
+      "text": "mi trayectoria en este mundo se ha acabado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4306",
+      "type": "answer",
+      "text": "necesitar casito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4307",
+      "type": "answer",
+      "text": "3 noches en urgencias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4308",
+      "type": "answer",
+      "text": "jueces fachas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4309",
+      "type": "answer",
+      "text": "el Consejo de Ministros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4310",
+      "type": "answer",
+      "text": "darle boletus",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4311",
+      "type": "answer",
+      "text": "saber leer y tener buenas tetas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4312",
+      "type": "answer",
+      "text": "un nuevo ordenador para jugar al poker online",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4313",
+      "type": "answer",
+      "text": "desconectarás de la realidad y de tus preocupaciones disfrutando de una atención personalizada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4314",
+      "type": "answer",
+      "text": "un lugar de La Mancha",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4315",
+      "type": "answer",
+      "text": "el \"Dream Team\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4316",
+      "type": "answer",
+      "text": "acento latino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4317",
+      "type": "answer",
+      "text": "el colectivo LGTB+",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4318",
+      "type": "answer",
+      "text": "preferir travestis a mujeres biológicas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4319",
+      "type": "answer",
+      "text": "para llamar tu atención",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4320",
+      "type": "answer",
+      "text": "los tiempos malos forjan gente dura",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4321",
+      "type": "answer",
+      "text": "aprender a palos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4322",
+      "type": "answer",
+      "text": "depende de los genitales con los que nazcas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4323",
+      "type": "answer",
+      "text": "roles de género",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4324",
+      "type": "answer",
+      "text": "hormigas por la uretra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4325",
+      "type": "answer",
+      "text": "oso hormiguero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4326",
+      "type": "answer",
+      "text": "hormiga osera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4327",
+      "type": "answer",
+      "text": "hacer un CSI",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4328",
+      "type": "answer",
+      "text": "mirar los reels de tus exs con vergüenza ajena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4329",
+      "type": "answer",
+      "text": "estética femboy",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4330",
+      "type": "answer",
+      "text": "muchos estereotipos estadísticamente válidos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4331",
+      "type": "answer",
+      "text": "dar la chapa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4332",
+      "type": "answer",
+      "text": "dar la turra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4333",
+      "type": "answer",
+      "text": "un tostón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4334",
+      "type": "answer",
+      "text": "un ruso en Grindr",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4335",
+      "type": "answer",
+      "text": "ir a los Bosques de Palermo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4336",
+      "type": "answer",
+      "text": "mancharme",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4337",
+      "type": "answer",
+      "text": "necesito tu cipote",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4338",
+      "type": "answer",
+      "text": "una notas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4339",
+      "type": "answer",
+      "text": "ir en patinete y hacer streaming",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4340",
+      "type": "answer",
+      "text": "mi cacahuete",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4341",
+      "type": "answer",
+      "text": "un ciruelo sano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4342",
+      "type": "answer",
+      "text": "algo que me quema por dentro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4343",
+      "type": "answer",
+      "text": "si lo pillo lo reviento",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4344",
+      "type": "answer",
+      "text": "me petaron los oídos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4345",
+      "type": "answer",
+      "text": "ponerse finos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4346",
+      "type": "answer",
+      "text": "no me apetece",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4347",
+      "type": "answer",
+      "text": "me voy a pillar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4348",
+      "type": "answer",
+      "text": "enterrar el hacha de guerra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4349",
+      "type": "answer",
+      "text": "enterrar al cíclope tuerto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4350",
+      "type": "answer",
+      "text": "cuando tú vas, yo vengo de allí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4351",
+      "type": "answer",
+      "text": "noche de peli y mantas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4352",
+      "type": "answer",
+      "text": "gemidos de viejos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4353",
+      "type": "answer",
+      "text": "decir racistadas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4354",
+      "type": "answer",
+      "text": "machista profesional",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4355",
+      "type": "answer",
+      "text": "un pimpollo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4356",
+      "type": "answer",
+      "text": "una raza de lagartos infiltrados en el Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4357",
+      "type": "answer",
+      "text": "agujetas en el culo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4358",
+      "type": "answer",
+      "text": "juegos de pelotas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4359",
+      "type": "answer",
+      "text": "hacer twerking",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4360",
+      "type": "answer",
+      "text": "fruncir el ceño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4361",
+      "type": "answer",
+      "text": "paro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4362",
+      "type": "answer",
+      "text": "la primera fotopolla que recibí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4363",
+      "type": "answer",
+      "text": "propiedad privada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4364",
+      "type": "answer",
+      "text": "su legítimo dueño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4365",
+      "type": "answer",
+      "text": "merengue merengue",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4366",
+      "type": "answer",
+      "text": "los extraterrestres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4367",
+      "type": "answer",
+      "text": "vamos a partirnos el culo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4368",
+      "type": "answer",
+      "text": "follar muchísimo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4369",
+      "type": "answer",
+      "text": "coleccionista de cobras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4370",
+      "type": "answer",
+      "text": "sexo con marcianos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4371",
+      "type": "answer",
+      "text": "no estamos preparado para ello",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4372",
+      "type": "answer",
+      "text": "ser testaferro una empresa militar que compra armas de EEUU para la Guerra de Ucrania",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4373",
+      "type": "answer",
+      "text": "abandonar la OTAN",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4374",
+      "type": "answer",
+      "text": "ser expulsado de la UE",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4375",
+      "type": "answer",
+      "text": "fumar en un quirófano como en los 90s",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4376",
+      "type": "answer",
+      "text": "millones y millones de años luz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4377",
+      "type": "answer",
+      "text": "ya me llegó el burofax",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4378",
+      "type": "answer",
+      "text": "agitador ultra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4379",
+      "type": "answer",
+      "text": "Alf, el extraterrestre que come gatos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4380",
+      "type": "answer",
+      "text": "el truco del almendruco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4381",
+      "type": "answer",
+      "text": "todos los hombres son violadores en potencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4382",
+      "type": "answer",
+      "text": "robar unas cremas en el supermercado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4383",
+      "type": "answer",
+      "text": "liberar a un etarra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4384",
+      "type": "answer",
+      "text": "acoger refugiados climáticos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4385",
+      "type": "answer",
+      "text": "lo hacemos por nuestra seguridad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4386",
+      "type": "answer",
+      "text": "una elite estatal a las órdenes de una potencia colonialista extranjera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4387",
+      "type": "answer",
+      "text": "el Estado arrebatándote el uso de determinadas palabras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4388",
+      "type": "answer",
+      "text": "cum laude",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4389",
+      "type": "answer",
+      "text": "project manager",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4390",
+      "type": "answer",
+      "text": "oler un poco de popper \"por curiosidad\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4391",
+      "type": "answer",
+      "text": "licor de lagarto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4392",
+      "type": "answer",
+      "text": "el Black Alien",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4393",
+      "type": "answer",
+      "text": "para drogadictos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4394",
+      "type": "answer",
+      "text": "La Ley Seca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4395",
+      "type": "answer",
+      "text": "un nido de urracas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4396",
+      "type": "answer",
+      "text": "una cotorra argentina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4397",
+      "type": "answer",
+      "text": "en el fondo, se lo debo todo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4398",
+      "type": "answer",
+      "text": "creo que no era así",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4399",
+      "type": "answer",
+      "text": "uranio, oro y cobre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4400",
+      "type": "answer",
+      "text": "batucadas transfeministas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4401",
+      "type": "answer",
+      "text": "una cárcel dorada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4402",
+      "type": "answer",
+      "text": "legislar cada vez más y empeorar la situación cada vez más",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4403",
+      "type": "answer",
+      "text": "infraviviendas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4404",
+      "type": "answer",
+      "text": "una discusión por una plaza de parking",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4405",
+      "type": "answer",
+      "text": "las Olimpiadas del dopaje",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4406",
+      "type": "answer",
+      "text": "Fukushima",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4407",
+      "type": "answer",
+      "text": "una casa hecha con tofu",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4408",
+      "type": "answer",
+      "text": "diseñado para resistir las sacudidas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4409",
+      "type": "answer",
+      "text": "Juan Echanueve",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4410",
+      "type": "answer",
+      "text": "los Reyes Católicos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4411",
+      "type": "answer",
+      "text": "auge económico y comercial",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4412",
+      "type": "answer",
+      "text": "La Celestina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4413",
+      "type": "answer",
+      "text": "rodearse de una panda de buitres",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4414",
+      "type": "answer",
+      "text": "caso cerrado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4415",
+      "type": "answer",
+      "text": "alimentar al algoritmo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4416",
+      "type": "answer",
+      "text": "un kit de sadomasoquismo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4417",
+      "type": "answer",
+      "text": "pezones como los pulgares de un gorila",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4418",
+      "type": "answer",
+      "text": "el mayor putero de España",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4419",
+      "type": "answer",
+      "text": "estás bastante alterado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4420",
+      "type": "answer",
+      "text": "algo se está preparando",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4421",
+      "type": "answer",
+      "text": "DJ Tiësto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4422",
+      "type": "answer",
+      "text": "con música de Pink Floyd de fondo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4423",
+      "type": "answer",
+      "text": "algo es algo, dijo un calvo...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4424",
+      "type": "answer",
+      "text": "la Transición",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4425",
+      "type": "answer",
+      "text": "Garcilaso de la Verga",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4426",
+      "type": "answer",
+      "text": "quedarme moñeco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4427",
+      "type": "answer",
+      "text": "\"El Chepas\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4428",
+      "type": "answer",
+      "text": "hacer balconing",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4429",
+      "type": "answer",
+      "text": "mi medio hermano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4430",
+      "type": "answer",
+      "text": "mi prima hermana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4431",
+      "type": "answer",
+      "text": "perroflautismo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4432",
+      "type": "answer",
+      "text": "Triano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4433",
+      "type": "answer",
+      "text": "el 15-MEME",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4434",
+      "type": "answer",
+      "text": "ir a una manifa a rebozar la patata",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4435",
+      "type": "answer",
+      "text": "robar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4436",
+      "type": "answer",
+      "text": "comprar papel higiénico en cantidades industriales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4437",
+      "type": "answer",
+      "text": "llevar mascarilla y nada más",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4438",
+      "type": "answer",
+      "text": "Aragorn",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4439",
+      "type": "answer",
+      "text": "paciencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4440",
+      "type": "answer",
+      "text": "un poema de Pablo Neruda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4441",
+      "type": "answer",
+      "text": "los jubilados manchegos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4442",
+      "type": "answer",
+      "text": "parálisis facial",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4443",
+      "type": "answer",
+      "text": "Manual de Resistencia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4444",
+      "type": "answer",
+      "text": "cobrar comisiones por rescates con dinero público",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4445",
+      "type": "answer",
+      "text": "la cara es el espejo del alma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4446",
+      "type": "answer",
+      "text": "luego te la enseño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4447",
+      "type": "answer",
+      "text": "una acampada ilegal de orcos en la Puerta del Sol",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4448",
+      "type": "answer",
+      "text": "abróchate el cinturón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4449",
+      "type": "answer",
+      "text": "andá a la concha de tu madre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4450",
+      "type": "answer",
+      "text": "el colectivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4451",
+      "type": "answer",
+      "text": "la sauna homosexual más grande de España",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4452",
+      "type": "answer",
+      "text": "pérdida de poder adquisitivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4453",
+      "type": "answer",
+      "text": "siempre acaba en una batalla campal",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4454",
+      "type": "answer",
+      "text": "cagar en una bolsa de papel, inflarla y explotarla de una palmada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4455",
+      "type": "answer",
+      "text": "ser corneado la noche de tu boda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4456",
+      "type": "answer",
+      "text": "tener un buen piquete",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4457",
+      "type": "answer",
+      "text": "creerse Fitipaldi con un Dacia Sandero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4458",
+      "type": "answer",
+      "text": "un coche eléctrico chino que se convirtió en una bola de fuego",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4459",
+      "type": "answer",
+      "text": "contenido fresco y actual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4460",
+      "type": "answer",
+      "text": "Sálvame Deluxe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4461",
+      "type": "answer",
+      "text": "no tener un yate",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4462",
+      "type": "answer",
+      "text": "mucho dinero corrompe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4463",
+      "type": "answer",
+      "text": "la vida es muy valiosa y cada momento cuenta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4464",
+      "type": "answer",
+      "text": "si no lo haces hoy te arrepentirás mañana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4465",
+      "type": "answer",
+      "text": "la quiero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4466",
+      "type": "answer",
+      "text": "dormir la mona el domingo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4467",
+      "type": "answer",
+      "text": "y me colgó",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4468",
+      "type": "answer",
+      "text": "te quiero guapa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4469",
+      "type": "answer",
+      "text": "Simón y Silvia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4470",
+      "type": "answer",
+      "text": "estás tardando mucho",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4471",
+      "type": "answer",
+      "text": "DJ residente del Codere de tu barrio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4472",
+      "type": "answer",
+      "text": "Eurovegas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4473",
+      "type": "answer",
+      "text": "soltar el veneno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4474",
+      "type": "answer",
+      "text": "un anormal de manual",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4475",
+      "type": "answer",
+      "text": "un inglés borracho",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4476",
+      "type": "answer",
+      "text": "me verás volar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4477",
+      "type": "answer",
+      "text": "Rabocop",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4478",
+      "type": "answer",
+      "text": "tácticas de ligoteo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4479",
+      "type": "answer",
+      "text": "Luka Modric o Mercedes Milá",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4480",
+      "type": "answer",
+      "text": "siempre te acaban pillando",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4481",
+      "type": "answer",
+      "text": "vividor/follador",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4482",
+      "type": "answer",
+      "text": "me pilló en plena pubertad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4483",
+      "type": "answer",
+      "text": "no mentir",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4484",
+      "type": "answer",
+      "text": "mi equipo del Fifa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4485",
+      "type": "answer",
+      "text": "barra de labios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4486",
+      "type": "answer",
+      "text": "me gusta jugar a la Play desnudo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4487",
+      "type": "answer",
+      "text": "hacemos algo juntos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4488",
+      "type": "answer",
+      "text": "el último descendiente de los castrati",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4489",
+      "type": "answer",
+      "text": "un espectáculo de gónadas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4490",
+      "type": "answer",
+      "text": "pasarse la vida en modo ultra difícil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4491",
+      "type": "answer",
+      "text": "nacer en África",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4492",
+      "type": "answer",
+      "text": "la última tribu no contactada del Amazonas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4493",
+      "type": "answer",
+      "text": "formar un harén con sus técnicas de seducción",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4494",
+      "type": "answer",
+      "text": "el Pro Evolution Soccer 6",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4495",
+      "type": "answer",
+      "text": "Minecraft en la realidad en una mina de coltán",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4496",
+      "type": "answer",
+      "text": "tierras raras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4497",
+      "type": "answer",
+      "text": "un Ferrero Rocher",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4498",
+      "type": "answer",
+      "text": "un Got Talent! con discapacitados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4499",
+      "type": "answer",
+      "text": "de lumis",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4500",
+      "type": "answer",
+      "text": "inventarse historias de maltratos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4501",
+      "type": "answer",
+      "text": "Los Vergadores",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4502",
+      "type": "answer",
+      "text": "la peli porno de Carmen de Mairena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4503",
+      "type": "answer",
+      "text": "ser tronista",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4504",
+      "type": "answer",
+      "text": "0 viewers",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4505",
+      "type": "answer",
+      "text": "ponerme la cabeza como un bombo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4506",
+      "type": "answer",
+      "text": "robar la luz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4507",
+      "type": "answer",
+      "text": "violaciones donde antes no las había",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4508",
+      "type": "answer",
+      "text": "un ternero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4509",
+      "type": "answer",
+      "text": "más impuestos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4510",
+      "type": "answer",
+      "text": "otro ser en mi cuerpo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4511",
+      "type": "answer",
+      "text": "Conchita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4512",
+      "type": "answer",
+      "text": "guacamole",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4513",
+      "type": "answer",
+      "text": "una tetita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4514",
+      "type": "answer",
+      "text": "simplemente estar muy buena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4515",
+      "type": "answer",
+      "text": "un vecino que escucha el himno de España todas las mañanas a todo volumen",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4516",
+      "type": "answer",
+      "text": "con el mismo vigor sexual que un mongólico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4517",
+      "type": "answer",
+      "text": "Gengis Khan",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4518",
+      "type": "answer",
+      "text": "comer y dormir gratis en albergues municipales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4519",
+      "type": "answer",
+      "text": "palizas a los caseros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4520",
+      "type": "answer",
+      "text": "Señor Potato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4521",
+      "type": "answer",
+      "text": "un destornillador por el agujero del capullo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4522",
+      "type": "answer",
+      "text": "alguien que me hizo un mataleón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4523",
+      "type": "answer",
+      "text": "hoy me quedo sólo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4524",
+      "type": "answer",
+      "text": "cintas para dormir con los discursos de Adolf Hitler",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4525",
+      "type": "answer",
+      "text": "un sexteto cervecil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4526",
+      "type": "answer",
+      "text": "la cara desfigurada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4527",
+      "type": "answer",
+      "text": "ser de Badajoz",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4528",
+      "type": "answer",
+      "text": "desbloquear Pokémons nuevos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4529",
+      "type": "answer",
+      "text": "jalarse el dong",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4530",
+      "type": "answer",
+      "text": "choque de espadas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4531",
+      "type": "answer",
+      "text": "masculinidad frágil",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4532",
+      "type": "answer",
+      "text": "mañana madrugo para echar currículums",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4533",
+      "type": "answer",
+      "text": "abrir por accidente las puertas del infierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4534",
+      "type": "answer",
+      "text": "libre albedrío",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4535",
+      "type": "answer",
+      "text": "cariñosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4536",
+      "type": "answer",
+      "text": "¡qué travesura!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4537",
+      "type": "answer",
+      "text": "acariciar su datáfono con mi tarjeta de crédito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4538",
+      "type": "answer",
+      "text": "cuando comía coños",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4539",
+      "type": "answer",
+      "text": "el punto G del hombre se encuentra en el ano",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4540",
+      "type": "answer",
+      "text": "no era el sitio para hacer chistes",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4541",
+      "type": "answer",
+      "text": "a veces la Naturaleza es sabia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4542",
+      "type": "answer",
+      "text": "a pachas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4543",
+      "type": "answer",
+      "text": "prioridad nacional",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4544",
+      "type": "answer",
+      "text": "sacar los patinetes a las calles",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4545",
+      "type": "answer",
+      "text": "yo pensaba que a mi no me iba a pasar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4546",
+      "type": "answer",
+      "text": "maricón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4547",
+      "type": "answer",
+      "text": "liarle un porro a un niño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4548",
+      "type": "answer",
+      "text": "un inglés, un francés y un español",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4549",
+      "type": "answer",
+      "text": "necesitar magia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4550",
+      "type": "answer",
+      "text": "Sonia y Selena completaron su transición y ahora son Sony y Selenio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4551",
+      "type": "answer",
+      "text": "un espectáculo interactivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4552",
+      "type": "answer",
+      "text": "un jugador del Getafe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4553",
+      "type": "answer",
+      "text": "hacerme padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4554",
+      "type": "answer",
+      "text": "el cuerpo humano es acojonante",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4555",
+      "type": "answer",
+      "text": "la campanilla de Peter Pan",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4556",
+      "type": "answer",
+      "text": "una exsorcista que practicaba sexo oral \"para sacarte los demonios\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4557",
+      "type": "answer",
+      "text": "es espeluznante",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4558",
+      "type": "answer",
+      "text": "se echan de menos los asesinos en serie",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4559",
+      "type": "answer",
+      "text": "semen y extremaderecha",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4560",
+      "type": "answer",
+      "text": "empujar demasiado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4561",
+      "type": "answer",
+      "text": "el atentado terrorista con mayor diversidad de la historia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4562",
+      "type": "answer",
+      "text": "campo de nabos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4563",
+      "type": "answer",
+      "text": "vas cambiando de opinión con el paso del tiempo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4564",
+      "type": "answer",
+      "text": "empiezan las preguntas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4565",
+      "type": "answer",
+      "text": "ante todo mucha seriedad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4566",
+      "type": "answer",
+      "text": "ganas de estar juntos pese a tanta adversidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4567",
+      "type": "answer",
+      "text": "¡vamos a jugar!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4568",
+      "type": "answer",
+      "text": "tenéis que venir a verme",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4569",
+      "type": "answer",
+      "text": "fin de la cita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4570",
+      "type": "answer",
+      "text": "11 lingontes de oro alojados en el recto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4571",
+      "type": "answer",
+      "text": "una vieja con unas buenas peras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4572",
+      "type": "answer",
+      "text": "calentando los motores",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4573",
+      "type": "answer",
+      "text": "echar la culpa de todo al Pico del Petróleo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4574",
+      "type": "answer",
+      "text": "el León Comegamba",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4575",
+      "type": "answer",
+      "text": "Copito de Nieve",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4576",
+      "type": "answer",
+      "text": "reventar una sandia de un tetazo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4577",
+      "type": "answer",
+      "text": "no lo puedes dar por muerto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4578",
+      "type": "answer",
+      "text": "Hulk",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4579",
+      "type": "answer",
+      "text": "La Cosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4580",
+      "type": "answer",
+      "text": "Irene Montero en el Consejo de Administración del Mercadona",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4581",
+      "type": "answer",
+      "text": "como lágrimas en la lluvia",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4582",
+      "type": "answer",
+      "text": "ITVs trimestrales y doble baliza V16 en caso de accidente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4583",
+      "type": "answer",
+      "text": "¡envíen ya a los antidisturbios!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4584",
+      "type": "answer",
+      "text": "Festival de Cringe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4585",
+      "type": "answer",
+      "text": "la paga vital",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4586",
+      "type": "answer",
+      "text": "el BOE de los cojones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4587",
+      "type": "answer",
+      "text": "una notificación de Hacienda a las 04:12",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4588",
+      "type": "answer",
+      "text": "el grupo de WhatsApp del edificio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4589",
+      "type": "answer",
+      "text": "mi primo el que trabaja en el Tecnocasa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4590",
+      "type": "answer",
+      "text": "una procesión que no acaba nunca",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4591",
+      "type": "answer",
+      "text": "el portero automático del infierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4592",
+      "type": "answer",
+      "text": "un PowerPoint de 184 diapositivas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4593",
+      "type": "answer",
+      "text": "la receta de la abuela con benzodiacepinas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4594",
+      "type": "answer",
+      "text": "un certificado digital caducado en agosto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4595",
+      "type": "answer",
+      "text": "la cola del centro de extranjería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4596",
+      "type": "answer",
+      "text": "un ERTE emocional",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4597",
+      "type": "answer",
+      "text": "la cuota de autónomo del alma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4598",
+      "type": "answer",
+      "text": "un bizum de 1,37 € con el concepto «leche»",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4599",
+      "type": "answer",
+      "text": "el algoritmo cuando te conoce demasiado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4600",
+      "type": "answer",
+      "text": "una encuesta del CIS a las tres de la madrugada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4601",
+      "type": "answer",
+      "text": "el himno de España en versión reggaetón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4602",
+      "type": "answer",
+      "text": "un concierto de Raphael en el tanatorio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4603",
+      "type": "answer",
+      "text": "la última cerveza de Cruzcampo del universo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4604",
+      "type": "answer",
+      "text": "un Tinder en el que refrescas y solo sale tu padre",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4605",
+      "type": "answer",
+      "text": "la carpeta de descargas del portátil familiar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4606",
+      "type": "answer",
+      "text": "un PDF de 900 páginas titulado Transparencias",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4607",
+      "type": "answer",
+      "text": "un fallo en Correos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4608",
+      "type": "answer",
+      "text": "una firma electrónica que no firma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4609",
+      "type": "answer",
+      "text": "el captcha que te pregunta si eres humano de verdad y te deja pensativo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4610",
+      "type": "answer",
+      "text": "mi historial de Google en manos del párroco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4611",
+      "type": "answer",
+      "text": "un canal de Telegram llamado VerdadAbsoluta2",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4612",
+      "type": "answer",
+      "text": "la cookie de consentimiento de la DGT en mi flamante Tesla",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4613",
+      "type": "answer",
+      "text": "un NFT de la Sagrada Familia minteado por el mismísimo Gaudí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4614",
+      "type": "answer",
+      "text": "el WiFi de la sala de espera de Oncología",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4615",
+      "type": "answer",
+      "text": "una app gubernamental que te notifica cuándo tiran comida a la basura los supermercados",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0338",
+      "type": "prompt",
+      "text": "¿Qué tengo entre las piernas? _______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0339",
+      "type": "prompt",
+      "text": "No quiero ______. Quiero _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0340",
+      "type": "prompt",
+      "text": "¿El peor consejo que te han dado en tu vida?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0341",
+      "type": "prompt",
+      "text": "Cerraron mi cuenta por publicar una foto con los hashtags: #________ y #________",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0342",
+      "type": "prompt",
+      "text": "¿Quién vigila a los vigilantes?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0343",
+      "type": "prompt",
+      "text": "Que vuelva _______ porque esto es demasiado _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0344",
+      "type": "prompt",
+      "text": "¿Qué te ha pasado?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0345",
+      "type": "prompt",
+      "text": "_______. Mi pareja no lo hace.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0346",
+      "type": "prompt",
+      "text": "Contraté unos servicios sexuales de ______ y fue como ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0347",
+      "type": "prompt",
+      "text": "No sabía que te gustaba _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0348",
+      "type": "prompt",
+      "text": "A mi perra le ha salido _______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0349",
+      "type": "prompt",
+      "text": "________. Primer aviso.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0350",
+      "type": "prompt",
+      "text": "Subí mi foto a la IA para mejorar mi aspecto y me recomendó ______ y que dejara de _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0351",
+      "type": "prompt",
+      "text": "Me funearon por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0352",
+      "type": "prompt",
+      "text": "¿A qué se refieren las mujeres cuando hablan de hombres con traumas?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0353",
+      "type": "prompt",
+      "text": "Pedí un Bizum a mi madre porque necesitaba __________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0354",
+      "type": "prompt",
+      "text": "Si un día monto un bar con mis colegas lo llamaremos @________",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0355",
+      "type": "prompt",
+      "text": "Perdí un testículo intentando _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0356",
+      "type": "prompt",
+      "text": "La gente piensa que no, pero _____ es compatible con ________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0357",
+      "type": "prompt",
+      "text": "¿Señor, por qué lleva tierra en su equipaje de mano?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0358",
+      "type": "prompt",
+      "text": "_______ ha llegado a mi barrio.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0359",
+      "type": "prompt",
+      "text": "_______ está en mi casa.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0360",
+      "type": "prompt",
+      "text": "Los expertos avisan que se avecina una sequía de ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0361",
+      "type": "prompt",
+      "text": "El Gobierno subvencionó ______ para ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0362",
+      "type": "prompt",
+      "text": "¿Por qué llamaste al fontanero?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0363",
+      "type": "prompt",
+      "text": "Tengo un amigo que siempre le da por _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0364",
+      "type": "prompt",
+      "text": "Mi comida favorita es ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0365",
+      "type": "prompt",
+      "text": "La gitana, para revertir el hechizo, me pidió que trajera ______ y _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0366",
+      "type": "prompt",
+      "text": "¿Qué eliminarías del mundo?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0367",
+      "type": "prompt",
+      "text": "Viajero del tiempo mata una mosca: _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0368",
+      "type": "prompt",
+      "text": "Se suspendió la quedada para hacer cruising por _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0369",
+      "type": "prompt",
+      "text": "En el Telediario de hoy tenemos dos noticias: ________ y ________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0370",
+      "type": "prompt",
+      "text": "Para conseguir una habitación en Malasaña tuve que _______ al casero.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0371",
+      "type": "prompt",
+      "text": "El desahucio fue paralizado cuando se firmó un acuerdo para _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0372",
+      "type": "prompt",
+      "text": "Mi placer culpable: ______ con ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0373",
+      "type": "prompt",
+      "text": "Conseguí que ______ patrocinara la equipación de nuestro equipo de fútbol de la liga municipal.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0374",
+      "type": "prompt",
+      "text": "________: salir de la Matrix.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0375",
+      "type": "prompt",
+      "text": "Coronavirus: ________ y _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0376",
+      "type": "prompt",
+      "text": "Te voy a dar unos consejos para _______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0377",
+      "type": "prompt",
+      "text": "¿Tienes algún fetiche raro?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0378",
+      "type": "prompt",
+      "text": "¿En qué pensabas cuando te hiciste la última paja?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0379",
+      "type": "prompt",
+      "text": "¿Cuál ha sido tu experiencia sexual más morbosa?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0380",
+      "type": "prompt",
+      "text": "¿Cuál es el sentido de nuestra existencia?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0381",
+      "type": "prompt",
+      "text": "El de aduanas se quedó flipando cuando abrió mi maletero y encontró _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0382",
+      "type": "prompt",
+      "text": "Control de Aduanas: ¿Algo que declarar?: __________",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0383",
+      "type": "prompt",
+      "text": "¿Tu opinión sobre la prostitución? __________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0384",
+      "type": "prompt",
+      "text": "Para recuperar su amor y cariño, usaré la técnica de _______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0385",
+      "type": "prompt",
+      "text": "Me gusta _________ a ________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0386",
+      "type": "prompt",
+      "text": "La primera cita de mis padres consistió en ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0387",
+      "type": "prompt",
+      "text": "______: ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0388",
+      "type": "prompt",
+      "text": "Reto \"______\" se vuelve viral.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0389",
+      "type": "prompt",
+      "text": "El Gobierno ultima un decreto para blindar _______ para _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0390",
+      "type": "prompt",
+      "text": "La Armada de los EEUU ha presentado un nuevo arma para ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0391",
+      "type": "prompt",
+      "text": "_______ es divertido, pero, ¿has probado _______?",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0392",
+      "type": "prompt",
+      "text": "Las soluciones que han propuesto hoy para acabar con la vivienda: 1.________ y 2.________",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0393",
+      "type": "prompt",
+      "text": "En el nuevo 15M había ___________ y un espectáculo de _________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0394",
+      "type": "prompt",
+      "text": "_______ es un ejemplo claro de que _________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0395",
+      "type": "prompt",
+      "text": "Alexa: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0396",
+      "type": "prompt",
+      "text": "Regla 1: ______. Regla 2: ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0397",
+      "type": "prompt",
+      "text": "Lo reconozco: me gusta enseñar ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0398",
+      "type": "prompt",
+      "text": "En la última peli de Saw torturan a la gente con _______ y _________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0399",
+      "type": "prompt",
+      "text": "Me dejaron entrar a un club secreto gracias a que llevaba ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0400",
+      "type": "prompt",
+      "text": "Cuando me llevaron a ese narcopiso vi _________ y ________ en exceso.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0401",
+      "type": "prompt",
+      "text": "Hacienda me pide el ______.xls y no sé qué hacer…",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0402",
+      "type": "prompt",
+      "text": "La sesión que puse en el after se llamaba ______.mp3",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0403",
+      "type": "prompt",
+      "text": "Película ganadora en tu cabeza: «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0404",
+      "type": "prompt",
+      "text": "El BOE publica «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0405",
+      "type": "prompt",
+      "text": "El cuento que le leo a mi hija todas las noches se titula «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0406",
+      "type": "prompt",
+      "text": "Fichaje bomba: el Señor ______ firma por el Gobierno.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0407",
+      "type": "prompt",
+      "text": "Me presento: soy Don ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0408",
+      "type": "prompt",
+      "text": "En la pancarta por la manifestación de la vivienda ponía: ¡______!",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0409",
+      "type": "prompt",
+      "text": "El megáfono del piquete a todo volúmen: ¡______!",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0410",
+      "type": "prompt",
+      "text": "Versión censurada del comunicado: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0411",
+      "type": "prompt",
+      "text": "En el telediario censuraron lo que le dijeron al Presidente del Gobierno: *______*, *______*",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0412",
+      "type": "prompt",
+      "text": "Mis amigos creamos la Asociación ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0413",
+      "type": "prompt",
+      "text": "La nueva agencia pública se presenta con el acrónimo ______. y tiene como objetivo ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0414",
+      "type": "prompt",
+      "text": "Padres y ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0415",
+      "type": "prompt",
+      "text": "Uno o ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0416",
+      "type": "prompt",
+      "text": "______ es divertido, pero ¿has probado ______?",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0417",
+      "type": "prompt",
+      "text": "La sede electrónica de tu pueblo: www.______.ayto.es",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0418",
+      "type": "prompt",
+      "text": "Santoral de hoy: San ______, hashtag #______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0419",
+      "type": "prompt",
+      "text": "No abras ______.zip; dentro va ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0420",
+      "type": "prompt",
+      "text": "Correo desde donde recibí el chantaje: ______@proton.me — asunto: ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0421",
+      "type": "prompt",
+      "text": "Portada de El Mundo demoledora: «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0422",
+      "type": "prompt",
+      "text": "Mi página web personal es _____._____.com",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0423",
+      "type": "prompt",
+      "text": "Por fin conseguí un dominio para mi negocio ______.com",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0424",
+      "type": "prompt",
+      "text": "Nunca se te ocurra entrar en www.______.net",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0425",
+      "type": "prompt",
+      "text": "El Ayuntamiento ha lanzado la sede electrónica del ciudadano en www.______.madrid.es.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0426",
+      "type": "prompt",
+      "text": "¿Necesitas trabajo? Escríbeme a ______@______.com",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0427",
+      "type": "prompt",
+      "text": "¿Quieres pasarlo bien esta noche? Escríbeme a ______@hotmail.com",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0428",
+      "type": "prompt",
+      "text": "El correo desde el que recibimos el chivatazo fue ________@______.com",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0429",
+      "type": "prompt",
+      "text": "Si te llega un correo desde ______@______.com prométeme que nunca lo leerás",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0430",
+      "type": "prompt",
+      "text": "Se me infectó el ordenador cuando abrí ______.pdf",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0431",
+      "type": "prompt",
+      "text": "La prueba de que yo no soy está en la captura-______.jpg",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0432",
+      "type": "prompt",
+      "text": "Agrégame a Telegram, mi user es @______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0433",
+      "type": "prompt",
+      "text": "Me contactó un usuario llamado @______ para chantajearme con ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0434",
+      "type": "prompt",
+      "text": "La página web del PSOE para estas elecciones es www.______.es",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0435",
+      "type": "prompt",
+      "text": "Las siglas oficiales del plan son ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0436",
+      "type": "prompt",
+      "text": "En el atestado, tachado: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0437",
+      "type": "prompt",
+      "text": "Película ganadora: «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0438",
+      "type": "prompt",
+      "text": "El trending topic de hoy es #______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0439",
+      "type": "prompt",
+      "text": "Yo me bauticé en la Iglesia de San ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0440",
+      "type": "prompt",
+      "text": "Tengo mucha suerte de vivir en la Calle ______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0441",
+      "type": "prompt",
+      "text": "El bebé se llamará ______ en honor a ________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0442",
+      "type": "prompt",
+      "text": "Login del trabajo: usuario: ______ / Contraseña: \"______\"",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0443",
+      "type": "prompt",
+      "text": "Te doy los datos del router: Wifi \"______\" / contraseña \"______\".",
+      "pick": 2
     }
   ],
   "counts": {
-    "total": 3541,
-    "prompts": 276,
-    "answers": 3265
+    "total": 4603,
+    "prompts": 382,
+    "answers": 4221
   },
   "playable": true
 }

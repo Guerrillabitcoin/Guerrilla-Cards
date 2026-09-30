@@ -727,7 +727,7 @@
     {
       "id": "politica-a-0135",
       "type": "answer",
-      "text": "garantizar la Igualdad de oportunidades con euros",
+      "text": "garantizar la igualdad de oportunidades con euros",
       "pick": 1
     },
     {
@@ -789,12 +789,168 @@
       "type": "prompt",
       "text": "El nuevo impuesto de Hacienda gravará ______ en el extranjero.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3693",
+      "type": "answer",
+      "text": "pensión no contributiva",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3786",
+      "type": "answer",
+      "text": "no quiero tu dinero, quiero tu salvación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3844",
+      "type": "answer",
+      "text": "ir a EuroDisney",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3889",
+      "type": "answer",
+      "text": "una era de escasez, inflación y tipos altos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3910",
+      "type": "answer",
+      "text": "50euros y un gramo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3928",
+      "type": "answer",
+      "text": "creo que nuestros impuestos no se están usando muy bien",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3946",
+      "type": "answer",
+      "text": "vivir de subvenciones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3954",
+      "type": "answer",
+      "text": "con el dinero de otro es muy barato",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3995",
+      "type": "answer",
+      "text": "abuso de dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3997",
+      "type": "answer",
+      "text": "la desnacionalización del dinero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3998",
+      "type": "answer",
+      "text": "prohibir el dinero en efectivo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3999",
+      "type": "answer",
+      "text": "crédito social muy bajo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4135",
+      "type": "answer",
+      "text": "un país donde no hay que pagar impuestos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4141",
+      "type": "answer",
+      "text": "trazar unas paralelas con la tarjeta de crédito",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4202",
+      "type": "answer",
+      "text": "el dinero es una hermosa herramienta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4220",
+      "type": "answer",
+      "text": "el litro de diesel a 4 euros",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4248",
+      "type": "answer",
+      "text": "hacerle un truco de magia a Hacienda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4377",
+      "type": "answer",
+      "text": "ya me llegó el burofax",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4444",
+      "type": "answer",
+      "text": "cobrar comisiones por rescates con dinero público",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4462",
+      "type": "answer",
+      "text": "mucho dinero corrompe",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4472",
+      "type": "answer",
+      "text": "Eurovegas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4509",
+      "type": "answer",
+      "text": "más impuestos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4537",
+      "type": "answer",
+      "text": "acariciar su datáfono con mi tarjeta de crédito",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0353",
+      "type": "prompt",
+      "text": "Pedí un Bizum a mi madre porque necesitaba __________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0361",
+      "type": "prompt",
+      "text": "El Gobierno subvencionó ______ para ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0401",
+      "type": "prompt",
+      "text": "Hacienda me pide el ______.xls y no sé qué hacer…",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 131,
-    "prompts": 30,
-    "answers": 101
+    "total": 157,
+    "prompts": 33,
+    "answers": 124
   },
   "playable": true
 }
