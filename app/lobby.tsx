@@ -331,6 +331,12 @@ export default function LobbyScreen() {
       void (async () => {
         const g = getGame(game.code);
         if (!g) return;
+        if (g.coreAutoAdded) {
+          notify(
+            'Mazos',
+            'Pocas respuestas para tantos jugadores: se ha añadido el mazo core.'
+          );
+        }
         await pushRoom(g, await getMySeat(game.code));
       })();
       router.replace({ pathname: '/play', params: { code: game.code } });

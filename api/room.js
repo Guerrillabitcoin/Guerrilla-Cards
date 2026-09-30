@@ -271,7 +271,7 @@ function lobbyStamp(state) {
  * Atomic-ish lobby join: re-read before SET; retry if another writer won the race.
  * Prevents host/peer upsert (GET@2 seats → SET) from wiping a concurrent 3rd join.
  */
-async function joinLobbyAtomic(key, code, nicknameDesired) {
+async function joinLobbyAtomic(key, code, nicknameDesired, onSeat) {
   const MAX_ATTEMPTS = 5;
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const existingData = await kvGetRoomData(key);
@@ -327,6 +327,7 @@ async function joinLobbyAtomic(key, code, nicknameDesired) {
     if (!again || lobbyStamp(again) !== before) {
       continue; // raced — retry with fresh roster
     }
+    if (onSeat) onSeat(playerId);
     await kvSetRoom(key, payload);
     // Verify our seat survived a trailing concurrent SET
     const verifyData = await kvGetRoomData(key);
@@ -660,7 +661,18 @@ function autoSubmitBotsServer(state) {
     const hand = p.hand || [];
     if (hand.length < pick) continue;
     const cards = hand.slice(0, pick).map((c) => ({ ...c }));
-    const remain = hand.slice(pick);
+    let remain = hand.slice(pick);
+    // Refill the bot hand server-side (never hold < HAND_SIZE after a server pick).
+    try {
+      const { drawFresh } = require('./serverDeck');
+      const fresh = drawFresh(
+        { ...state, players, submissions: [...submissions, { playerId: p.id, cards }] },
+        Math.max(0, HAND_SIZE_MERGE - remain.length)
+      );
+      remain = [...remain, ...fresh];
+    } catch (e) {
+      /* keep short hand; host refills next round */
+    }
     players = players.map((x) =>
       x && x.id === p.id ? { ...x, hand: remain } : x
     );
@@ -1162,28 +1174,21 @@ async function handlePostLocked(body, action, res) {
           return res.status(400).json({ ok: false, error: 'bad_code' });
         }
         const key = `${ROOM_PREFIX}${code}`;
+        let seatToken = null;
         const joined = await joinLobbyAtomic(
           key,
           code,
-          seatAuth.sanitizeNick(body.nickname)
-        );
-        if (joined.status === 200 && joined.body && joined.body.playerId) {
-          const prevTokens = lockTokens();
-          if (prevTokens) {
-            // Token room: issue a secret for the new seat (legacy rooms stay tokenless).
-            const tokens = { ...prevTokens };
-            const seatToken = seatAuth.newToken();
-            tokens[joined.body.playerId] = seatToken;
-            await kvPipeline([
-              ['SET', seatAuth.tokensKey(code), JSON.stringify(tokens), 'EX', String(ROOM_TTL_SEC)],
-            ]);
-            const ctx = lockCtx.getStore();
-            if (ctx) {
-              ctx.tokens = tokens;
-              ctx.tokensDirty = false;
-            }
-            joined.body.seatToken = seatToken;
+          seatAuth.sanitizeNick(body.nickname),
+          (playerId) => {
+            const prevTokens = lockTokens();
+            if (!prevTokens) return; // legacy room: stays tokenless
+            seatToken = seatAuth.newToken();
+            // Written in the same pipeline as the room SET + unlock (atomic).
+            setLockTokens({ ...prevTokens, [playerId]: seatToken });
           }
+        );
+        if (joined.status === 200 && joined.body && seatToken) {
+          joined.body.seatToken = seatToken;
         }
         return res.status(joined.status).json(joined.body);
       }
@@ -1345,6 +1350,14 @@ async function handlePostLocked(body, action, res) {
         if (!seatAuth.seatAuthOk(lockTokens(), actorId, reqToken)) return denied();
         incoming = seatAuth.restrictIncoming(existing, incoming, actorId);
         incoming = seatAuth.applyServerScoring(existing, incoming, actorId);
+        // Single dealer: only the host (or the fallback seat after grace) advances rounds.
+        if (
+          (existing.phase === 'reveal' || existing.phase === 'discarding') &&
+          gameProgress(incoming) > gameProgress(existing) &&
+          !require('./dealer').mayAdvanceFrom(existing, actorId)
+        ) {
+          return res.status(200).json({ ok: true, skipped: true, dealer: 'host', state: existing, code });
+        }
       } else {
         // New room: the pushing host gets the first seat token; server-owned scores.
         const hostSeat = (incoming.players || []).find((p) => p && p.isHost);

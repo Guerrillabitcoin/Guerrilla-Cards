@@ -436,18 +436,6 @@ function answerRemaining(state: GameState): number {
   return Math.max(0, (state.answerDeck?.length ?? 0) - (state.answerDeckPos ?? 0));
 }
 
-function drawAnswers(
-  deck: Card[],
-  pos: number,
-  n: number
-): { drawn: Card[]; pos: number } {
-  if (n <= 0) return { drawn: [], pos };
-  if (deck.length - pos < n) {
-    throw new Error('Se acabaron las cartas de respuesta. Reinicia con más packs.');
-  }
-  return { drawn: deck.slice(pos, pos + n), pos: pos + n };
-}
-
 /** Emergency top-up only. Real shuffle is at create/reiniciar. */
 function refillAnswerDeck(state: GameState): Card[] {
   const { answers } = loadCombinedDeck(state.packIds);
@@ -473,7 +461,8 @@ function replaceInHand(
   hand: Card[],
   cardIds: string[],
   deck: Card[],
-  pos: number
+  pos: number,
+  state?: GameState
 ): { hand: Card[]; answerDeck: Card[]; answerDeckPos: number } {
   const idSet = new Set(cardIds);
   const indices = hand
@@ -482,12 +471,40 @@ function replaceInHand(
   if (indices.length === 0) {
     return { hand, answerDeck: deck, answerDeckPos: pos };
   }
-  const { drawn, pos: nextPos } = drawAnswers(deck, pos, indices.length);
+  // Never draw a card that is in ANY hand or in play this round (the pile has
+  // several laps, so the same id can come up again while still out).
+  const occupied = new Set<string>(hand.map((c) => c.id));
+  if (state) {
+    for (const p of state.players) for (const c of p.hand) occupied.add(c.id);
+    for (const s of state.submissions ?? []) for (const c of s.cards) occupied.add(c.id);
+  }
+  let answerDeck = deck;
+  let nextPos = pos;
+  const drawn: Card[] = [];
+  let refilled = false;
+  let guard = 0;
+  const maxGuard = Math.max(answerDeck.length * 2, 256);
+  while (drawn.length < indices.length && guard++ < maxGuard) {
+    if (nextPos >= answerDeck.length) {
+      if (refilled || !state) break;
+      refilled = true;
+      const extra = shuffle(refillAnswerDeck(state).filter((c) => !occupied.has(c.id)));
+      if (!extra.length) break;
+      answerDeck = answerDeck.concat(extra);
+    }
+    const c = answerDeck[nextPos++];
+    if (!c || occupied.has(c.id)) continue;
+    occupied.add(c.id);
+    drawn.push(c);
+  }
+  if (drawn.length < indices.length) {
+    throw new Error('Se acabaron las cartas de respuesta. Reinicia con más packs.');
+  }
   const next = [...hand];
   indices.forEach((idx, j) => {
     next[idx] = drawn[j];
   });
-  return { hand: next, answerDeck: deck, answerDeckPos: nextPos };
+  return { hand: next, answerDeck, answerDeckPos: nextPos };
 }
 
 function drawPrompt(state: GameState): {
@@ -572,7 +589,37 @@ function dealHands(state: GameState): GameState {
   return { ...next, players, answerDeck, answerDeckPos };
 }
 
+/** Unique answers needed for N seats: full hands + a max-pick round in play + margin. */
+export function minAnswersForSeats(seats: number): number {
+  const n = Math.max(1, seats);
+  return HAND_SIZE * n + 3 * n + 12;
+}
+
+/**
+ * Multi start: if the selected packs cannot cover every hand without repeats,
+ * add core (once) and rebuild the piles. Flags coreAutoAdded for a UI notice.
+ */
+export function ensureEnoughAnswers(state: GameState): GameState {
+  if (state.mode === 'solo') return state;
+  const need = minAnswersForSeats(state.players.length);
+  const { answers } = loadCombinedDeck(state.packIds);
+  if (answers.length >= need || state.packIds.includes('core')) return state;
+  const packIds = ['core', ...state.packIds];
+  const combined = loadCombinedDeck(packIds);
+  const used = new Set(state.usedPromptIds ?? []);
+  return {
+    ...state,
+    packIds,
+    coreAutoAdded: true,
+    promptDeck: buildVariedPromptDeck(combined.prompts.filter((p) => !used.has(p.id))),
+    promptDeckPos: 0,
+    answerDeck: buildPreShuffledAnswerDeck(combined.answers, [], 3),
+    answerDeckPos: 0,
+  };
+}
+
 export function startGame(state: GameState): GameState {
+  state = ensureEnoughAnswers(state);
   if (state.mode === 'solo') {
     if (state.players.length < 1) {
       throw new Error('Haz falta al menos 1 jugador.');
@@ -688,7 +735,8 @@ export function submitCards(
     player.hand,
     cardIds,
     ready.answerDeck,
-    ready.answerDeckPos ?? 0
+    ready.answerDeckPos ?? 0,
+    ready
   );
   const players = ready.players.map((p) =>
     p.id === playerId ? { ...p, hand: newHand } : p
@@ -1186,7 +1234,8 @@ function applyDiscardOnly(
     player.hand,
     cardIds,
     ready.answerDeck,
-    ready.answerDeckPos ?? 0
+    ready.answerDeckPos ?? 0,
+    ready
   );
   const players = ready.players.map((p) =>
     p.id === playerId ? { ...p, hand: newHand } : p
@@ -1308,7 +1357,8 @@ export function soloSkipRoundDiscard(
     player.hand,
     cardIds,
     ready.answerDeck,
-    ready.answerDeckPos ?? 0
+    ready.answerDeckPos ?? 0,
+    ready
   );
   const players = ready.players.map((p) =>
     p.id === playerId ? { ...p, hand: newHand } : p

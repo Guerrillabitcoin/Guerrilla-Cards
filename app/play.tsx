@@ -40,6 +40,7 @@ import {
   setOnlineFlag,
 } from '@/src/store/roomSync';
 import { castVoteRoom } from '@/src/store/castVoteRoom';
+import { fallbackDealerId, HOST_GRACE_MS, mayDeal } from '@/src/engine/dealer';
 import { useRoomPoll } from '@/src/store/useRoomPoll'; import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
 
@@ -1340,10 +1341,16 @@ export default function PlayScreen() {
             (p) => p.id === myPlayerId && p.isHost
           );
           const votoDividido = !cur.roundWinnerId;
+          // Single dealer: host deals; fallback seat only after HOST_GRACE_MS.
+          void iAmNextZar;
+          void votoDividido;
           const mayAdvance =
-            iAmNextZar || iAmHost || votoDividido || !!opts?.hostFallback;
+            iAmHost || !!opts?.hostFallback || mayDeal(cur, myPlayerId);
           if (!mayAdvance) {
             advancingLockRef.current = false;
+            if (fallbackDealerId(cur) === myPlayerId) {
+              setTimeout(() => continueRoundRef.current?.(), HOST_GRACE_MS + 1500);
+            }
             return;
           }
         }
@@ -2344,13 +2351,13 @@ export default function PlayScreen() {
                     {!isSolo ? (
                       <Muted>
                         {iAmNextZar
-                          ? 'Eres el próximo Comandante: empieza ya o en 8 s pasa sola.'
+                          ? 'Eres el próximo Comandante: la siguiente ronda empieza sola en unos segundos.'
                           : iAmHostPlayer
                             ? 'Eres anfitrión: puedes forzar la siguiente ronda o esperar el contador.'
-                            : `Esperando a que ${winnerName} (Comandante) o el anfitrión empiece la siguiente ronda…`}
+                            : 'La siguiente ronda empieza sola en unos segundos (reparte el anfitrión)…'}
                       </Muted>
                     ) : null}
-                                       {isSolo || iAmNextZar || iAmHostPlayer || !isOnline ? (
+                                       {isSolo || iAmHostPlayer || !isOnline ? (
                       <AdvanceRoundButton
                         isSolo={!!isSolo}
                         isZar={!!iAmNextZar}

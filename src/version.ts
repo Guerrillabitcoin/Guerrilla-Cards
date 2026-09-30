@@ -1,5 +1,5 @@
-/** 0.99.422.24: tokens de asiento + validación + puntos en servidor. */
-export const APP_VERSION = '0.99.422.24';
+/** 0.99.422.25: reparto único, robos sin duplicados, bots rellenan, core auto. */
+export const APP_VERSION = '0.99.422.25';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.25',
+    date: '2026-09-30',
+    notes:
+      'Reparto único: solo el anfitrión reparte/avanza ronda (fin de revelado y fin de descarte); si falta, un asiento de relevo tras 10 s (servidor lo impone). Robos sin repetir cartas en ninguna mano ni en juego; servidor rellena la mano de los bots. Mínimo de respuestas = 12×asientos + margen; si no llega, se añade core con aviso. Fix .24: token de asiento se guarda atómicamente al unirse (uniones simultáneas perdían token).',
+  },
   {
     version: '0.99.422.24',
     date: '2026-09-30',

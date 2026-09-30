@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import * as Engine from '../engine/game';
 import { restartFlexible } from '../engine/startFlexible';
+import { mayDeal } from '../engine/dealer';
 import { dropStaleRemote, rematchLive } from './remoteGate';
 import { roomPaintKey } from './roomSnap';import {
   buildPreShuffledAnswerDeck,
@@ -572,7 +573,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         };
       }
       // Discarding with full roster (possibly after union): advance like answers→judging
-      if (remote.phase === 'discarding') {
+      if (remote.phase === 'discarding' && mayDeal(remote, seat)) {
         remote = Engine.advanceDiscardIfReady(remote);
       }
       // Only re-attach OUR in-progress answer for THIS submitting round+prompt.
@@ -652,7 +653,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Skip double coerce — ref state is already live
       const prev = cur;
       let next = { ...updater(prev), updatedAt: Date.now() };
-      next = Engine.advanceDiscardIfReady(next);
+      // Single dealer: online, only the host deals the post-discard round.
+      if (mayDeal(next, getMySeatSync(code))) {
+        next = Engine.advanceDiscardIfReady(next);
+      }
       next = Engine.advanceToJudgingIfReady(next);
       gamesRef.current = { ...gamesRef.current, [code]: next };
       // Single-key React update (not rebuilding every game)

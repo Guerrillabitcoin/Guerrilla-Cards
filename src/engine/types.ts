@@ -95,6 +95,8 @@ export interface GameState {
   restartReadyIds?: string[];
   leagueAwarded?: boolean;
   leagueMatchCount?: number;
+  /** Multi start: selected packs had too few answers → core was added. */
+  coreAutoAdded?: boolean;
 }
 
 export interface WinningHistoryItem {
