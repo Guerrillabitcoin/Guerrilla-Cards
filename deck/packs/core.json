@@ -18601,8 +18601,8 @@
     {
       "id": "core-p-0253",
       "type": "prompt",
-      "text": "¿Dos recuerdos de mi infancia? 1. ______ y 2.",
-      "pick": 1
+      "text": "¿Dos recuerdos de mi infancia? 1. ______ y 2. ______.",
+      "pick": 2
     },
     {
       "id": "core-p-0254",

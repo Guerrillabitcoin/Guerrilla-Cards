@@ -1,5 +1,5 @@
-/** 0.99.422.21: mazos barrido + lote nuevo. Glue 422.20 en el motor. */
-export const APP_VERSION = '0.99.422.21';
+/** 0.99.422.22: fix pregunta «Dos recuerdos de mi infancia» (2 huecos). */
+export const APP_VERSION = '0.99.422.22';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.22',
+    date: '2026-09-30',
+    notes:
+      'Mazo core: «¿Dos recuerdos de mi infancia? 1. ______ y 2. ______.» ahora con 2 huecos (pick 2).',
+  },
   {
     version: '0.99.422.21',
     date: '2026-09-30',
