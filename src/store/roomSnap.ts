@@ -25,5 +25,6 @@ export function roomPaintKey(g?: GameState | null): string {
       .join(','),
     g.roundWinnerId ?? '',
     String(g.maxPlayers ?? ''),
+    JSON.stringify(g.handFix ?? {}),
   ].join('~');
 }

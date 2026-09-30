@@ -97,6 +97,8 @@ export interface GameState {
   leagueMatchCount?: number;
   /** Multi start: selected packs had too few answers → core was added. */
   coreAutoAdded?: boolean;
+  /** Server-only: seat → ms when the server swapped a duplicate card in that hand. */
+  handFix?: Record<string, number>;
 }
 
 export interface WinningHistoryItem {

@@ -1,5 +1,5 @@
-/** 0.99.422.31: v0.99.422.31 */
-export const APP_VERSION = '0.99.422.31';
+/** 0.99.422.32: v0.99.422.32 */
+export const APP_VERSION = '0.99.422.32';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.32',
+    date: '2026-09-30',
+    notes:
+      'Arreglo: carta repetida entre manos tras envíos simultáneos — el servidor la cambia por una nueva y el cliente adopta su mano; y enlace de asiento que abría con la mano vacía',
+  },
   {
     version: '0.99.422.31',
     date: '2026-09-30',

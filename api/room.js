@@ -1622,6 +1622,7 @@ async function handlePostLocked(body, action, res) {
         state = awardOnResults(state);
       }
       state = sanitizeRoomState(state);
+      state = require('./_lib/dedupeHands').dedupeHands(existing, state);
       state.leagueScores = mergeLeagueMaps(
         existing && existing.leagueScores,
         incoming && incoming.leagueScores,

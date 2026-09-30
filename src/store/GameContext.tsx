@@ -30,6 +30,7 @@ import {
   getMySeatSync,
   hasRicherVotes,
   mergeHandsPreserveLocal,
+  serverFixedMyHand,
   pushRoom,
   pushRoomConfirmed,
 } from './roomSync';
@@ -358,10 +359,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const applyRemoteGame = useCallback(
     (state: GameState, opts?: { force?: boolean }) => {
-      const force = !!opts?.force;
       const key = state.code.trim().toUpperCase();
             let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
+      // Server dedup-swapped a card in my hand: take it even if local looks newer.
+      // Only when remote is not behind us (never resurrect an older phase/round).
+      const mySeat = getMySeatSync(key);
+      // Also: my hand is empty locally (e.g. first poll went out before the seat token
+      // was stored → server stripped hands) but the server sent it → take it.
+      const myLocalHand = mySeat ? local?.players?.find((p) => p.id === mySeat)?.hand : undefined;
+      const myRemoteHand = mySeat ? remote.players?.find((p) => p.id === mySeat)?.hand : undefined;
+      const richerMyHand =
+        !!local && !!mySeat && (myLocalHand?.length ?? 0) === 0 && (myRemoteHand?.length ?? 0) > 0;
+      const force =
+        !!opts?.force ||
+        ((serverFixedMyHand(remote, local, mySeat) || richerMyHand) &&
+          (!local || gameProgress(remote) >= gameProgress(local)));
      if (
         !force &&
         local &&
@@ -686,6 +699,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             // then re-push so peer ballots land on the server.
             const shouldMerge =
               !local ||
+              serverFixedMyHand(remote, local, seatId) ||
               (remote.updatedAt ?? 0) > (local.updatedAt ?? 0) ||
               hasRicherVotes(remote, local) ||
               hasRicherVotes(local, remote) ||

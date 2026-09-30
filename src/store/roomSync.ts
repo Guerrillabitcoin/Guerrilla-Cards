@@ -169,6 +169,16 @@ export function slimForRoom(
   return { ...state, players, submissions, promptDeck: [], answerDeck: [] };
 }
 
+/** True when the server fixed (dedup-swapped) this seat's hand after our local copy. */
+export function serverFixedMyHand(
+  remote: GameState | null | undefined,
+  local: GameState | null | undefined,
+  seat?: string | null
+): boolean {
+  if (!seat || !remote?.handFix) return false;
+  return (remote.handFix[seat] ?? 0) > (local?.handFix?.[seat] ?? 0);
+}
+
 export function mergeHandsPreserveLocal(
   remote: GameState,
   local: GameState | null | undefined,
@@ -179,6 +189,10 @@ export function mergeHandsPreserveLocal(
   const players = remote.players.map((rp) => {
     const lp = localById.get(rp.id);
     if (myPlayerId && rp.id === myPlayerId) {
+      // Server swapped a duplicate in my hand → adopt the server hand verbatim.
+      if (serverFixedMyHand(remote, local, myPlayerId) && rp.hand && rp.hand.length > 0) {
+        return rp;
+      }
       if (
         local.phase === 'discarding' &&
         (local.discardDonePlayerIds ?? []).includes(myPlayerId) &&
