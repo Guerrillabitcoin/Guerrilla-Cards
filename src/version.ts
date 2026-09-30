@@ -1,5 +1,5 @@
-/** 0.99.422.28: v0.99.422.28 */
-export const APP_VERSION = '0.99.422.28';
+/** 0.99.422.29: v0.99.422.29 */
+export const APP_VERSION = '0.99.422.29';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.29',
+    date: '2026-09-30',
+    notes:
+      'play.tsx troceado (1): estilos a usePlayStyles.ts y rivalLabel a su módulo; sin cambios de comportamiento',
+  },
   {
     version: '0.99.422.28',
     date: '2026-09-30',
