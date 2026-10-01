@@ -26,7 +26,6 @@ export type AppTheme = {
   id: ThemeId;
   label: string;
   colors: ThemeColors;
-  /** Base UI/card font stack. */
   fontFamily: string;
 };
 
@@ -42,7 +41,6 @@ const system = Platform.select({
   default: 'System',
 }) as string;
 
-/** Current Guerrilla look — default. */
 export const guerrillaTheme: AppTheme = {
   id: 'guerrilla',
   label: 'Guerrilla',
@@ -64,16 +62,10 @@ export const guerrillaTheme: AppTheme = {
     promptText: '#F7F2FF',
     answerBg: '#B84F0E',
     answerText: '#FFF8F0',
-    zar: '#FFC857',
+    zar: '#E06A1A',
   },
 };
 
-/**
- * Classic CAH-inspired B/W.
- * Answers: black bg + white text (as requested).
- * Prompts: white bg + black text so they stay distinct.
- * All Verdana.
- */
 export const classicTheme: AppTheme = {
   id: 'classic',
   label: 'Classic',
@@ -83,7 +75,6 @@ export const classicTheme: AppTheme = {
     bgElevated: '#FFFFFF',
     bgCard: '#FFFFFF',
     border: '#111111',
-    // Resaltes home (packs/opciones): naranja oscuro + texto claro
     accent: '#C45A12',
     accentDim: '#8C3F0C',
     accentSoft: '#E07A30',
@@ -96,11 +87,10 @@ export const classicTheme: AppTheme = {
     promptText: '#111111',
     answerBg: '#111111',
     answerText: '#FFFFFF',
-    zar: '#111111',
+    zar: '#C45A12',
   },
 };
 
-/** Dark mode — deep neutrals, soft accent. */
 export const oscuroTheme: AppTheme = {
   id: 'oscuro',
   label: 'Oscuro',
@@ -122,7 +112,7 @@ export const oscuroTheme: AppTheme = {
     promptText: '#ECEAF0',
     answerBg: '#8A4A22',
     answerText: '#FFF6EE',
-    zar: '#D4B45A',
+    zar: '#D4844A',
   },
 };
 

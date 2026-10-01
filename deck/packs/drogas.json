@@ -615,12 +615,246 @@
       "type": "prompt",
       "text": "He dejado de fumar. Ahora mi vicio es ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3674",
+      "type": "answer",
+      "text": "Basuko Nazario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3678",
+      "type": "answer",
+      "text": "papel, filtros y tabaco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3682",
+      "type": "answer",
+      "text": "la vacuna contra la adicción a la cocaína",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3683",
+      "type": "answer",
+      "text": "un pedo con nicotina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3697",
+      "type": "answer",
+      "text": "positivo en cocaína y en anfetaminas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3723",
+      "type": "answer",
+      "text": "MDMA para celiacos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3724",
+      "type": "answer",
+      "text": "popper sin plomo 95",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3785",
+      "type": "answer",
+      "text": "una pastilla contra la calvicie",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3791",
+      "type": "answer",
+      "text": "me pasó el crack",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3800",
+      "type": "answer",
+      "text": "bajo la persiana y fumo marihuana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3803",
+      "type": "answer",
+      "text": "Speedball: una mezcla de heroína y cocaína vía intravenosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3817",
+      "type": "answer",
+      "text": "jaco en vena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3819",
+      "type": "answer",
+      "text": "montarme en el FakeTaxi",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3824",
+      "type": "answer",
+      "text": "fumar base",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3849",
+      "type": "answer",
+      "text": "carreras ilegales de caracoles rebozados en speed",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3876",
+      "type": "answer",
+      "text": "un piso-discoteca donde compran farlopa los famosos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3925",
+      "type": "answer",
+      "text": "probar el MDMA",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3931",
+      "type": "answer",
+      "text": "un paquete de Ducados",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3958",
+      "type": "answer",
+      "text": "una puntita de keta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3964",
+      "type": "answer",
+      "text": "cocaína para trabajar porque mi curro me lo exige",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3965",
+      "type": "answer",
+      "text": "fumar salvia escuchando Carmina Burana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4001",
+      "type": "answer",
+      "text": "un cartoncito con LSD",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4015",
+      "type": "answer",
+      "text": "Super Skunk",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4016",
+      "type": "answer",
+      "text": "Amnesia Haze",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4017",
+      "type": "answer",
+      "text": "varios kilos de White Widow de los gitanos de Granada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4028",
+      "type": "answer",
+      "text": "huele a porro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4102",
+      "type": "answer",
+      "text": "hacer recall en la base",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4189",
+      "type": "answer",
+      "text": "vendiendo cocaína se puede sacar mucha pasta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4196",
+      "type": "answer",
+      "text": "fumaba crack a diario",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4217",
+      "type": "answer",
+      "text": "niveles de THC altísimos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4222",
+      "type": "answer",
+      "text": "una persona poseída por la cocaína",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4223",
+      "type": "answer",
+      "text": "cocaína rosa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4231",
+      "type": "answer",
+      "text": "adicto al opio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4233",
+      "type": "answer",
+      "text": "el ejército alemán hasta el culo de anfetaminas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4234",
+      "type": "answer",
+      "text": "oxicodona",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4275",
+      "type": "answer",
+      "text": "consumo excesivo de farlopa",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4301",
+      "type": "answer",
+      "text": "Fentanilo Sesto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4390",
+      "type": "answer",
+      "text": "oler un poco de popper \"por curiosidad\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4547",
+      "type": "answer",
+      "text": "liarle un porro a un niño",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 102,
+    "total": 141,
     "prompts": 6,
-    "answers": 96
+    "answers": 135
   },
   "playable": true
 }

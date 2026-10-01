@@ -271,13 +271,13 @@
     {
       "id": "core-a-2677",
       "type": "answer",
-      "text": "la religión Católica",
+      "text": "la religión católica",
       "pick": 1
     },
     {
       "id": "core-a-2681",
       "type": "answer",
-      "text": "la religión Musulmana",
+      "text": "la religión musulmana",
       "pick": 1
     },
     {
@@ -415,7 +415,7 @@
     {
       "id": "celebridades-a-0013",
       "type": "answer",
-      "text": "un trio con Messi y Cristiano Ronaldo",
+      "text": "un trío con Messi y Cristiano Ronaldo",
       "pick": 1
     },
     {
@@ -531,12 +531,108 @@
       "type": "prompt",
       "text": "Si hay vida después de la muerte, espero que no haya ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3754",
+      "type": "answer",
+      "text": "ver al Diablo todos los días",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3759",
+      "type": "answer",
+      "text": "Lucifer y Darth Vader",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3763",
+      "type": "answer",
+      "text": "¡Alá es grande!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3786",
+      "type": "answer",
+      "text": "no quiero tu dinero, quiero tu salvación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3788",
+      "type": "answer",
+      "text": "a imagen y semejanza de Dios",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3789",
+      "type": "answer",
+      "text": "El Corán con ilustraciones de Mahoma",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3795",
+      "type": "answer",
+      "text": "Confucio confundido",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3808",
+      "type": "answer",
+      "text": "bendiciones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4059",
+      "type": "answer",
+      "text": "las mujeres son el diablo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4098",
+      "type": "answer",
+      "text": "la zurraspa del Diablo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4235",
+      "type": "answer",
+      "text": "el néctar de los dioses",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4297",
+      "type": "answer",
+      "text": "ser un pecador de la pradera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4302",
+      "type": "answer",
+      "text": "el Emperador de la Conferencia Intergaláctica",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4533",
+      "type": "answer",
+      "text": "abrir por accidente las puertas del infierno",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0418",
+      "type": "prompt",
+      "text": "Santoral de hoy: San ______, hashtag #______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0439",
+      "type": "prompt",
+      "text": "Yo me bauticé en la Iglesia de San ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 88,
-    "prompts": 15,
-    "answers": 73
+    "total": 104,
+    "prompts": 17,
+    "answers": 87
   },
   "playable": true
 }

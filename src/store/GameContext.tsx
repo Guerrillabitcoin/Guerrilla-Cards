@@ -9,9 +9,13 @@ import React, {
   useState,
 } from 'react';
 import * as Engine from '../engine/game';
-import {
+import { restartFlexible } from '../engine/startFlexible';
+import { mayDeal } from '../engine/dealer';
+import { dropStaleRemote, rematchLive } from './remoteGate';
+import { roomPaintKey } from './roomSnap';import {
   buildPreShuffledAnswerDeck,
   buildVariedPromptDeck,
+  loadAllPacks,
   loadCombinedDeck,
 } from '../engine/deck';
 import {
@@ -24,9 +28,24 @@ import { gameProgress } from '../engine/syncProgress';
 import {
   getMySeat,
   getMySeatSync,
+  hasRicherVotes,
   mergeHandsPreserveLocal,
+  serverFixedMyHand,
   pushRoom,
+  pushRoomConfirmed,
 } from './roomSync';
+
+function hasRicherDiscards(remote: GameState, local: GameState): boolean {
+  if (remote.phase !== 'discarding' || local.phase !== 'discarding') return false;
+  if ((remote.round ?? 0) !== (local.round ?? 0)) return false;
+  const r = new Set(remote.discardDonePlayerIds ?? []);
+  const l = new Set(local.discardDonePlayerIds ?? []);
+  if (r.size > l.size) return true;
+  for (const id of r) {
+    if (!l.has(id)) return true;
+  }
+  return false;
+}
 
 const STORAGE_KEY = 'guerrilla_cards_games_v1';
 const RECENT_PROMPTS_KEY = 'guerrilla_cards_recent_prompts_v1';
@@ -92,6 +111,7 @@ interface GameContextValue {
     packIds: string[];
     targetScore?: number;
     judgeMode?: JudgeMode;
+    maxPlayers?: number;
   }) => GameState;
   /** Solo: create host-only + start (rivals injected after submit) */
   createAndStartSolo: (opts: {
@@ -108,7 +128,7 @@ interface GameContextValue {
   /** Rematch in-place: same code + seats, scores 0, reshuffled decks, started. */
   restartSameSetup: (fromCode: string) => GameState | null;
   /** Replace local game if remote.updatedAt is newer (online poll). */
-  applyRemoteGame: (state: GameState) => boolean;
+  applyRemoteGame: (state: GameState, opts?: { force?: boolean }) => boolean;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -204,7 +224,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     Promise.all([
-      loadAll(),
+      // Packs first: loadAll() hydrates decks from them.
+      loadAllPacks().then(() => loadAll()),
       loadRecentIds(RECENT_PROMPTS_KEY),
       loadRecentIds(RECENT_ANSWERS_KEY),
     ]).then(([g, rp, ra]) => {
@@ -253,6 +274,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       packIds: string[];
       targetScore?: number;
       judgeMode?: JudgeMode;
+      maxPlayers?: number;
     }) => {
       // Sync-ish: start without avoid, then we still push recents on play.
       // Prefer reading cached recents from refs filled on boot.
@@ -336,42 +358,206 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   );
 
   const applyRemoteGame = useCallback(
-    (state: GameState) => {
+    (state: GameState, opts?: { force?: boolean }) => {
       const key = state.code.trim().toUpperCase();
-      let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
+            let remote = hydrateDecks(coerceGameState({ ...state, code: key }));
       const local = gamesRef.current[key];
+      // Server dedup-swapped a card in my hand: take it even if local looks newer.
+      // Only when remote is not behind us (never resurrect an older phase/round).
+      const mySeat = getMySeatSync(key);
+      // Also: my hand is empty locally (e.g. first poll went out before the seat token
+      // was stored → server stripped hands) but the server sent it → take it.
+      const myLocalHand = mySeat ? local?.players?.find((p) => p.id === mySeat)?.hand : undefined;
+      const myRemoteHand = mySeat ? remote.players?.find((p) => p.id === mySeat)?.hand : undefined;
+      const richerMyHand =
+        !!local && !!mySeat && (myLocalHand?.length ?? 0) === 0 && (myRemoteHand?.length ?? 0) > 0;
+      const force =
+        !!opts?.force ||
+        ((serverFixedMyHand(remote, local, mySeat) || richerMyHand) &&
+          (!local || gameProgress(remote) >= gameProgress(local)));
+     if (
+        !force &&
+        local &&
+        roomPaintKey(local) === roomPaintKey(remote) &&
+        remote.phase !== 'discarding'
+      ) {
+        return false;
+      }
       const localProg = gameProgress(local);
       const remoteProg = gameProgress(remote);
       // Progress is round-aware: reveal → next submitting is forward, not a downgrade
       const remoteAdvanced = remoteProg > localProg;
       // Rematch from results drops progress; trust newer updatedAt
+      // Rematch from results: ignore updatedAt (liga award often stamps later).
       const isMatchRestart =
+        !!local && local.phase === 'results' && rematchLive(remote);
+      const richerLobbyRoster =
         !!local &&
+        local.phase === 'lobby' &&
+        remote.phase === 'lobby' &&
+        (remote.players?.length ?? 0) > (local.players?.length ?? 0);
+      const remoteLeagueNewer =
+        !!local &&
+        (remote.phase === 'results' || remote.phase === 'lobby') &&
+        JSON.stringify(remote.leagueScores || {}) !==
+          JSON.stringify(local.leagueScores || {});
+      const remoteRestartReadyNewer =
+        !!local &&
+        remote.phase === 'results' &&
         local.phase === 'results' &&
-        remote.phase !== 'results' &&
-        (remote.updatedAt ?? 0) >= (local.updatedAt ?? 0);
+        (remote.restartReadyIds?.length ?? 0) !==
+          (local.restartReadyIds?.length ?? 0);
       // Keep local if we already moved to the next cycle and remote is stale reveal
-      if (local && localProg > remoteProg && !isMatchRestart) {
+            if (!force && dropStaleRemote(local, remote)) {
         return false;
       }
       if (
+        !force &&
         local &&
         !remoteAdvanced &&
         (local.updatedAt ?? 0) > (remote.updatedAt ?? 0)
       ) {
-        return false;
+        // Still accept if remote carries peer votes/submits we lack (simultaneous push race)
+        const richerVotes =
+          (local.round ?? 0) === (remote.round ?? 0) &&
+          hasRicherVotes(remote, local);
+        const richerSubs =
+          (local.round ?? 0) === (remote.round ?? 0) &&
+          local.phase === remote.phase &&
+          (remote.submissions?.length ?? 0) > (local.submissions?.length ?? 0);
+        const richerDisc = hasRicherDiscards(remote, local);
+        if (
+          !isMatchRestart &&
+          !richerVotes &&
+          !richerSubs &&
+          !richerDisc &&
+          !richerLobbyRoster &&
+          !remoteLeagueNewer &&
+          !remoteRestartReadyNewer
+        ) {
+          return false;
+        }
       }
       if (
+        !force &&
         local &&
+        !isMatchRestart &&
         !remoteAdvanced &&
         (local.updatedAt ?? 0) === (remote.updatedAt ?? 0) &&
         local.phase === remote.phase &&
         (local.submissions?.length ?? 0) >= (remote.submissions?.length ?? 0)
       ) {
-        return false;
+        // Same phase/time: still accept if remote has more discards or richer votes
+        const moreDiscards = hasRicherDiscards(remote, local);
+        const richerVotes = hasRicherVotes(remote, local);
+        if (
+          !moreDiscards &&
+          !richerVotes &&
+          !richerLobbyRoster &&
+          !remoteLeagueNewer &&
+          !remoteRestartReadyNewer
+        ) {
+          return false;
+        }
       }
       const seat = getMySeatSync(key);
       remote = mergeHandsPreserveLocal(remote, local, seat);
+      // Lobby: never drop seats the other side already has
+      if (
+        local &&
+        remote.phase === 'lobby' &&
+        local.phase === 'lobby'
+      ) {
+        const byId = new Map<string, (typeof remote.players)[number]>();
+        for (const p of local.players || []) {
+          if (p?.id) byId.set(p.id, p);
+        }
+                for (const p of remote.players || []) {
+          if (!p?.id) continue;
+          const prev = byId.get(p.id);
+          const own = !!seat && p.id === seat;
+          const nickname =
+            own && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)
+              ? prev?.nickname || p.nickname
+              : p.nickname || prev?.nickname;
+          byId.set(p.id, { ...(prev || {}), ...p, nickname: nickname ?? '' });
+        }
+        remote = { ...remote, players: Array.from(byId.values()) };
+      }
+      // Merge session league + restart ready across peers
+      if (local) {
+        remote = {
+          ...remote,
+          leagueScores: (() => {
+            const out: Record<string, number> = {
+              ...(local.leagueScores || {}),
+            };
+            for (const [id, n] of Object.entries(remote.leagueScores || {})) {
+              out[id] = Math.max(out[id] || 0, Number(n) || 0);
+            }
+            return out;
+          })(),
+          leagueAwarded:
+            remote.phase === 'results'
+              ? !!(local.leagueAwarded || remote.leagueAwarded)
+              : !!remote.leagueAwarded,
+          // Rematch race: bare server rematch has currentPrompt=null until host deals.
+          // Never overwrite a local dealt prompt with null on the same round.
+          currentPrompt: (() => {
+            const lp = local.currentPrompt;
+            const rp = remote.currentPrompt;
+            if (lp && rp && lp.id === rp.id) return lp;
+            if (
+              lp &&
+              !rp &&
+              (remote.phase === 'submitting' || remote.phase === 'discarding') &&
+              (local.phase === 'submitting' || local.phase === 'discarding') &&
+              (local.round ?? 0) === (remote.round ?? 0)
+            ) {
+              return lp;
+            }
+            return rp ?? lp ?? null;
+          })(),
+          // Results Listo: UNION local+remote so a stale poll cannot uncheck
+          // a seat that already marked ready on this device.
+          restartReadyIds:
+            remote.phase === 'results' || local.phase === 'results'
+              ? Array.from(
+                  new Set([
+                    ...(local.phase === 'results'
+                      ? local.restartReadyIds || []
+                      : []),
+                    ...(remote.phase === 'results'
+                      ? remote.restartReadyIds || []
+                      : []),
+                  ])
+                )
+              : Array.from(
+                  new Set([
+                    ...(local.phase === remote.phase
+                      ? local.restartReadyIds || []
+                      : []),
+                    ...(remote.restartReadyIds || []),
+                  ])
+                ),
+        };
+      }
+      // Shared reveal countdown: earliest deadline wins (ignore updatedAt drift)
+      if (
+        local &&
+        remote.phase === 'reveal' &&
+        local.phase === 'reveal' &&
+        (local.round ?? 0) === (remote.round ?? 0)
+      ) {
+        const a = local.revealEndsAt || 0;
+        const b = remote.revealEndsAt || 0;
+        const ends = a && b ? Math.min(a, b) : a || b || null;
+        if (ends && ends !== remote.revealEndsAt) {
+          remote = { ...remote, revealEndsAt: ends };
+        } else if (!remote.revealEndsAt && local.revealEndsAt) {
+          remote = { ...remote, revealEndsAt: local.revealEndsAt };
+        }
+      }
       // Same discarding round: union who already discarded (sync must not wipe peers)
       if (
         local &&
@@ -401,6 +587,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
           lastDiscarded: Array.from(byDiscard.values()),
         };
       }
+      // Discarding with full roster (possibly after union): advance like answers→judging
+      if (remote.phase === 'discarding' && mayDeal(remote, seat)) {
+        remote = Engine.advanceDiscardIfReady(remote);
+      }
       // Only re-attach OUR in-progress answer for THIS submitting round+prompt.
       // Never re-inject peers' (or prior-round) answers — that left 2/3 stuck
       // as «ya contestaste» after Zar advanced.
@@ -419,18 +609,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         const remoteSubs = (remote.submissions ?? []).filter(
           (s) => s.round == null || s.round === remoteRound
         );
-        if (
-          localMine &&
-          (localMine.round == null || localMine.round === remoteRound) &&
-          !remoteSubs.some((s) => s.playerId === seat)
-        ) {
-          remote = {
-            ...remote,
-            submissions: [...remoteSubs, { ...localMine, round: remoteRound }],
-          };
-        } else {
-          remote = { ...remote, submissions: remoteSubs };
-        }
+               remote = { ...remote, submissions: remoteSubs };
       } else if (remote.phase === 'submitting') {
         const remoteRound = remote.round;
         remote = {
@@ -443,17 +622,37 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (remote.phase === 'submitting') {
         remote = Engine.advanceToJudgingIfReady(remote);
       }
+      // Entering results without liga latch (e.g. server vote finalize): award once
+      if (
+        remote.phase === 'results' &&
+        !remote.leagueAwarded &&
+        remote.mode !== 'solo'
+      ) {
+        const top = [...remote.players].sort((a, b) => b.score - a.score)[0];
+        if (top) remote = Engine.awardLeagueWin(remote, top.id);
+      }
+      if (force) {
+        // Seat recovery: server is truth; stamp so local ghosts can't win the next race.
+        remote = { ...remote, updatedAt: Math.max(Date.now(), (remote.updatedAt ?? 0) + 1) };
+      }
       gamesRef.current = { ...gamesRef.current, [key]: remote };
       setGames((prevMap) => ({
         ...prevMap,
         [key]: toUiGame(remote),
       }));
       void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
-      // If we just promoted, push so Zar / others see judging
+      // If we just promoted, push so peers see judging / next submitting
       if (
         remote.mode === 'async' &&
         remote.phase === 'judging' &&
         local?.phase === 'submitting'
+      ) {
+        void pushRoom(remote, seat);
+      }
+      if (
+        remote.mode === 'async' &&
+        remote.phase === 'submitting' &&
+        local?.phase === 'discarding'
       ) {
         void pushRoom(remote, seat);
       }
@@ -469,6 +668,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Skip double coerce — ref state is already live
       const prev = cur;
       let next = { ...updater(prev), updatedAt: Date.now() };
+      // Single dealer: online, only the host deals the post-discard round.
+      if (mayDeal(next, getMySeatSync(code))) {
+        next = Engine.advanceDiscardIfReady(next);
+      }
       next = Engine.advanceToJudgingIfReady(next);
       gamesRef.current = { ...gamesRef.current, [code]: next };
       // Single-key React update (not rebuilding every game)
@@ -481,8 +684,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       if (next.mode === 'async') {
         void (async () => {
           const seat = await getMySeat(code);
-          const r = await pushRoom(next, seat);
-          if (r.ok && r.skipped && r.state) {
+          const r = await pushRoomConfirmed(next, seat);
+          if (r.ok && r.state) {
             const key = r.state.code.trim().toUpperCase();
             let remote = hydrateDecks(
               coerceGameState({ ...r.state, code: key })
@@ -491,20 +694,41 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             if (local && gameProgress(local) > gameProgress(remote)) {
               return;
             }
-            if (local && (local.updatedAt ?? 0) >= (remote.updatedAt ?? 0)) {
+            const seatId = seat ?? getMySeatSync(key);
+            // Even when local clock is newer, union votes/subs from skipped remote
+            // then re-push so peer ballots land on the server.
+            const shouldMerge =
+              !local ||
+              serverFixedMyHand(remote, local, seatId) ||
+              (remote.updatedAt ?? 0) > (local.updatedAt ?? 0) ||
+              hasRicherVotes(remote, local) ||
+              hasRicherVotes(local, remote) ||
+              (local.phase === 'judging' && remote.phase === 'judging') ||
+              (local.phase === 'lobby' &&
+                remote.phase === 'lobby' &&
+                (remote.players?.length ?? 0) !== (local.players?.length ?? 0)) ||
+              (remote.phase === 'results' && local.phase === 'results');
+            if (!shouldMerge) {
               return;
             }
-            remote = mergeHandsPreserveLocal(
-              remote,
-              local,
-              seat ?? getMySeatSync(key)
-            );
+            remote = mergeHandsPreserveLocal(remote, local, seatId);
             gamesRef.current = { ...gamesRef.current, [key]: remote };
             setGames((prevMap) => ({
               ...prevMap,
               [key]: toUiGame(remote),
             }));
             void persist({ ...gamesRef.current, [key]: toUiGame(remote) });
+            if (
+              remote.mode === 'async' &&
+              (hasRicherVotes(remote, r.state) ||
+                (remote.phase === 'judging' &&
+                  Object.keys(remote.votes ?? {}).length >
+                    Object.keys(r.state.votes ?? {}).length) ||
+                remote.phase === 'reveal' ||
+                remote.phase === 'results')
+            ) {
+              void pushRoom(remote, seatId);
+            }
           }
         })();
       }
@@ -578,7 +802,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       const others = { ...gamesRef.current };
       delete others[key];
-      const state = Engine.restartMatch(old, {
+      const state = restartFlexible(old, {
         avoidPromptIds: collectAvoidPromptIds(
           recentPromptsRef.current,
           others

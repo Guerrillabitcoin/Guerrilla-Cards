@@ -27,7 +27,9 @@ import {
   type JudgeMode,
   type Player,
   type Submission,
+  REVEAL_COUNTDOWN_MS,
 } from './types';
+import { awardLeaguePersistent } from '../store/leagueSession';
 
 export {
   ASYNC_TARGET_PLAYERS,
@@ -61,14 +63,50 @@ function isVoteMode(state: GameState): boolean {
   return (state.judgeMode ?? 'zar') === 'vote';
 }
 
-/** Zar mode (async/live): next Zar is the round winner. Solo stays 0. Vote mode: +1. */
+/** Zar mode (async/live): next Zar is the round winner. Solo stays 0. Vote mode: +1.
+ * Multi: bots NEVER Zar — skip bot seats (if winner is bot, next human / host). */
 function nextZarIndex(state: GameState): number {
   if (state.mode === 'solo') return 0;
+  const n = state.players.length;
+  if (!n) return 0;
+  let idx: number;
   if (!isVoteMode(state) && state.roundWinnerId) {
-    const idx = state.players.findIndex((p) => p.id === state.roundWinnerId);
-    if (idx >= 0) return idx;
+    const wi = state.players.findIndex((p) => p.id === state.roundWinnerId);
+    idx = wi >= 0 ? wi : (state.zarIndex + 1) % n;
+  } else {
+    idx = (state.zarIndex + 1) % n;
   }
-  return (state.zarIndex + 1) % state.players.length;
+  for (let i = 0; i < n; i++) {
+    const j = (idx + i) % n;
+    if (!state.players[j]?.isBot) return j;
+  }
+  // Fallback: host seat or 0
+  const hostIdx = state.players.findIndex((p) => p.isHost && !p.isBot);
+  return hostIdx >= 0 ? hostIdx : 0;
+}
+
+/** Ensure zarIndex points at a human (bots never Zar). */
+function ensureHumanZarIndex(state: GameState): number {
+  const n = state.players.length;
+  if (!n) return 0;
+  let z = Math.max(0, Math.min(n - 1, Number(state.zarIndex) || 0));
+  if (!state.players[z]?.isBot) return z;
+  for (let i = 0; i < n; i++) {
+    const j = (z + i) % n;
+    if (!state.players[j]?.isBot) return j;
+  }
+  const hostIdx = state.players.findIndex((p) => p.isHost && !p.isBot);
+  return hostIdx >= 0 ? hostIdx : 0;
+}
+
+/** Humans who submitted (eligible to cast a vote). Bots never vote. */
+function humanVoterIdsFromState(state: GameState): string[] {
+  const botIds = new Set(
+    state.players.filter((p) => p.isBot).map((p) => p.id)
+  );
+  return state.submissions
+    .filter((s) => !s.rival && s.playerId && !botIds.has(s.playerId))
+    .map((s) => s.playerId);
 }
 
 export function createGame(opts: {
@@ -78,6 +116,8 @@ export function createGame(opts: {
   targetScore?: number;
   code?: string;
   judgeMode?: JudgeMode;
+  /** Async lobby size (2–8). */
+  maxPlayers?: number;
   /** Prompt ids seen recently (other matches) — put later in the deck */
   avoidPromptIds?: string[];
   avoidAnswerIds?: string[];
@@ -111,6 +151,16 @@ export function createGame(opts: {
     phase: 'lobby',
     zarIndex: 0,
     judgeMode: opts.judgeMode ?? 'zar',
+    maxPlayers:
+      opts.mode === 'async'
+        ? Math.max(
+            MIN_PLAYERS,
+            Math.min(
+              MAX_PLAYERS,
+              Math.floor(opts.maxPlayers ?? ASYNC_TARGET_PLAYERS)
+            )
+          )
+        : opts.maxPlayers,
     votes: {},
     currentPrompt: null,
     submissions: [],
@@ -148,10 +198,9 @@ export function addPlayer(
   opts?: { isBot?: boolean }
 ): GameState {
   if (state.phase !== 'lobby') throw new Error('La partida ya empezó.');
-  const maxSeats =
-    state.mode === 'async' ? ASYNC_TARGET_PLAYERS : MAX_PLAYERS;
-  if (state.players.length >= maxSeats) {
-    throw new Error(`Máximo ${maxSeats} jugadores.`);
+  // Hard cap = humans + bots <= MAX_PLAYERS. Human join capacity is maxPlayers (server/lobby).
+  if (state.players.length >= MAX_PLAYERS) {
+    throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
   }
   const nick = nickname.trim();
   if (!nick) throw new Error('Pon un apodo.');
@@ -180,7 +229,7 @@ export function renamePlayer(
   nickname: string
 ): GameState {
   if (state.phase !== 'lobby') {
-    throw new Error('Solo puedes cambiar el nombre en el lobby.');
+    throw new Error('Solo puedes cambiar el nombre en la sala.');
   }
   const nick = nickname.trim();
   if (!nick) throw new Error('Pon un apodo.');
@@ -345,11 +394,13 @@ export function pickRandomFromHand(player: Player, pick: number): string[] {
 export function autoSubmitBots(state: GameState): GameState {
   if (state.phase !== 'submitting') return state;
   const zarId = state.players[state.zarIndex]?.id;
+  const voteMode = isVoteMode(state);
   let next = state;
   for (const p of state.players) {
     if (next.phase !== 'submitting') break;
     if (!p.isBot) continue;
-    if (p.id === zarId) continue;
+    // Zar skips answers only in zar judge mode (bots should never be Zar)
+    if (!voteMode && p.id === zarId) continue;
     if (next.submissions.some((s) => s.playerId === p.id)) continue;
     const live = next.players.find((x) => x.id === p.id);
     if (!live) continue;
@@ -371,25 +422,18 @@ export function autoJudgeBot(state: GameState): GameState {
 }
 
 export function removePlayer(state: GameState, playerId: string): GameState {
-  if (state.phase !== 'lobby') throw new Error('Solo en el lobby.');
+  if (state.phase !== 'lobby') throw new Error('Solo en la sala.');
   const players = state.players.filter((p) => p.id !== playerId || p.isHost);
-  return { ...state, players, updatedAt: now() };
+  return {
+    ...state,
+    players,
+    botCount: players.filter((p) => p.isBot).length,
+    updatedAt: now(),
+  };
 }
 
 function answerRemaining(state: GameState): number {
   return Math.max(0, (state.answerDeck?.length ?? 0) - (state.answerDeckPos ?? 0));
-}
-
-function drawAnswers(
-  deck: Card[],
-  pos: number,
-  n: number
-): { drawn: Card[]; pos: number } {
-  if (n <= 0) return { drawn: [], pos };
-  if (deck.length - pos < n) {
-    throw new Error('Se acabaron las cartas de respuesta. Reinicia con más packs.');
-  }
-  return { drawn: deck.slice(pos, pos + n), pos: pos + n };
 }
 
 /** Emergency top-up only. Real shuffle is at create/reiniciar. */
@@ -417,7 +461,8 @@ function replaceInHand(
   hand: Card[],
   cardIds: string[],
   deck: Card[],
-  pos: number
+  pos: number,
+  state?: GameState
 ): { hand: Card[]; answerDeck: Card[]; answerDeckPos: number } {
   const idSet = new Set(cardIds);
   const indices = hand
@@ -426,12 +471,40 @@ function replaceInHand(
   if (indices.length === 0) {
     return { hand, answerDeck: deck, answerDeckPos: pos };
   }
-  const { drawn, pos: nextPos } = drawAnswers(deck, pos, indices.length);
+  // Never draw a card that is in ANY hand or in play this round (the pile has
+  // several laps, so the same id can come up again while still out).
+  const occupied = new Set<string>(hand.map((c) => c.id));
+  if (state) {
+    for (const p of state.players) for (const c of p.hand) occupied.add(c.id);
+    for (const s of state.submissions ?? []) for (const c of s.cards) occupied.add(c.id);
+  }
+  let answerDeck = deck;
+  let nextPos = pos;
+  const drawn: Card[] = [];
+  let refilled = false;
+  let guard = 0;
+  const maxGuard = Math.max(answerDeck.length * 2, 256);
+  while (drawn.length < indices.length && guard++ < maxGuard) {
+    if (nextPos >= answerDeck.length) {
+      if (refilled || !state) break;
+      refilled = true;
+      const extra = shuffle(refillAnswerDeck(state).filter((c) => !occupied.has(c.id)));
+      if (!extra.length) break;
+      answerDeck = answerDeck.concat(extra);
+    }
+    const c = answerDeck[nextPos++];
+    if (!c || occupied.has(c.id)) continue;
+    occupied.add(c.id);
+    drawn.push(c);
+  }
+  if (drawn.length < indices.length) {
+    throw new Error('Se acabaron las cartas de respuesta. Reinicia con más packs.');
+  }
   const next = [...hand];
   indices.forEach((idx, j) => {
     next[idx] = drawn[j];
   });
-  return { hand: next, answerDeck: deck, answerDeckPos: nextPos };
+  return { hand: next, answerDeck, answerDeckPos: nextPos };
 }
 
 function drawPrompt(state: GameState): {
@@ -516,23 +589,52 @@ function dealHands(state: GameState): GameState {
   return { ...next, players, answerDeck, answerDeckPos };
 }
 
+/** Unique answers needed for N seats: full hands + a max-pick round in play + margin. */
+export function minAnswersForSeats(seats: number): number {
+  const n = Math.max(1, seats);
+  return HAND_SIZE * n + 3 * n + 12;
+}
+
+/**
+ * Multi start: if the selected packs cannot cover every hand without repeats,
+ * add core (once) and rebuild the piles. Flags coreAutoAdded for a UI notice.
+ */
+export function ensureEnoughAnswers(state: GameState): GameState {
+  if (state.mode === 'solo') return state;
+  const need = minAnswersForSeats(state.players.length);
+  const { answers } = loadCombinedDeck(state.packIds);
+  if (answers.length >= need || state.packIds.includes('core')) return state;
+  const packIds = ['core', ...state.packIds];
+  const combined = loadCombinedDeck(packIds);
+  const used = new Set(state.usedPromptIds ?? []);
+  return {
+    ...state,
+    packIds,
+    coreAutoAdded: true,
+    promptDeck: buildVariedPromptDeck(combined.prompts.filter((p) => !used.has(p.id))),
+    promptDeckPos: 0,
+    answerDeck: buildPreShuffledAnswerDeck(combined.answers, [], 3),
+    answerDeckPos: 0,
+  };
+}
+
 export function startGame(state: GameState): GameState {
-  if (state.mode === 'async') {
-    if (state.players.length !== ASYNC_TARGET_PLAYERS) {
-      throw new Error(
-        `Async necesita exactamente ${ASYNC_TARGET_PLAYERS} jugadores.`
-      );
+  state = ensureEnoughAnswers(state);
+  if (state.mode === 'solo') {
+    if (state.players.length < 1) {
+      throw new Error('Haz falta al menos 1 jugador.');
     }
   } else {
-    const minPlayers = state.mode === 'solo' ? 1 : MIN_PLAYERS;
-    if (state.players.length < minPlayers) {
-      throw new Error(`Haz falta al menos ${minPlayers} jugadores.`);
+    const humans = state.players.filter((p) => !p.isBot);
+    if (humans.length < MIN_PLAYERS) {
+      throw new Error(`Haz falta al menos ${MIN_PLAYERS} jugadores humanos.`);
     }
     if (state.players.length > MAX_PLAYERS) {
-      throw new Error(`Máximo ${MAX_PLAYERS} jugadores.`);
+      throw new Error(`Máximo ${MAX_PLAYERS} jugadores (humanos + bots).`);
     }
   }
-  let next = dealHands({ ...state, zarIndex: 0, round: 0 });
+  const z = ensureHumanZarIndex(state);
+  let next = dealHands({ ...state, zarIndex: z, round: 0 });
   next = beginRound(next);
   return { ...next, updatedAt: now() };
 }
@@ -550,7 +652,9 @@ export function beginRound(state: GameState): GameState {
 
   const human =
     players.find((p) => !p.isBot) ?? players[0];
-  const zar = players[dealt.zarIndex];
+  // Bots never Zar in Multi
+  let zarIndex = ensureHumanZarIndex({ ...dealt, players });
+  const zar = players[zarIndex] ?? players[0];
 
   let activeSeatId: string;
   if (isSolo) {
@@ -562,14 +666,15 @@ export function beginRound(state: GameState): GameState {
     activeSeatId = firstSubmitter?.id ?? zar.id;
   } else {
     const firstSubmitter =
-      players.find((p, i) => i !== dealt.zarIndex && !p.isBot) ??
-      players.find((_, i) => i !== dealt.zarIndex);
+      players.find((p, i) => i !== zarIndex && !p.isBot) ??
+      players.find((_, i) => i !== zarIndex);
     activeSeatId = firstSubmitter?.id ?? zar.id;
   }
 
   return {
     ...dealt,
     players,
+    zarIndex,
     currentPrompt: prompt,
     promptDeck,
     promptDeckPos,
@@ -584,6 +689,7 @@ export function beginRound(state: GameState): GameState {
     phase: 'submitting',
     round: dealt.round + 1,
     activeSeatId,
+    revealEndsAt: null,
     updatedAt: now(),
   };
 }
@@ -603,7 +709,7 @@ export function submitCards(
   const voteMode = isVoteMode(state);
   // Zar skips answers only in zar judge mode (not vote, not solo)
   if (!isSolo && !voteMode && playerId === zar.id) {
-    throw new Error('El Zar no envía cartas.');
+    throw new Error('El Comandante no envía cartas.');
   }
   if (state.submissions.some((s) => s.playerId === playerId)) {
     throw new Error('Ya enviaste tu jugada.');
@@ -629,7 +735,8 @@ export function submitCards(
     player.hand,
     cardIds,
     ready.answerDeck,
-    ready.answerDeckPos ?? 0
+    ready.answerDeckPos ?? 0,
+    ready
   );
   const players = ready.players.map((p) =>
     p.id === playerId ? { ...p, hand: newHand } : p
@@ -655,7 +762,7 @@ export function submitCards(
   const allIn = submissions.length >= needed;
 
   if (allIn) {
-    const order = shuffle([...submissions.keys()]);
+    const order = shuffle(submissions.map((s) => s.playerId));
     const firstVoter =
       state.players.find((p) => !p.isBot) ?? state.players[0];
     return {
@@ -693,6 +800,50 @@ export function submitCards(
   };
 }
 
+/** +1 liga point to match winner when entering results (once per match). */
+export function awardLeagueWin(state: GameState, winnerId: string | null): GameState {
+  return awardLeaguePersistent(state, winnerId);
+}
+
+export function markRestartReady(
+  state: GameState,
+  playerId: string
+): GameState {
+  if (state.phase !== 'results') return state;
+  const ids = new Set(state.restartReadyIds || []);
+  ids.add(playerId);
+  return {
+    ...state,
+    restartReadyIds: Array.from(ids),
+    updatedAt: now(),
+  };
+}
+
+export function clearRestartReady(state: GameState): GameState {
+  return { ...state, restartReadyIds: [], updatedAt: now() };
+}
+
+/** Host or match winner can force rematch without waiting for all humans. */
+export function canForceRestart(
+  state: GameState,
+  actorId: string | null | undefined
+): boolean {
+  if (!actorId) return false;
+  const actor = state.players.find((p) => p.id === actorId);
+  if (!actor || actor.isBot) return false;
+  if (actor.isHost) return true;
+  const humans = state.players.filter((p) => !p.isBot);
+  const ranked = [...humans].sort((a, b) => b.score - a.score);
+  return ranked[0]?.id === actorId;
+}
+
+export function allHumansRestartReady(state: GameState): boolean {
+  const humans = state.players.filter((p) => !p.isBot);
+  if (!humans.length) return true;
+  const ready = new Set(state.restartReadyIds || []);
+  return humans.every((p) => ready.has(p.id));
+}
+
 /** Apply round winner (scoring + reveal/results). Used by judgePick and castVote. */
 function applyRoundWinner(
   state: GameState,
@@ -711,7 +862,7 @@ function applyRoundWinner(
 
   // Zar cannot win their own round — except solo, rivals, or vote mode (everyone plays)
   if (!isSolo && !isRival && !voteMode && winnerPlayerId === zar.id) {
-    throw new Error('El Zar no puede ganar su ronda.');
+    throw new Error('El Comandante no puede ganar su ronda.');
   }
 
   // Only increment score if winner is a real player in state.players
@@ -727,15 +878,18 @@ function applyRoundWinner(
     : 0;
 
   if (winnerIsRealPlayer && winnerScore >= state.targetScore) {
-    return {
-      ...state,
-      players,
-      roundWinnerId: winnerPlayerId,
-      roundWinnerIds: [],
-      phase: 'results',
-      activeSeatId: null,
-      updatedAt: now(),
-    };
+    return awardLeagueWin(
+      {
+        ...state,
+        players,
+        roundWinnerId: winnerPlayerId,
+        roundWinnerIds: [],
+        phase: 'results',
+        activeSeatId: null,
+        updatedAt: now(),
+      },
+      winnerPlayerId
+    );
   }
 
   return {
@@ -744,12 +898,14 @@ function applyRoundWinner(
     roundWinnerId: winnerPlayerId,
     roundWinnerIds: [],
     phase: 'reveal',
+    revealEndsAt: now() + REVEAL_COUNTDOWN_MS,
     updatedAt: now(),
   };
 }
 
 /**
- * Vote ties (2+): +1 each real player, roundWinnerIds=tied, roundWinnerId=tied[0].
+ * Legacy multi-winner award (+1 each). Prefer applyVoteSplitAnnul for vote ties
+ * (incl. 1v1 split → 0). Kept for non-vote callers / tests.
  * No revealOrder tiebreak. Results if any hits targetScore.
  */
 export function applyRoundWinners(
@@ -782,17 +938,83 @@ export function applyRoundWinners(
     return !!p && p.score >= state.targetScore;
   });
 
-  return {
+  const base = {
     ...state,
     players,
     roundWinnerIds: ids,
     roundWinnerId: ids[0] ?? null,
-    phase: anyHitTarget ? 'results' : 'reveal',
+    phase: (anyHitTarget ? 'results' : 'reveal') as GameState['phase'],
     activeSeatId: anyHitTarget ? null : state.activeSeatId,
+    revealEndsAt: anyHitTarget ? null : now() + REVEAL_COUNTDOWN_MS,
+    updatedAt: now(),
+  };
+  if (!anyHitTarget) return base;
+  // Match winner (incl. bot) gets Liga
+  const top = [...base.players].sort((a, b) => b.score - a.score)[0];
+  return awardLeagueWin(base, top?.id ?? ids[0] ?? null);
+}
+
+/**
+ * Vote mode, >2 players, tied tallies: annul the round (no points),
+ * label via roundWinnerId=null + roundWinnerIds=tied («Empate: voto dividido» in UI),
+ * stay on reveal so clients can advance to next round.
+ */
+export function applyVoteSplitAnnul(
+  state: GameState,
+  tiedIds: string[]
+): GameState {
+  const ids = [...new Set(tiedIds)].filter(Boolean);
+  if (ids.length < 2) {
+    throw new Error('applyVoteSplitAnnul requiere al menos 2 empatados.');
+  }
+  const hostId =
+    state.players.find((p) => p.isHost)?.id ??
+    state.players.find((p) => !p.isBot)?.id ??
+    state.players[0]?.id ??
+    null;
+  return {
+    ...state,
+    // scores unchanged — round annulled
+    roundWinnerIds: ids,
+    roundWinnerId: null,
+    phase: 'reveal',
+    activeSeatId: hostId,
+    revealEndsAt: now() + REVEAL_COUNTDOWN_MS,
     updatedAt: now(),
   };
 }
 
+/**
+ * Tally completed votes. Majority → applyRoundWinner (+1).
+ * Any vote tie (2p or >2) → applyVoteSplitAnnul (0 points).
+ * Safe no-op if not all eligible have voted.
+ */
+export function tallyVotesIfComplete(state: GameState): GameState {
+  if (state.phase !== 'judging' || !isVoteMode(state)) return state;
+  const votes = state.votes ?? {};
+  // Only humans who submitted must vote; bots never vote (phrases stay votable).
+  const eligible = humanVoterIdsFromState(state);
+  if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
+
+  const tallies: Record<string, number> = {};
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] ?? 0) + 1;
+  }
+  let bestCount = -1;
+  for (const n of Object.values(tallies)) {
+    if (n > bestCount) bestCount = n;
+  }
+  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
+  const withVotes = { ...state, votes };
+  if (tied.length >= 2) {
+    return applyVoteSplitAnnul(withVotes, tied);
+  }
+  if (!tied[0]) {
+    // Defensive: empty tally must not hang in judging
+    return applyVoteSplitAnnul(withVotes, eligible.slice(0, 2));
+  }
+  return applyRoundWinner(withVotes, tied[0]);
+}
 
 
 /**
@@ -829,7 +1051,7 @@ export function advanceToJudgingIfReady(state: GameState): GameState {
     : realSubs.filter((s) => s.playerId !== zar?.id);
   if (submissions.length < needed) return state;
 
-  const order = shuffle([...submissions.keys()]);
+  const order = shuffle(submissions.map((s) => s.playerId));
   const firstVoter =
     state.players.find((p) => !p.isBot) ?? state.players[0];
   return {
@@ -843,21 +1065,47 @@ export function advanceToJudgingIfReady(state: GameState): GameState {
   };
 }
 
-/** Ensure revealOrder is a full permutation of submission indices (reshuffle if missing/stale). */
+function isIndexRevealPerm(
+  order: Array<number | string>,
+  n: number
+): boolean {
+  if (!n || order.length !== n) return false;
+  const nums = order.map((x) => Number(x));
+  return (
+    nums.every((i) => Number.isInteger(i) && i >= 0 && i < n) &&
+    new Set(nums).size === n
+  );
+}
+
+function isPlayerIdRevealPerm(
+  order: Array<number | string>,
+  playerIds: string[]
+): boolean {
+  if (!playerIds.length || order.length !== playerIds.length) return false;
+  const ids = new Set(playerIds.map(String));
+  if (ids.size !== playerIds.length) return false;
+  const seen = new Set<string>();
+  for (const x of order) {
+    const id = String(x);
+    if (!ids.has(id) || seen.has(id)) return false;
+    seen.add(id);
+  }
+  return true;
+}
+
+/** Ensure revealOrder is a full perm of playerIds (preferred) or indices. Do not reshuffle if valid. */
 export function ensureRevealOrder(state: GameState): GameState {
   const n = state.submissions.length;
   if (n === 0) {
     return state.revealOrder?.length ? { ...state, revealOrder: [] } : state;
   }
   const order = state.revealOrder ?? [];
-  const valid =
-    order.length === n &&
-    order.every((i) => typeof i === 'number' && i >= 0 && i < n) &&
-    new Set(order).size === n;
-  if (valid) return state;
+  const playerIds = state.submissions.map((s) => s.playerId);
+  if (isPlayerIdRevealPerm(order, playerIds)) return state;
+  if (isIndexRevealPerm(order, n)) return state;
   return {
     ...state,
-    revealOrder: shuffle([...Array(n).keys()]),
+    revealOrder: shuffle([...playerIds]),
     updatedAt: now(),
   };
 }
@@ -878,7 +1126,8 @@ export function judgePick(state: GameState, winnerPlayerId: string): GameState {
 /**
  * Vote mode: cast one vote for a submission (cannot vote own).
  * When all eligible voters have voted, tallies majority → applyRoundWinner.
- * Ties (2+): applyRoundWinners — +1 each, no revealOrder tiebreak.
+ * Ties (any size): applyVoteSplitAnnul (no points, «Empate: voto dividido»).
+ * 2p clear winner: vote2p awards exactly +1 (not +vote count).
  */
 export function castVote(
   state: GameState,
@@ -892,6 +1141,7 @@ export function castVote(
   state = ensureRevealOrder(state);
   const voter = state.players.find((p) => p.id === voterId);
   if (!voter) throw new Error('Votante no encontrado.');
+  if (voter.isBot) throw new Error('Los bots no votan.');
   if (!state.submissions.some((s) => s.playerId === voterId)) {
     throw new Error('Solo quien envió respuesta puede votar.');
   }
@@ -908,10 +1158,8 @@ export function castVote(
 
   const votes = { ...prevVotes, [voterId]: submissionPlayerId };
 
-  // Eligible = everyone who submitted (all humans in vote mode)
-  const eligible = state.submissions
-    .filter((s) => !s.rival)
-    .map((s) => s.playerId);
+  // Eligible voters = humans who submitted (bots never vote)
+  const eligible = humanVoterIdsFromState(state);
   const allVoted = eligible.every((id) => !!votes[id]);
 
   if (!allVoted) {
@@ -927,21 +1175,8 @@ export function castVote(
     };
   }
 
-  // Tally: majority wins; 2+ tie → applyRoundWinners (no revealOrder tiebreak)
-  const tallies: Record<string, number> = {};
-  for (const target of Object.values(votes)) {
-    tallies[target] = (tallies[target] ?? 0) + 1;
-  }
-  let bestCount = -1;
-  for (const n of Object.values(tallies)) {
-    if (n > bestCount) bestCount = n;
-  }
-  const tied = Object.keys(tallies).filter((id) => tallies[id] === bestCount);
-  const withVotes = { ...state, votes };
-  if (tied.length >= 2) {
-    return applyRoundWinners(withVotes, tied);
-  }
-  return applyRoundWinner(withVotes, tied[0]);
+  // Tally via shared helper (annuls >2-player ties; no hang on empty tally)
+  return tallyVotesIfComplete({ ...state, votes });
 }
 
 /** Enter discarding phase before a multiple-of-DISCARD_AT_ROUND round (zar not rotated yet). */
@@ -955,15 +1190,13 @@ export function startDiscardRound(state: GameState): GameState {
     lastDiscarded: [],
     discardRoundCompleted: false,
     activeSeatId: firstHuman?.id ?? null,
+    revealEndsAt: null,
     updatedAt: now(),
   };
 }
 
-/**
- * Player discards between min(DISCARD_MIN, hand.length) and min(DISCARD_MAX, hand.length) cards.
- * When everyone is done: refill hands, flag completed, beginRound with next zar.
- */
-export function submitDiscard(
+/** Apply one seat's discard without advancing phase (bots / submitDiscard). */
+function applyDiscardOnly(
   state: GameState,
   playerId: string,
   cardIds: string[]
@@ -1001,7 +1234,8 @@ export function submitDiscard(
     player.hand,
     cardIds,
     ready.answerDeck,
-    ready.answerDeckPos ?? 0
+    ready.answerDeckPos ?? 0,
+    ready
   );
   const players = ready.players.map((p) =>
     p.id === playerId ? { ...p, hand: newHand } : p
@@ -1011,30 +1245,10 @@ export function submitDiscard(
     ...(state.lastDiscarded ?? []),
     { playerId, cards },
   ];
-
-  const allDone = discardDonePlayerIds.length >= state.players.length;
-
-  if (allDone) {
-    let next: GameState = {
-      ...state,
-      players,
-      answerDeck,
-      answerDeckPos,
-      discardDonePlayerIds,
-      lastDiscarded,
-      discardRoundCompleted: true,
-      updatedAt: now(),
-    };
-    next = dealHands(next);
-    const zarIndex = nextZarIndex(next);
-    return beginRound({ ...next, zarIndex });
-  }
-
   const pending = state.players.filter(
     (p) => p.id !== playerId && !discardDonePlayerIds.includes(p.id)
   );
   const nextSeat = pending.find((p) => !p.isBot) ?? pending[0];
-
   return {
     ...state,
     players,
@@ -1045,6 +1259,44 @@ export function submitDiscard(
     activeSeatId: nextSeat?.id ?? playerId,
     updatedAt: now(),
   };
+}
+
+/**
+ * Player discards between min(DISCARD_MIN, hand.length) and min(DISCARD_MAX, hand.length) cards.
+ * When everyone is done: refill hands, flag completed, beginRound with next zar.
+ */
+export function submitDiscard(
+  state: GameState,
+  playerId: string,
+  cardIds: string[]
+): GameState {
+  return advanceDiscardIfReady(applyDiscardOnly(state, playerId, cardIds));
+}
+
+/**
+ * After sync merges discardDonePlayerIds, finish the discard round when every
+ * human has discarded (bots auto-filled). Mirrors advanceToJudgingIfReady.
+ */
+export function advanceDiscardIfReady(state: GameState): GameState {
+  if (state.phase !== 'discarding') return state;
+  let next = autoDiscardBots(state);
+  if (next.phase !== 'discarding') return next;
+  const done = new Set(next.discardDonePlayerIds ?? []);
+  const humans = next.players.filter((p) => !p.isBot);
+  const required = humans.length ? humans : next.players;
+  if (!required.every((p) => done.has(p.id))) return next;
+  const discardDonePlayerIds = Array.from(
+    new Set([...done, ...next.players.map((p) => p.id)])
+  );
+  next = {
+    ...next,
+    discardDonePlayerIds,
+    discardRoundCompleted: true,
+    updatedAt: now(),
+  };
+  next = dealHands(next);
+  const zarIndex = nextZarIndex(next);
+  return beginRound({ ...next, zarIndex });
 }
 
 /** Auto-discard exactly DISCARD_MIN (or hand length) for pending bots. Kept for back-compat. */
@@ -1058,9 +1310,8 @@ export function autoDiscardBots(state: GameState): GameState {
     const live = next.players.find((x) => x.id === p.id);
     if (!live) continue;
     const need = Math.min(DISCARD_MIN, live.hand.length);
-    const ids =
-      need === 0 ? [] : pickRandomFromHand(live, need);
-    next = submitDiscard(next, live.id, ids);
+    const ids = need === 0 ? [] : pickRandomFromHand(live, need);
+    next = applyDiscardOnly(next, live.id, ids);
   }
   return next;
 }
@@ -1106,7 +1357,8 @@ export function soloSkipRoundDiscard(
     player.hand,
     cardIds,
     ready.answerDeck,
-    ready.answerDeckPos ?? 0
+    ready.answerDeckPos ?? 0,
+    ready
   );
   const players = ready.players.map((p) =>
     p.id === playerId ? { ...p, hand: newHand } : p
@@ -1172,6 +1424,7 @@ export function nextRound(state: GameState): GameState {
  * decks, round 0 → startGame (phase submitting). Does not permanently rely on
  * discardRoundCompleted — that flag resets here.
  */
+
 export function restartMatch(
   state: GameState,
   opts?: { avoidPromptIds?: string[]; avoidAnswerIds?: string[] }
@@ -1208,6 +1461,10 @@ export function restartMatch(
     discardRoundCompleted: false,
     discardDonePlayerIds: [],
     lastDiscarded: [],
+    // Keep session liga across rematches; clear ready-up + award latch
+    leagueScores: { ...(state.leagueScores || {}) },
+    leagueAwarded: false,
+    restartReadyIds: [],
     updatedAt: now(),
   };
   return startGame(reset);
@@ -1257,4 +1514,4 @@ export function buildWinningHistorySnapshot(state: GameState): {
     round: state.round,
     gameCode: state.code,
   };
-}
+}/* see following push */

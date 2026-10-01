@@ -223,7 +223,7 @@
     {
       "id": "core-a-2381",
       "type": "answer",
-      "text": "Inteligencia Artificial versus Subnormalidad Natural",
+      "text": "inteligencia artificial versus subnormalidad natural",
       "pick": 1
     },
     {
@@ -661,7 +661,7 @@
     {
       "id": "politica-a-0126",
       "type": "answer",
-      "text": "drones Ucranianos pagados con dinero europeo",
+      "text": "drones ucranianos pagados con dinero europeo",
       "pick": 1
     },
     {
@@ -717,12 +717,240 @@
       "type": "prompt",
       "text": "La ciencia ya puede clonar personas, pero todavía no puede clonar ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3687",
+      "type": "answer",
+      "text": "China y EE. UU. poniéndose de acuerdo en prohibir la IA.",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3747",
+      "type": "answer",
+      "text": "consejos de una IA muy experimental",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3767",
+      "type": "answer",
+      "text": "servicios sociales llevándose a mi hijo mientras estoy en directo en TikTok",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3793",
+      "type": "answer",
+      "text": "mi madre como cámara de mis videos de TikTok",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3882",
+      "type": "answer",
+      "text": "enchufarte un calabacín por el puerto USB",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3901",
+      "type": "answer",
+      "text": "descubrir que tu novia tiene OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3905",
+      "type": "answer",
+      "text": "un video de tu parto en directo en OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4102",
+      "type": "answer",
+      "text": "hacer recall en la base",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4103",
+      "type": "answer",
+      "text": "spawnear en un sitio muy malo del server",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4138",
+      "type": "answer",
+      "text": "pedir un Glovo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4328",
+      "type": "answer",
+      "text": "mirar los reels de tus exs con vergüenza ajena",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4339",
+      "type": "answer",
+      "text": "ir en patinete y hacer streaming",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4377",
+      "type": "answer",
+      "text": "ya me llegó el burofax",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4415",
+      "type": "answer",
+      "text": "alimentar al algoritmo",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0341",
+      "type": "prompt",
+      "text": "Cerraron mi cuenta por publicar una foto con los hashtags: #________ y #________",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0350",
+      "type": "prompt",
+      "text": "Subí mi foto a la IA para mejorar mi aspecto y me recomendó ______ y que dejara de _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0351",
+      "type": "prompt",
+      "text": "Me funearon por ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0354",
+      "type": "prompt",
+      "text": "Si un día monto un bar con mis colegas lo llamaremos @________",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0395",
+      "type": "prompt",
+      "text": "Alexa: ______ y ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0402",
+      "type": "prompt",
+      "text": "La sesión que puse en el after se llamaba ______.mp3",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0413",
+      "type": "prompt",
+      "text": "La nueva agencia pública se presenta con el acrónimo ______. y tiene como objetivo ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0419",
+      "type": "prompt",
+      "text": "No abras ______.zip; dentro va ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0422",
+      "type": "prompt",
+      "text": "Mi página web personal es _____._____.com",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0423",
+      "type": "prompt",
+      "text": "Por fin conseguí un dominio para mi negocio ______.com",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0424",
+      "type": "prompt",
+      "text": "Nunca se te ocurra entrar en www.______.net",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0425",
+      "type": "prompt",
+      "text": "El Ayuntamiento ha lanzado la sede electrónica del ciudadano en www.______.madrid.es.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0426",
+      "type": "prompt",
+      "text": "¿Necesitas trabajo? Escríbeme a ______@______.com",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0427",
+      "type": "prompt",
+      "text": "¿Quieres pasarlo bien esta noche? Escríbeme a ______@hotmail.com",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0428",
+      "type": "prompt",
+      "text": "El correo desde el que recibimos el chivatazo fue ________@______.com",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0429",
+      "type": "prompt",
+      "text": "Si te llega un correo desde ______@______.com prométeme que nunca lo leerás",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0430",
+      "type": "prompt",
+      "text": "Se me infectó el ordenador cuando abrí ______.pdf",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0431",
+      "type": "prompt",
+      "text": "La prueba de que yo no soy está en la captura-______.jpg",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0432",
+      "type": "prompt",
+      "text": "Agrégame a Telegram, mi user es @______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0433",
+      "type": "prompt",
+      "text": "Me contactó un usuario llamado @______ para chantajearme con ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0434",
+      "type": "prompt",
+      "text": "La página web del PSOE para estas elecciones es www.______.es",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0438",
+      "type": "prompt",
+      "text": "El trending topic de hoy es #______",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0442",
+      "type": "prompt",
+      "text": "Login del trabajo: usuario: ______ / Contraseña: \"______\"",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0443",
+      "type": "prompt",
+      "text": "Te doy los datos del router: Wifi \"______\" / contraseña \"______\".",
+      "pick": 2
     }
   ],
   "counts": {
-    "total": 119,
-    "prompts": 25,
-    "answers": 94
+    "total": 157,
+    "prompts": 49,
+    "answers": 108
   },
   "playable": true
 }

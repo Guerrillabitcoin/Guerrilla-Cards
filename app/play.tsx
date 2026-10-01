@@ -15,33 +15,46 @@ import {
   Subtitle,
   Title,
 } from '@/src/components/ui';
-import { TelegramPlane } from '@/src/components/TelegramPlane';
+import { NextRoundBar } from '@/src/components/NextRoundBar';
+import { leagueMatchCountOf } from '@/src/store/leagueSession';import { AdvanceRoundButton } from '@/src/components/AdvanceRoundButton';
+import { WaitingRoster } from '@/src/components/WaitingRoster';
+import { viewerRevealOrder } from '@/src/engine/viewerOrder';
+import { TuRespuesta } from '@/src/components/TuRespuesta';
+import { SubmitWaitMenu } from '@/src/components/SubmitWaitMenu';
+import { HostRecoveryLinks } from '@/src/components/ClaimSeat';
+import { pendingActionForSeat } from '@/src/store/seatResume';
+import { RoundStandings } from '@/src/components/RoundStandings';
+import { WinnerScreenFlash } from '@/src/components/WinFlash';import { TelegramPlane } from '@/src/components/TelegramPlane';
 import * as Engine from '@/src/engine/game';
-import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, type Card } from '@/src/engine/types';
+import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
+import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, REVEAL_COUNTDOWN_MS, type Card } from '@/src/engine/types';
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
 import {
+  claimSeat,
   getMySeat,
   getOnlineFlag,
   pullRoom,
   pushRoom,
+  setMySeat,
+  setOnlineFlag,
 } from '@/src/store/roomSync';
-import { useHistoryStore } from '@/src/store/HistoryContext';
+import { castVoteRoom } from '@/src/store/castVoteRoom';
+import { fallbackDealerId, HOST_GRACE_MS, mayDeal } from '@/src/engine/dealer';
+import { useRoomPoll } from '@/src/store/useRoomPoll'; import { useHistoryStore } from '@/src/store/HistoryContext';
 import { useTheme } from '@/src/store/ThemeContext';
+import { usePlayStyles } from '@/src/components/play/usePlayStyles';
+import { rivalLabel } from '@/src/components/play/rivalLabel';
 
-function rivalLabel(playerId: string): string {
-  const m = /^rival-(\d+)$/.exec(playerId);
-  if (m) return `RESPUESTA BOT ${m[1]}`;
-  return 'RESPUESTA BOT';
-}
 
 export default function PlayScreen() {
   const styles = usePlayStyles();
+  const { colors } = useTheme();
   const { patches: adminPatches } = useAdmin();
 
-  const { code } = useLocalSearchParams<{ code: string }>();
+  const { code, seat: seatParam, recover: recoverParam } = useLocalSearchParams<{ code: string; seat?: string; recover?: string }>();
   const router = useRouter();
-  const { getGame, updateGame, ready, applyRemoteGame } = useGameStore();
+  const { getGame, updateGame, ready, applyRemoteGame, restartSameSetup } = useGameStore();
   const {
     appendWinner,
     toggleFavorite,
@@ -80,10 +93,14 @@ export default function PlayScreen() {
   const greenFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const favAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const advancingLockRef = useRef(false);
+  const redealRanRef = useRef<string | null>(null);
   const engineTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recordedRoundRef = useRef<string | null>(null);
   const discardRecordedRef = useRef<string | null>(null);
   const discardSeedKeyRef = useRef<string | null>(null);
+  /** Sticky: I already discarded this round (survives poll races). */
+  const discardAckRef = useRef<string | null>(null);
+  const discardSendLockRef = useRef(false);
   const prevPhaseRef = useRef<string | null>(null);
   const knownHandIdsRef = useRef<Set<string>>(new Set());
   /** New draws often land while judging — flash when mano is visible again. */
@@ -116,21 +133,153 @@ export default function PlayScreen() {
     };
   }, [gameCode]);
 
+  // /play?seat= → claim quietly (rematch / normal).
+  // /play?seat=&recover=1 → force server board + orange resume banner (recovery links only).
+  // seatClaimRan only after successful apply; cleanup clears key if cancelled before success
+  // so Strict Mode / remount retries instead of skipping a cancelled in-flight claim.
+  const seatClaimRan = useRef<string | null>(null);
+  const seatWantEarly = String(seatParam ?? '').trim();
+  const [seatHydrateStatus, setSeatHydrateStatus] = useState<
+    'pending' | 'done' | 'failed'
+  >(seatWantEarly ? 'pending' : 'done');
+  const [seatHydrateError, setSeatHydrateError] = useState<string | null>(null);
+  const [resumeHint, setResumeHint] = useState<string | null>(null);
   useEffect(() => {
-    if (!ready || !gameCode || !onlineRoom) return;
+    if (!ready || !gameCode) return;
+    const want = String(seatParam ?? '').trim();
+    if (!want) {
+      setSeatHydrateStatus('done');
+      setSeatHydrateError(null);
+      return;
+    }
+    const recoverRaw = Array.isArray(recoverParam)
+      ? recoverParam[0]
+      : recoverParam;
+    const isRecover =
+      String(recoverRaw ?? '').trim() === '1' ||
+      String(recoverRaw ?? '').toLowerCase() === 'true';
+    const key = `${gameCode}:${want}:${isRecover ? 'r' : 'q'}`;
+    if (seatClaimRan.current === key) {
+      setSeatHydrateStatus('done');
+      return;
+    }
     let cancelled = false;
-    const tick = async () => {
-      const res = await pullRoom(gameCode);
-      if (cancelled || !res.ok) return;
-      applyRemoteGame(res.state);
-    };
-    void tick();
-    const id = setInterval(tick, 2500);
+    let succeeded = false;
+    setSeatHydrateStatus('pending');
+    setSeatHydrateError(null);
+    void (async () => {
+      try {
+        await setOnlineFlag(gameCode, true);
+        if (cancelled) return;
+        setOnlineRoom(true);
+
+        if (isRecover) {
+          // Drop local UI ghosts that block sending again
+          setPicked([]);
+          setPrivacy(false);
+          setPaintPhase(null);
+          setAdvancingRound(false);
+          setSoloSkipMode(false);
+          discardAckRef.current = null;
+        }
+
+        let board = null as null | import('@/src/engine/types').GameState;
+        let lastErr: string | null = null;
+        const claimed = await claimSeat(gameCode, want);
+        if (cancelled) return;
+        if (claimed.ok) {
+          await setMySeat(gameCode, claimed.playerId);
+          if (cancelled) return;
+          setMyPlayerId(claimed.playerId);
+          applyRemoteGame(claimed.state, isRecover ? { force: true } : undefined);
+          board = claimed.state;
+        } else {
+          lastErr = claimed.error || `claim_failed`;
+          const pulled = await pullRoom(gameCode);
+          if (cancelled) return;
+          if (!pulled.ok) {
+            lastErr = pulled.error || lastErr || 'not_found';
+            setSeatHydrateError(lastErr);
+            setSeatHydrateStatus('failed');
+            return;
+          }
+          applyRemoteGame(pulled.state, isRecover ? { force: true } : undefined);
+          board = pulled.state;
+          if (pulled.state.players.some((p) => p.id === want)) {
+            await setMySeat(gameCode, want);
+            if (cancelled) return;
+            setMyPlayerId(want);
+          }
+        }
+        if (cancelled) return;
+        if (!board) {
+          setSeatHydrateError(lastErr || 'not_found');
+          setSeatHydrateStatus('failed');
+          return;
+        }
+        // Mark success only after apply so remount can retry a cancelled claim.
+        seatClaimRan.current = key;
+        succeeded = true;
+        setSeatHydrateStatus('done');
+        // Banner only for intentional recovery links — not rematch / start with ?seat=
+        if (!isRecover) return;
+        const pending = pendingActionForSeat(board, want);
+        if (pending.label) setResumeHint(pending.label);
+        else setResumeHint('Asiento recuperado — sincronizado con la sala.');
+      } catch (e) {
+        if (cancelled) return;
+        setSeatHydrateError(e instanceof Error ? e.message : 'network_error');
+        setSeatHydrateStatus('failed');
+      } finally {
+        if (cancelled && !succeeded && seatClaimRan.current === key) {
+          seatClaimRan.current = null;
+        }
+      }
+    })();
     return () => {
       cancelled = true;
-      clearInterval(id);
+      if (!succeeded && seatClaimRan.current === key) {
+        seatClaimRan.current = null;
+      }
     };
-  }, [ready, gameCode, onlineRoom, applyRemoteGame]);
+  }, [ready, gameCode, seatParam, recoverParam, applyRemoteGame]);
+
+  // Host recovery: rematch left submitting with currentPrompt=null (624TH hang).
+  // Only anfitrión re-deals once; guests wait for poll/push.
+  useEffect(() => {
+    if (!ready || !game || !onlineRoom || !myPlayerId) return;
+    if (game.phase !== 'submitting') return;
+    if (game.currentPrompt) return;
+    // Only rematch-shaped hangs (round 1, scores cleared) — never mid-manga.
+    if ((game.round ?? 0) > 1) return;
+    if (game.players.some((p) => (p.score ?? 0) > 0)) return;
+    const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
+    if (!iAmHost) return;
+    const key = `${game.code}:redeal:r${game.round}:m${game.leagueMatchCount ?? 0}`;
+    if (redealRanRef.current === key) return;
+    redealRanRef.current = key;
+    restartSameSetup(game.code);
+  }, [
+    ready,
+    game?.code,
+    game?.phase,
+    game?.currentPrompt,
+    game?.round,
+    game?.leagueMatchCount,
+    game?.players,
+    onlineRoom,
+    myPlayerId,
+    restartSameSetup,
+  ]);
+
+
+     useRoomPoll({
+    ready,
+    code: gameCode,
+    enabled: onlineRoom,
+    phase: game?.phase,
+    applyRemoteGame,
+  });
 
   useEffect(() => {
     // En rondas múltiplo de 5 no hay descartar/pasar (fase de descarte aparte).
@@ -145,12 +294,19 @@ export default function PlayScreen() {
 
   useEffect(() => {
     if (!game) return;
+    const seatParam = myPlayerId ? { seat: myPlayerId } : {};
     if (game.phase === 'results') {
-      router.replace({ pathname: '/results', params: { code: game.code } });
+      router.replace({
+        pathname: '/results',
+        params: { code: game.code, ...seatParam },
+      });
     } else if (game.phase === 'lobby') {
-      router.replace({ pathname: '/lobby', params: { code: game.code } });
+      router.replace({
+        pathname: '/lobby',
+        params: { code: game.code, ...seatParam },
+      });
     }
-  }, [game, router]);
+  }, [game, router, myPlayerId]);
 
   useEffect(() => {
     if (game?.phase !== 'reveal') {
@@ -257,6 +413,92 @@ export default function PlayScreen() {
       setFlashGreenIds([]);
     }, 1000);
   }, [game?.phase, game?.round, game?.code]);
+
+  // Host valve: auto-submit / auto-discard Multi bots one-by-one (stagger ~0.4s)
+  // so the wait roster shows each bot flipping to «listo» in sequence.
+  useEffect(() => {
+    if (!ready || !game || !myPlayerId) return;
+    if (game.mode === 'solo') return;
+    const iAmHostNow = !!game.players.find(
+      (p) => p.id === myPlayerId && p.isHost
+    );
+    if (!iAmHostNow) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    if (game.phase === 'submitting') {
+      const zarId = game.players[game.zarIndex]?.id;
+      const voteModeNow = (game.judgeMode ?? 'zar') === 'vote';
+      const pendingBots = game.players.filter((p) => {
+        if (!p.isBot) return false;
+        if (!voteModeNow && p.id === zarId) return false;
+        return !Engine.submissionsForRound(game).some(
+          (s) => s.playerId === p.id && !s.rival
+        );
+      });
+      if (!pendingBots.length) return;
+      // First bot almost immediately; next ones ~420ms apart
+      const delay = pendingBots.length === game.players.filter((p) => p.isBot).length
+        ? 220
+        : 420;
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        const botId = pendingBots[0]?.id;
+        if (!botId) return;
+        updateGame(game.code, (g) => {
+          if (g.phase !== 'submitting') return g;
+          const live = g.players.find((x) => x.id === botId && x.isBot);
+          if (!live) return g;
+          if (
+            Engine.submissionsForRound(g).some(
+              (s) => s.playerId === botId && !s.rival
+            )
+          ) {
+            return g;
+          }
+          const pick = Math.max(1, g.currentPrompt?.pick ?? 1);
+          const ids = live.hand.slice(0, pick).map((c) => c.id);
+          if (ids.length < pick) return Engine.autoSubmitBots(g);
+          try {
+            return Engine.submitCards(g, botId, ids);
+          } catch {
+            return Engine.autoSubmitBots(g);
+          }
+        });
+      }, delay);
+      return () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
+    }
+
+    if (game.phase === 'discarding') {
+      const pendingBot = game.players.some(
+        (p) =>
+          p.isBot && !(game.discardDonePlayerIds ?? []).includes(p.id)
+      );
+      if (!pendingBot) return;
+      timer = setTimeout(() => {
+        if (cancelled) return;
+        updateGame(game.code, (g) => Engine.autoDiscardBots(g));
+      }, 280);
+      return () => {
+        cancelled = true;
+        if (timer) clearTimeout(timer);
+      };
+    }
+  }, [
+    ready,
+    game?.code,
+    game?.phase,
+    game?.round,
+    game?.submissions?.length,
+    game?.discardDonePlayerIds?.length,
+    game?.zarIndex,
+    game?.judgeMode,
+    myPlayerId,
+    updateGame,
+  ]);
 
   // Left in hand at match end (once per game)
   useEffect(() => {
@@ -374,6 +616,24 @@ export default function PlayScreen() {
         discardSeedKeyRef.current = null;
         setForcedDiscardIds([]);
       }
+      if (phase !== 'discarding') {
+        discardSendLockRef.current = false;
+      }
+      // Drop sticky ack once we have left this discard round for good
+      if (
+        discardAckRef.current &&
+        game &&
+        phase !== 'discarding' &&
+        !discardAckRef.current.includes(`:r${game.round}:`)
+      ) {
+        discardAckRef.current = null;
+      }
+      if (
+        discardAckRef.current &&
+        (phase === 'judging' || phase === 'reveal' || phase === 'results' || phase === 'lobby')
+      ) {
+        discardAckRef.current = null;
+      }
       return;
     }
     const seatId =
@@ -384,6 +644,8 @@ export default function PlayScreen() {
           : game.activeSeatId;
     if (!seatId) return;
     if (game.discardDonePlayerIds.includes(seatId)) return;
+    const ackKey = `${game.code}:discard:r${game.round}:${seatId}`;
+    if (discardAckRef.current === ackKey) return;
     const player = game.players.find((p) => p.id === seatId);
     if (!player || player.isBot) return;
     const key = `${game.code}:discard:r${game.round}:${seatId}`;
@@ -412,73 +674,135 @@ export default function PlayScreen() {
     myPlayerId,
   ]);
 
-  // Online reveal: only the next Zar (winner) auto-advances at 10s.
-  // Others wait for poll. Host fallback at 12s if still stuck on reveal.
+  // Online reveal: shared revealEndsAt (max 8s). Only next Zar or host advances.
   useEffect(() => {
     if (!game || game.mode === 'solo') return;
-    if (game.phase !== 'reveal' || !game.roundWinnerId) {
+    if (game.phase !== 'reveal') {
       if (autoRevealTimerRef.current) {
         clearTimeout(autoRevealTimerRef.current);
         autoRevealTimerRef.current = null;
       }
-      if (game?.phase !== 'reveal') autoRevealKeyRef.current = null;
+      autoRevealKeyRef.current = null;
       return;
     }
     const online = onlineRoom && !!myPlayerId;
-    const iAmNextZar = online && myPlayerId === game.roundWinnerId;
+    const iAmNextZar =
+      online && !!game.roundWinnerId && myPlayerId === game.roundWinnerId;
     const iAmHost =
       online &&
       !!game.players.find((p) => p.id === myPlayerId && p.isHost);
-    // Pass-and-play (one device): anyone may auto-advance
-    const mayAuto = !online || iAmNextZar;
-    const key = `${game.code}:${game.round}:${game.roundWinnerId}:${
-      mayAuto ? 'zar' : iAmHost ? 'host' : 'wait'
+    const votoDividido = online && !game.roundWinnerId;
+    // Pass-and-play: anyone. Online: Zar, host, or annulled vote.
+    const mayAuto = !online || iAmNextZar || iAmHost || votoDividido;
+    if (!mayAuto) {
+      if (autoRevealTimerRef.current) {
+        clearTimeout(autoRevealTimerRef.current);
+        autoRevealTimerRef.current = null;
+      }
+      return;
+    }
+    // Stamp once if missing. Cap remaining so host never waits > countdown
+    // (stale updatedAt / late paint used to push past 10s).
+    const now = Date.now();
+    let endsAt = game.revealEndsAt || 0;
+    if (!endsAt) {
+      endsAt = now + REVEAL_COUNTDOWN_MS;
+      updateGame(game.code, (g) =>
+        g.phase === 'reveal' && !g.revealEndsAt
+          ? { ...g, revealEndsAt: endsAt }
+          : g
+      );
+    } else {
+      // Never show more than countdown from this paint (shared min still applies via merge)
+      endsAt = Math.min(endsAt, now + REVEAL_COUNTDOWN_MS);
+    }
+    const key = `${game.code}:${game.round}:${endsAt}:${
+      iAmNextZar ? 'zar' : iAmHost ? 'host' : 'auto'
     }`;
     if (autoRevealKeyRef.current === key) return;
     autoRevealKeyRef.current = key;
     if (autoRevealTimerRef.current) clearTimeout(autoRevealTimerRef.current);
-
-    if (mayAuto) {
-      autoRevealTimerRef.current = setTimeout(() => {
-        autoRevealTimerRef.current = null;
-        continueRoundRef.current?.();
-      }, 10000);
-      return;
-    }
-    if (iAmHost) {
-      autoRevealTimerRef.current = setTimeout(() => {
-        autoRevealTimerRef.current = null;
-        continueRoundRef.current?.({ hostFallback: true });
-      }, 12000);
-    }
+    const delay = Math.max(0, endsAt - now);
+    autoRevealTimerRef.current = setTimeout(() => {
+      autoRevealTimerRef.current = null;
+      continueRoundRef.current?.();
+    }, delay);
   }, [
     game?.mode,
     game?.phase,
     game?.code,
     game?.round,
     game?.roundWinnerId,
+    game?.roundWinnerIds,
+    game?.revealEndsAt,
+    game?.updatedAt,
     game?.players,
     onlineRoom,
     myPlayerId,
+    updateGame,
   ]);
 
   if (!ready) return <Loading />;
 
+  // Seat deep-link / recover: wait for claim+pull before «Sala no encontrada».
   if (!game) {
+    const waitingSeat =
+      Boolean(String(seatParam ?? '').trim()) && seatHydrateStatus !== 'failed';
+    if (waitingSeat) return <Loading />;
     return (
       <Screen>
-        <Title>Partida no encontrada</Title>
+        <Title>Sala no encontrada</Title>
+        {seatHydrateError ? (
+          <Muted>{seatHydrateError}</Muted>
+        ) : null}
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>
     );
   }
 
+  // Never infinite-spin: rematch/liga races used to leave /play stuck on Loading.
   if (game.phase === 'results' || game.phase === 'lobby') {
-    return <Loading />;
+    const go =
+      game.phase === 'results'
+        ? () =>
+            router.replace({
+              pathname: '/results',
+              params: {
+                code: game.code,
+                ...(myPlayerId ? { seat: myPlayerId } : {}),
+              },
+            })
+        : () =>
+            router.replace({
+              pathname: '/lobby',
+              params: {
+                code: game.code,
+                ...(myPlayerId ? { seat: myPlayerId } : {}),
+              },
+            });
+    return (
+      <Screen>
+        <Title>
+          {game.phase === 'results' ? 'Final de partida' : 'Sala'}
+        </Title>
+        <Muted>
+          {game.phase === 'results'
+            ? 'Abriendo resultados…'
+            : 'Volviendo a la sala…'}
+        </Muted>
+        <Button
+          title={game.phase === 'results' ? 'Ver resultados' : 'Ir a la sala'}
+          onPress={go}
+        />
+      </Screen>
+    );
   }
 
   const human = game.players.find((p) => !p.isBot) ?? game.players[0];
   const isOnline = !isSolo && onlineRoom && !!myPlayerId;
+  const iAmHostPlayer =
+    !!myPlayerId &&
+    !!game.players.find((p) => p.id === myPlayerId && p.isHost);
   const onlineMissingSeat = !isSolo && onlineRoom && !myPlayerId;
   // Solo: human seat. Online: locked seat ONLY (never fall back to shared activeSeatId).
   const active = isSolo
@@ -494,7 +818,7 @@ export default function PlayScreen() {
         <Title>Sin asiento</Title>
         <Subtitle>
           Esta ventana no tiene jugador propio en la sala. Vuelve a Inicio y usa
-          «Unirse a partida async» (cada invitado necesita su propia unión).
+          «Unirse» con el código de sala (cada invitado necesita su propia unión).
         </Subtitle>
         <Button title="Inicio" onPress={() => router.replace('/')} />
       </Screen>
@@ -511,25 +835,61 @@ export default function PlayScreen() {
 
   const roundSubs = Engine.submissionsForRound(game);
   const votesMap = game.votes ?? {};
+  const botIdSet = new Set(
+    game.players.filter((p) => p.isBot).map((p) => p.id)
+  );
   const votersPending = voteMode
     ? game.submissions
-        .filter((s) => !s.rival)
+        .filter((s) => !s.rival && !botIdSet.has(s.playerId))
         .map((s) => s.playerId)
         .filter((id) => !votesMap[id])
     : [];
+  const humanVoterTotal = voteMode
+    ? game.submissions.filter((s) => !s.rival && !botIdSet.has(s.playerId))
+        .length
+    : 0;
   const submitPendingPlayers = game.players.filter((p) => {
     if (zarSkipsSubmit && p.id === zar.id) return false;
     return !roundSubs.some((s) => s.playerId === p.id && !s.rival);
   });
-  // Prefer engine revealOrder (set on enter judging). Stable identity fallback only.
-  const revealOrderSafe =
-    game.revealOrder.length === game.submissions.length &&
-    game.revealOrder.every(
-      (i) => i >= 0 && i < game.submissions.length
-    ) &&
-    new Set(game.revealOrder).size === game.submissions.length
-      ? game.revealOrder
-      : game.submissions.map((_, i) => i);
+  // Prefer engine revealOrder (playerIds preferred; legacy numeric indices ok).
+  const subPlayerIds = game.submissions.map((s) => s.playerId);
+  const revealOrderRaw = game.revealOrder ?? [];
+  const revealIsPlayerIds =
+    revealOrderRaw.length === subPlayerIds.length &&
+    revealOrderRaw.length > 0 &&
+    revealOrderRaw.every((x) => typeof x === 'string') &&
+    new Set(revealOrderRaw.map(String)).size === subPlayerIds.length &&
+    revealOrderRaw.every((x) => subPlayerIds.includes(String(x)));
+  const revealIsIndices =
+    revealOrderRaw.length === game.submissions.length &&
+    revealOrderRaw.every((i) => {
+      const n = typeof i === 'number' ? i : Number(i);
+      return Number.isInteger(n) && n >= 0 && n < game.submissions.length;
+    }) &&
+    new Set(revealOrderRaw.map((i) => Number(i))).size === game.submissions.length;
+  // Shared freeze may still be submission-order; display per-viewer shuffle
+  // so each seat (and each round) sees bots+humans in a different mix.
+  const viewerSeed = `${game.code}|r${game.round}|${myPlayerId || active?.id || 'anon'}`;
+  const revealOrderSafe: Array<number | string> = (() => {
+    const baseIds = revealIsPlayerIds
+      ? revealOrderRaw.map(String)
+      : subPlayerIds.length
+        ? subPlayerIds
+        : game.submissions.map((s) => s.playerId);
+    if (!baseIds.length) {
+      return revealIsIndices
+        ? revealOrderRaw.map((i) => Number(i))
+        : game.submissions.map((_, i) => i);
+    }
+    return viewerRevealOrder(baseIds, viewerSeed);
+  })();
+  const subByRevealEntry = (entry: number | string) => {
+    if (typeof entry === 'string') {
+      return game.submissions.find((s) => s.playerId === entry);
+    }
+    return game.submissions[entry];
+  };
   const handLenForPick = active?.hand.length ?? 0;
   const discardMin = Math.min(DISCARD_MIN, handLenForPick);
   const discardMax = Math.min(DISCARD_MAX, handLenForPick);
@@ -587,10 +947,15 @@ export default function PlayScreen() {
     width: `calc((100% - ${handGap * (handColumns - 1)}px) / ${handColumns})` as unknown as number,
   };
 
+  const discardAckKey =
+    active && game
+      ? `${game.code}:discard:r${game.round}:${active.id}`
+      : null;
   const alreadyAnswered =
     !!active &&
     (isDiscarding
-      ? game.discardDonePlayerIds.includes(active.id)
+      ? game.discardDonePlayerIds.includes(active.id) ||
+        (!!discardAckKey && discardAckRef.current === discardAckKey)
       : roundSubs.some((s) => s.playerId === active.id && !s.rival));
 
   const pickedCards = picked
@@ -659,6 +1024,8 @@ export default function PlayScreen() {
     if (skipMode) setSoloSkipMode(false);
 
     if (discarding) {
+      if (discardSendLockRef.current) return;
+      discardSendLockRef.current = true;
       // Capture slots so the new cards flash “NUEVA” after the swap
       const slots = ids
         .map((id) => hand.findIndex((c) => c.id === id))
@@ -668,25 +1035,50 @@ export default function PlayScreen() {
         if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
         engineTimerRef.current = setTimeout(() => {
           engineTimerRef.current = null;
-          setPicked([]);
-          try {
-            updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
-            if (!solo) {
-              const after = getGame(code);
-              if (after?.activeSeatId && after.activeSeatId !== pid) {
-                setPrivacy(true);
+          void (async () => {
+            setPicked([]);
+            try {
+              if (onlineRoom) {
+                try {
+                  const remote = await pullRoom(code);
+                  if (remote.ok) applyRemoteGame(remote.state);
+                } catch {
+                  // keep local
+                }
+                const cur = getGame(code);
+                if (
+                  cur?.phase === 'discarding' &&
+                  (cur.discardDonePlayerIds ?? []).includes(pid)
+                ) {
+                  discardAckRef.current = `${code}:discard:r${cur.round}:${pid}`;
+                  discardSendLockRef.current = false;
+                  return;
+                }
+                if (cur && cur.phase !== 'discarding') {
+                  discardSendLockRef.current = false;
+                  return;
+                }
               }
+              updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
+              const after = getGame(code);
+              discardAckRef.current = `${code}:discard:r${after?.round ?? game.round}:${pid}`;
+              if (!solo) {
+                if (after?.activeSeatId && after.activeSeatId !== pid) {
+                  setPrivacy(true);
+                }
+              }
+              setReplacedSlots(slots);
+              if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
+              if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
+              replaceFlashRef.current = setTimeout(() => {
+                replaceFlashRef.current = null;
+                setReplacedSlots([]);
+              }, 700);
+            } catch (e) {
+              discardSendLockRef.current = false;
+              Alert.alert('Descarte', e instanceof Error ? e.message : 'Error');
             }
-            setReplacedSlots(slots);
-            if (replaceFlashRef.current) clearTimeout(replaceFlashRef.current);
-      if (greenFlashRef.current) clearTimeout(greenFlashRef.current);
-            replaceFlashRef.current = setTimeout(() => {
-              replaceFlashRef.current = null;
-              setReplacedSlots([]);
-            }, 700);
-          } catch (e) {
-            Alert.alert('Descarte', e instanceof Error ? e.message : 'Error');
-          }
+          })();
         }, 160);
       });
       return;
@@ -694,6 +1086,11 @@ export default function PlayScreen() {
 
     // Answer path: keep `picked` so the sticky fills on this press, show it,
     // then commit. Reveal keeps the same filled text.
+    // Hard guard: never submit incomplete multipick (pick must match prompt).
+    if (!skipMode) {
+      const answerPickNeed = Math.max(1, game.currentPrompt?.pick ?? 1);
+      if (ids.length !== answerPickNeed) return;
+    }
     runEngineAfterPaint(() => {
       if (engineTimerRef.current) clearTimeout(engineTimerRef.current);
       engineTimerRef.current = setTimeout(() => {
@@ -708,6 +1105,8 @@ export default function PlayScreen() {
               }
               setPicked([]);
             } else {
+              const answerPickNeed = Math.max(1, game.currentPrompt?.pick ?? 1);
+              if (ids.length !== answerPickNeed) return;
               if (onlineRoom) {
                 try {
                   const remote = await pullRoom(code);
@@ -837,15 +1236,17 @@ export default function PlayScreen() {
         );
       }
     } catch (e) {
-      Alert.alert('Zar', e instanceof Error ? e.message : 'Error');
+      Alert.alert('Comandante', e instanceof Error ? e.message : 'Error');
     }
   };
 
   const castVote = (submissionPlayerId: string) => {
     if (!active) return;
+    const voterId =
+      onlineRoom && myPlayerId ? myPlayerId : active.id;
     try {
       updateGame(game.code, (g) => {
-        const next = Engine.castVote(g, active.id, submissionPlayerId);
+        const next = castVoteFlexible(g, voterId, submissionPlayerId);
         recordIfNeeded(next);
         if (next.phase === 'results') {
           setTimeout(() => {
@@ -875,8 +1276,23 @@ export default function PlayScreen() {
           );
         }
       }
+      if (onlineRoom && myPlayerId) {
+        const code = game.code;
+        const vid = myPlayerId;
+        void (async () => {
+          const voted = await castVoteRoom(code, vid, submissionPlayerId);
+          if (voted.ok && voted.state) {
+            applyRemoteGame(voted.state);
+          } else {
+            const local = getGame(code);
+            if (local) await pushRoom(local, vid);
+          }
+        })();
+      }
     } catch (e) {
-      Alert.alert('Voto', e instanceof Error ? e.message : 'Error');
+      { const msg = e instanceof Error ? e.message : 'Error';
+      if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(`Voto: ${msg}`);
+      else Alert.alert('Voto', msg); }
     }
   };
 
@@ -903,25 +1319,35 @@ export default function PlayScreen() {
     const run = async () => {
       try {
         if (onlineRoom && myPlayerId) {
-          const pulled = await pullRoom(game.code);
+          // Soft sync: don't stall the round on a slow pull (was ~2–4s lag).
+          const pulled = await Promise.race([
+            pullRoom(game.code),
+            new Promise<{ ok: false }>((r) =>
+              setTimeout(() => r({ ok: false }), 450)
+            ),
+          ]);
           if (pulled.ok) applyRemoteGame(pulled.state);
-          const cur = getGame(game.code);
-          if (!cur || cur.phase !== 'reveal') {
+          const cur = getGame(game.code) ?? game;
+          if (cur.phase !== 'reveal') {
             advancingLockRef.current = false;
             return;
           }
-          const vote = (cur.judgeMode ?? 'zar') === 'vote';
           const iAmNextZar =
             !!cur.roundWinnerId && myPlayerId === cur.roundWinnerId;
           const iAmHost = !!cur.players.find(
             (p) => p.id === myPlayerId && p.isHost
           );
+          const votoDividido = !cur.roundWinnerId;
+          // Single dealer: host deals; fallback seat only after HOST_GRACE_MS.
+          void iAmNextZar;
+          void votoDividido;
           const mayAdvance =
-            iAmNextZar ||
-            (vote && iAmHost) ||
-            (opts?.hostFallback && iAmHost);
+            iAmHost || !!opts?.hostFallback || mayDeal(cur, myPlayerId);
           if (!mayAdvance) {
             advancingLockRef.current = false;
+            if (fallbackDealerId(cur) === myPlayerId) {
+              setTimeout(() => continueRoundRef.current?.(), HOST_GRACE_MS + 1500);
+            }
             return;
           }
         }
@@ -934,7 +1360,8 @@ export default function PlayScreen() {
         autoRevealKeyRef.current = null;
         const msg = e instanceof Error ? e.message : 'Error';
         if (/revelado/i.test(msg)) return;
-        Alert.alert('Siguiente', msg);
+        if (typeof window !== 'undefined' && typeof window.alert === 'function') window.alert(`Siguiente: ${msg}`);
+        else Alert.alert('Siguiente', msg);
       }
     };
     void run();
@@ -1089,13 +1516,22 @@ export default function PlayScreen() {
       phase === 'judging' ||
       phase === 'reveal');
 
+  const revealTieIds = (game.roundWinnerIds ?? []).filter(Boolean);
+  const revealIsTie = phase === 'reveal' && revealTieIds.length > 1;
+  const revealWinnerSub =
+    phase === 'reveal' && game.roundWinnerId
+      ? game.submissions.find((s) => s.playerId === game.roundWinnerId)
+      : undefined;
   const stickyPromptAnswers =
-    phase === 'reveal' && submittedAnswerTexts.length
-      ? submittedAnswerTexts
-      : phase === 'judging'
-        ? stickyAnswers.length
-          ? stickyAnswers
-          : Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
+    phase === 'reveal'
+      ? revealIsTie
+        ? Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
+        : revealWinnerSub?.cards?.map((c) => c.text) ??
+          Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______')
+      : phase === 'judging' && myPlayerId
+        ? (game.submissions.find((s) => s.playerId === myPlayerId && !s.rival)
+            ?.cards.map((c) => c.text) ??
+          Array(Math.max(1, game.currentPrompt?.pick ?? 1)).fill('______'))
         : stickyAnswers;
 
   const discardCountLabel =
@@ -1105,25 +1541,68 @@ export default function PlayScreen() {
   // Solo “tirar 2 y saltar”: always n/2
   const soloSkipCountLabel = `${Math.min(picked.length, pickNeed)}/${pickNeed}`;
 
-  const roundLine = isDiscarding
+ const roundLine = isDiscarding
     ? `Descarte · ${discardCountLabel}`
     : soloSkipMode
       ? `Descarte · ${soloSkipCountLabel}`
-    : `Ronda ${game.round}${isSolo ? `/${SOLO_MAX_ROUNDS}` : ''} · ${
-        isSolo ? 'Solo' : game.code
-      }`;
+      : !voteMode &&
+          phase === 'submitting' &&
+          zar &&
+          myPlayerId === zar.id
+               ? `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round} · COMANDANTE`
+        : `Partida ${(leagueMatchCountOf(game) || 0) + 1} · Ronda ${game.round}`; // results screen returns earlier
   const scoreLine = isSolo
     ? `${human?.score ?? 0}/${game.targetScore}`
-    : voteMode
-      ? `Voto · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`
-      : `Zar ${zar?.nickname} · ${game.players.map((p) => `${p.nickname} ${p.score}`).join(' · ')}`;
-
+    : '';
   return (
     <View style={styles.root}>
-      <View style={styles.sticky}>
+      <WinnerScreenFlash
+        active={phase === 'reveal' && !isSolo && !!myPlayerId && myPlayerId === game.roundWinnerId}
+        variant="round"
+      />      <View style={styles.sticky}>
+                  <NextRoundBar
+                    active={phase === 'reveal'}
+                    deadlineAt={
+                      phase === 'reveal'
+                        ? (() => {
+                            const raw =
+                              game.revealEndsAt ||
+                              Date.now() + REVEAL_COUNTDOWN_MS;
+                            return Math.min(
+                              raw,
+                              Date.now() + REVEAL_COUNTDOWN_MS
+                            );
+                          })()
+                        : null
+                    }
+                    canAdvance={
+                      !!isSolo ||
+                      !isOnline ||
+                      !!iAmHostPlayer ||
+                      (!!myPlayerId &&
+                        !!game.roundWinnerId &&
+                        myPlayerId === game.roundWinnerId) ||
+                      !game.roundWinnerId
+                    }
+                    onDone={() => continueRoundRef.current?.()}
+                  />
         <View style={styles.roundSticky}>
           <Text style={styles.roundStickyTitle} numberOfLines={1}>
-            {roundLine}
+            <Text style={{ color: colors.zar }}>
+              Partida{' '}
+              {(leagueMatchCountOf(game) || 0) + 1}
+            </Text>
+            <Text style={{ color: colors.textDim }}> · </Text>
+            <Text style={{ color: colors.accentSoft }}>
+              {isDiscarding || soloSkipMode
+                ? `Descarte`
+                : !voteMode &&
+                    phase === 'submitting' &&
+                    zar &&
+                    myPlayerId === zar.id
+                  ? `Ronda ${game.round} · COMANDANTE`
+                  : `Ronda ${game.round}`}
+            </Text>
           </Text>
           <Text style={styles.roundStickyScore} numberOfLines={1}>
             {scoreLine}
@@ -1157,7 +1636,22 @@ export default function PlayScreen() {
                 ? `Descartar ${soloSkipCountLabel}`
                 : pickNeed > 1 && phase === 'submitting' && !alreadyAnswered
                   ? `Elige ${pickNeed} (${picked.length}/${pickNeed})`
-                  : 'Pregunta'}
+                  : phase === 'judging'
+                    ? 'Tu respuesta'
+                    : phase === 'reveal'
+                      ? revealIsTie
+                        ? game.roundWinnerId
+                          ? 'Empate'
+                          : 'Empate: voto dividido'
+                        : myPlayerId &&
+                            myPlayerId === game.roundWinnerId
+                          ? '¡Puntaco!'
+                          : `Ganadora · ${
+                              game.players.find(
+                                (p) => p.id === game.roundWinnerId
+                              )?.nickname ?? '—'
+                            }`
+                      : 'Pregunta'}
             </Text>
             {!soloSkipMode ? (
               <FilledPromptText
@@ -1235,9 +1729,36 @@ export default function PlayScreen() {
         </>
       ) : null}
       {isOnline ? (
-        <Muted>
-          Tú: {active?.nickname ?? '—'} · online · código {game.code}
-        </Muted>
+        <Text style={{ fontSize: 13, fontWeight: '700', marginBottom: 6 }}>
+          <Text style={{ color: colors.textMuted }}>Tú: </Text>
+          <Text style={{ color: colors.accentSoft }}>
+            {active?.nickname ?? '—'}
+          </Text>
+          <Text style={{ color: colors.textDim }}> · </Text>
+          <Text style={{ color: colors.textMuted }}>Partida: </Text>
+          <Text style={{ color: colors.zar }}>{game.code}</Text>
+        </Text>
+      ) : null}
+
+
+      {resumeHint ? (
+        <View
+          style={{
+            borderWidth: 2,
+            borderColor: '#F9A825',
+            borderRadius: 4,
+            padding: 10,
+            marginBottom: 8,
+            gap: 6,
+          }}
+        >
+          <Text style={{ fontWeight: '800', fontSize: 14 }}>{resumeHint}</Text>
+          <Button
+            title="Entendido"
+            variant="ghost"
+            onPress={() => setResumeHint(null)}
+          />
+        </View>
       ) : null}
 
       {isDiscarding ? (
@@ -1252,11 +1773,16 @@ export default function PlayScreen() {
               : ` Completado: ${game.discardDonePlayerIds.length}/${game.players.length}`}
           </Muted>
 
-          {game.discardDonePlayerIds.includes(active?.id ?? '') ? (
+          {alreadyAnswered ? (
             <View style={styles.doneBox}>
               <Text style={styles.doneBadge}>✓ Descarte enviado</Text>
-              {!isSolo ? (
-                <Muted>Esperando al resto de jugadores…</Muted>
+                            {!isSolo ? (
+                <WaitingRoster
+                  players={game.players}
+                  doneIds={game.discardDonePlayerIds}
+                  meId={myPlayerId ?? active?.id}
+                  verb="descarte"
+             />
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
@@ -1264,7 +1790,7 @@ export default function PlayScreen() {
               <Subtitle>¿Eres {active?.nickname}?</Subtitle>
               <Muted>Ocultamos la mano hasta que confirmes (pass-and-play).</Muted>
               <Button title="Sí, mostrar mi mano" onPress={() => setPrivacy(false)} />
-            </>
+              </>
           ) : (
             <>
               <View style={styles.discardCounterBox}>
@@ -1350,14 +1876,20 @@ export default function PlayScreen() {
                 />
               ) : null}
               {!isSolo ? (
-                <Muted>
-                  Enviados {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}.
-                  {submitPendingPlayers.length
-                    ? ` Esperando a que contesten: ${submitPendingPlayers
-                        .map((p) => p.nickname)
-                        .join(', ')}`
-                    : ' Esperando…'}
-                </Muted>
+                <SubmitWaitMenu
+                  players={game.players}
+                  doneIds={[
+                    ...roundSubs.filter((s) => !s.rival).map((s) => s.playerId),
+                    ...(!voteMode && zar ? [zar.id] : []),
+                  ]}
+                  expected={
+                    voteMode
+                      ? game.players.length
+                      : Math.max(0, game.players.length - 1)
+                  }
+                  meId={myPlayerId ?? active?.id}
+                  since={game.updatedAt}
+              />
               ) : null}
             </View>
           ) : privacy && !isSolo && !isOnline ? (
@@ -1368,13 +1900,15 @@ export default function PlayScreen() {
             </>
           ) : zarSkipsSubmit &&
             (isOnline ? myPlayerId === zar.id : active?.id === zar.id) ? (
-            <Muted>
-              Eres el Zar. Esperando a que contesten
-              {submitPendingPlayers.length
-                ? `: ${submitPendingPlayers.map((p) => p.nickname).join(', ')}`
-                : ''}
-              . Enviados: {roundSubs.filter((s) => !s.rival).length}/{submitNeeded}
-            </Muted>
+              <WaitingRoster
+              players={game.players}
+              doneIds={[
+                ...roundSubs.filter((s) => !s.rival).map((s) => s.playerId),
+                ...(zar ? [zar.id] : []),
+              ]}
+              meId={myPlayerId ?? active?.id}
+              verb="responda"
+         />
           ) : (
             <>
               {!isSolo ? (
@@ -1466,7 +2000,7 @@ export default function PlayScreen() {
             <>
               <Muted>
                 Votos {Object.keys(votesMap).length}/
-                {game.submissions.filter((s) => !s.rival).length}
+                {humanVoterTotal}
                 {votersPending.length
                   ? ` · faltan: ${votersPending
                       .map(
@@ -1475,12 +2009,20 @@ export default function PlayScreen() {
                       )
                       .join(', ')}`
                   : ''}
-              </Muted>
-              {active && votesMap[active.id] ? (
+             </Muted>
+                           <WaitingRoster
+                players={game.players}
+                doneIds={Object.keys(votesMap)}
+                meId={myPlayerId ?? active?.id}
+                verb="vote"
+              />
+              {(isOnline
+                ? !!(myPlayerId && votesMap[myPlayerId])
+                : !!(active && votesMap[active.id])) ? (
                 <Muted>
                   {isOnline
                     ? 'Ya has votado. Esperando votos…'
-                    : `${active.nickname} ya votó. Pasa el móvil al siguiente.`}
+                    : `${active?.nickname} ya votó. Pasa el móvil al siguiente.`}
                 </Muted>
               ) : privacy && !isOnline ? (
                 <>
@@ -1495,19 +2037,24 @@ export default function PlayScreen() {
                 <>
                   <Label>
                     {isOnline
-                      ? 'Elige una opción (anónimas — no la tuya)'
+                      ? 'Elige una de las dos (puedes votar la tuya)'
                       : `Voto de ${active?.nickname} — elige una (anónimas)`}
                   </Label>
                   {revealOrderSafe
-                    .map((idx) => game.submissions[idx])
+                    .map((entry) => subByRevealEntry(entry))
                     .filter(
                       (sub): sub is NonNullable<typeof sub> =>
                         !!sub &&
                         !sub.rival &&
-                        !(active && sub.playerId === active.id)
+                        (showOwnAnswerWhenVoting(game) || !(active && sub.playerId === active.id))
                     )
                     .map((sub, optNum) => {
                       const filled = Engine.getFilledSubmission(game, sub);
+                      const answers = (sub.cards || []).map((c) =>
+                        c?.text != null && String(c.text).trim() !== ''
+                          ? c.text
+                          : '…'
+                      );
                       return (
                       <View key={sub.playerId} style={styles.judgeCard}>
                         <View style={styles.soloRivalHead}>
@@ -1521,11 +2068,13 @@ export default function PlayScreen() {
                             {isFavFilled(filled) ? '★' : '☆'}
                           </Text>
                         </View>
-                        <FilledPromptText
-                          large
-                          promptText={game.currentPrompt?.text ?? ''}
-                          answers={sub.cards.map((c) => c.text)}
-                        />
+                        <View style={styles.judgeCardBody}>
+                          <FilledPromptText
+                            large
+                            promptText={game.currentPrompt?.text ?? ''}
+                            answers={answers}
+                          />
+                        </View>
                         <Button
                           title="Votar esta"
                           onPress={() => castVote(sub.playerId)}
@@ -1548,7 +2097,7 @@ export default function PlayScreen() {
             !isOnline &&
             active?.id === zar.id ? (
             <Button
-              title="Soy el Zar — revelar jugadas"
+              title="Soy el Comandante — revelar jugadas"
               onPress={() => setPrivacy(false)}
             />
           ) : (
@@ -1567,8 +2116,8 @@ export default function PlayScreen() {
                           ? 'Elige la mejor jugada'
                           : 'Jugadas anónimas'}
                     </Label>
-                    {revealOrderSafe.map((idx, optNum) => {
-                      const sub = game.submissions[idx];
+                    {revealOrderSafe.map((entry, optNum) => {
+                      const sub = subByRevealEntry(entry);
                       if (!sub) return null;
                       const isRival =
                         !!sub.rival || sub.playerId.startsWith('rival-');
@@ -1581,9 +2130,14 @@ export default function PlayScreen() {
                             : 'Opción'
                         : `Opción ${optNum + 1}`;
                       const filled = Engine.getFilledSubmission(game, sub);
+                      const answers = (sub.cards || []).map((c) =>
+                        c?.text != null && String(c.text).trim() !== ''
+                          ? c.text
+                          : '…'
+                      );
                       return (
                         <View
-                          key={`${sub.playerId}-${idx}`}
+                          key={sub.playerId}
                           style={styles.judgeCard}
                         >
                           <View style={styles.soloRivalHead}>
@@ -1595,11 +2149,13 @@ export default function PlayScreen() {
                               {isFavFilled(filled) ? '★' : '☆'}
                             </Text>
                           </View>
-                          <FilledPromptText
-                            large
-                            promptText={game.currentPrompt?.text ?? ''}
-                            answers={sub.cards.map((c) => c.text)}
-                          />
+                          <View style={styles.judgeCardBody}>
+                            <FilledPromptText
+                              large
+                              promptText={game.currentPrompt?.text ?? ''}
+                              answers={answers}
+                            />
+                          </View>
                           {canPickWinner ? (
                             <Button
                               title="Gana esta"
@@ -1610,7 +2166,7 @@ export default function PlayScreen() {
                       );
                     })}
                     {!isSolo && !canPickWinner ? (
-                      <Muted>El Zar está eligiendo…</Muted>
+                      <Muted>El Comandante está eligiendo…</Muted>
                     ) : null}
                   </>
                 );
@@ -1713,42 +2269,27 @@ export default function PlayScreen() {
                         (s): s is NonNullable<typeof s> => !!s
                       )
                   : [];
+                const myLoseSub =
+                  !iWon && !isTie && myPlayerId
+                    ? game.submissions.find(
+                        (s) => s.playerId === myPlayerId && !s.rival
+                      )
+                    : undefined;
                 return (
                   <>
-                    <View style={styles.revealTitleRow}>
-                      <Title>
-                        {isTie ? 'Empate' : iWon ? '¡Puntaco!' : 'Fin de ronda'}
-                      </Title>
-                      {iWon && !isTie ? (
-                        <Pressable
-                          onPress={toggleMyAnswerFav}
-                          hitSlop={12}
-                          accessibilityLabel={
-                            starFilled ? 'Respuesta guardada' : 'Marcar favorita'
-                          }
-                        >
-                          <Text style={styles.revealFavStar}>
-                            {starFilled ? '★' : '☆'}
-                          </Text>
-                        </Pressable>
-                      ) : null}
-                    </View>
-                    <Subtitle>
-                      {isTie
-                        ? 'Empate · +1 cada una'
-                        : winnerIsRival
-                          ? `Gana el bot (${winnerName})`
-                          : iWon
-                            ? `Has ganado esta ronda`
-                            : `Gana: ${winnerName}`}
-                      {!isTie && !isSolo && !winnerIsRival && !voteMode
-                        ? ` · próximo Zar: ${winnerName}`
-                        : ''}
-                    </Subtitle>
                     <Muted>
                       {isTie
-                        ? `Empate · +1 cada una. Meta: ${game.targetScore} Puntacos.`
-                        : `+1 para ${winnerName}. Meta: ${game.targetScore} Puntacos.`}
+                        ? game.roundWinnerId
+                          ? 'Empate · +1 cada una'
+                          : 'Empate: voto dividido · sin puntos'
+                        : iWon
+                          ? 'Has ganado esta ronda · +1'
+                          : winnerIsRival
+                            ? `Gana el bot (${winnerName})`
+                            : `Gana ${winnerName}`}
+                      {!isTie && !isSolo && !winnerIsRival && !voteMode
+                        ? ` · próximo Comandante: ${winnerName}`
+                        : ''}
                     </Muted>
                     {isTie
                       ? tiedSubs.map((sub) => {
@@ -1762,7 +2303,9 @@ export default function PlayScreen() {
                               style={styles.judgeCard}
                             >
                               <View style={styles.soloRivalHead}>
-                                <Text style={styles.judgeLabel}>{nick}</Text>
+                                <Text style={styles.judgeLabel}>
+                                  {`${nick} · ${(game.players.find((p) => p.id === sub.playerId)?.score ?? 0)} pts`}
+                                </Text>
                                 <Text
                                   style={styles.soloStar}
                                   onPress={() =>
@@ -1780,69 +2323,40 @@ export default function PlayScreen() {
                             </View>
                           );
                         })
-                      : winnerSub
-                        ? (() => {
-                            const filled = Engine.getFilledSubmission(
-                              game,
-                              winnerSub
-                            );
-                            return (
-                              <View style={styles.judgeCard}>
-                                <View style={styles.soloRivalHead}>
-                                  <Text style={styles.judgeLabel}>
-                                    {winnerName}
-                                  </Text>
-                                  <Text
-                                    style={styles.soloStar}
-                                    onPress={() =>
-                                      toggleFavFilled(filled, winnerSub.cards)
-                                    }
-                                  >
-                                    {isFavFilled(filled) ? '★' : '☆'}
-                                  </Text>
-                                </View>
-                                <FilledPromptText
-                                  large
-                                  promptText={game.currentPrompt?.text ?? ''}
-                                  answers={winnerSub.cards.map((c) => c.text)}
-                                />
-                              </View>
-                            );
-                          })()
-                        : null}
-                    <Label>Clasificación</Label>
-                    {[...game.players]
-                      .sort((a, b) => b.score - a.score)
-                      .map((p, i) => (
-                        <Muted key={p.id}>
-                          {i + 1}. {p.nickname} — {p.score}
-                          {(isTie
-                            ? tieIds.includes(p.id)
-                            : p.id === game.roundWinnerId)
-                            ? ' (+1)'
-                            : ''}
-                          {myPlayerId === p.id || active?.id === p.id
-                            ? ' · tú'
-                            : ''}
-                        </Muted>
-                      ))}
+                      : null}
+                    {myLoseSub ? (
+                      <View style={{ opacity: 0.72, marginTop: 4, marginBottom: 6 }}>
+                        <Text
+                          style={{
+                            color: colors.textMuted,
+                            fontWeight: '800',
+                            fontSize: 13,
+                            marginBottom: 4,
+                          }}
+                        >
+                          Tu respuesta
+                        </Text>
+                        <FilledPromptText
+                          small
+                          promptText={game.currentPrompt?.text ?? ''}
+                          answers={myLoseSub.cards.map((c) => c.text)}
+                        />
+                      </View>
+                    ) : null}
+                    <RoundStandings game={game} meId={myPlayerId ?? active?.id} />
                     {!isSolo ? (
                       <Muted>
                         {iAmNextZar
-                          ? 'Eres el próximo Zar: empieza ya o en 10 s pasa sola.'
-                          : `Esperando a que ${winnerName} (Zar) empiece la siguiente ronda…`}
+                          ? 'Eres el próximo Comandante: la siguiente ronda empieza sola en unos segundos.'
+                          : iAmHostPlayer
+                            ? 'Eres anfitrión: puedes forzar la siguiente ronda o esperar el contador.'
+                            : 'La siguiente ronda empieza sola en unos segundos (reparte el anfitrión)…'}
                       </Muted>
                     ) : null}
-                    {isSolo || iAmNextZar || !isOnline ? (
-                      <Button
-                        title={
-                          isSolo
-                            ? '→  Siguiente ronda'
-                            : iAmNextZar
-                              ? 'Empezar siguiente ronda (eres el Zar)'
-                              : '→  Siguiente ronda'
-                        }
-                        variant="success"
+                                       {isSolo || iAmHostPlayer || !isOnline ? (
+                      <AdvanceRoundButton
+                        isSolo={!!isSolo}
+                        isZar={!!iAmNextZar}
                         onPress={() => continueRound()}
                       />
                     ) : null}
@@ -1859,311 +2373,27 @@ export default function PlayScreen() {
           )}
         </>
       ) : null}
+
+      {isOnline && iAmHostPlayer ? (
+        <HostRecoveryLinks
+          code={game.code}
+          players={game.players}
+          compact
+          showLobbyLink={false}
+        />
+      ) : null}
+      {isOnline && !iAmHostPlayer && myPlayerId ? (
+        <HostRecoveryLinks
+          code={game.code}
+          players={game.players}
+          compact
+          showLobbyLink={false}
+          selfId={myPlayerId}
+        />
+      ) : null}
       </ScrollView>
 
 
     </View>
   );
 }
-
-function usePlayStyles() {
-  const { colors, fontFamily } = useTheme();
-  return useMemo(
-    () =>
-      StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bg },
-  discardCounterBox: {
-    backgroundColor: '#5A1820',
-    borderWidth: 2,
-    borderColor: '#E53935',
-    borderRadius: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    gap: 2,
-    marginBottom: 4,
-  },
-  discardCounterText: {
-    color: '#FFCDD2',
-    fontSize: 22,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  discardCounterHint: {
-    color: '#E57373',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  adminBar: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingTop: 6,
-    paddingBottom: 2,
-  },
-  adminChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgElevated,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  adminChipText: {
-    color: colors.accentSoft,
-    fontSize: 11,
-    fontWeight: '800',
-  },
-  sticky: {
-
-    paddingHorizontal: 10,
-    paddingTop: 6,
-    paddingBottom: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.bg,
-    gap: 4,
-    zIndex: 20,
-  },
-  roundSticky: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  roundStickyTitle: {
-    color: colors.text,
-    fontSize: 13,
-    fontWeight: '900',
-    flexShrink: 1,
-  },
-  roundStickyScore: {
-    color: colors.accentSoft,
-    fontSize: 13,
-    fontWeight: '900',
-  },
-  scrollInnerTight: {
-    paddingTop: 8,
-    gap: 8,
-  },
-  scroll: { flex: 1 },
-  scrollInner: { padding: 16, paddingBottom: 48, gap: 12 },
-  liveBox: {
-    backgroundColor: colors.promptBg,
-    borderRadius: 4,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingLeft: 12,
-    paddingRight: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
-  liveBoxWithFavSlot: {
-    position: 'relative',
-    // Keep right gutter reserved so ★ never pushes the prompt sideways
-    paddingRight: 44,
-  },
-  liveLabel: {
-    color: colors.accentSoft,
-    fontWeight: '800',
-    fontSize: 11,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  doneBox: {
-    backgroundColor: colors.bgElevated,
-    borderRadius: 4,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    gap: 8,
-  },
-  doneBadge: {
-    color: colors.accentSoft,
-    fontWeight: '900',
-    fontSize: 15,
-  },
-  scores: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  scoreItem: {
-    color: colors.textMuted,
-    backgroundColor: colors.bgElevated,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 3,
-    overflow: 'hidden',
-    fontWeight: '600',
-  },
-  seatRow: { gap: 8 },
-  hand: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    justifyContent: 'flex-start',
-    width: '100%',
-  },
-  handItem: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
-  revealFavStarAbs: {
-    position: 'absolute',
-    top: 4,
-    right: 6,
-    zIndex: 5,
-  },
-  revealFavStar: {
-    color: colors.zar,
-    fontSize: 28,
-    fontWeight: '900',
-    lineHeight: 32,
-    paddingHorizontal: 4,
-  },
-  revealTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  revealActionRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    gap: 8,
-    width: '100%',
-  },
-  shareSquare: {
-    width: 52,
-    height: 52,
-    borderRadius: 4,
-    borderWidth: 0,
-    backgroundColor: '#2AABEE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 1,
-    paddingTop: 2,
-  },
-  shareEnviar: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.2,
-    lineHeight: 10,
-    textTransform: 'lowercase',
-  },
-  sharePlane: {
-    fontSize: 24,
-    color: colors.accentSoft,
-    lineHeight: 28,
-  },
-  guardarFlex: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  soloCompactBlock: {
-    gap: 8,
-  },
-  soloCompactBlockHidden: {
-    opacity: 0,
-  },
-  soloMine: {
-    backgroundColor: colors.promptBg,
-    borderRadius: 4,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    gap: 4,
-    borderWidth: 1.5,
-    borderColor: colors.accent,
-  },
-  soloMineBadge: {
-    color: colors.accentSoft,
-    fontWeight: '900',
-    fontSize: 10,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-  },
-  soloMineAnswers: {
-    color: '#FF8A3D',
-    fontWeight: '800',
-    fontSize: 15,
-    lineHeight: 20,
-    textDecorationLine: 'underline',
-  },
-  soloSecondary: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  roundLastAnswer: {
-    backgroundColor: colors.bgElevated,
-    borderRadius: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    gap: 10,
-    borderWidth: 1,
-    borderColor: colors.accent,
-    marginTop: 8,
-  },
-  roundLastTitle: {
-    color: colors.accentSoft,
-    fontSize: 13,
-    fontWeight: '900',
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-  },
-  soloRival: {
-    backgroundColor: colors.bgElevated,
-    borderRadius: 3,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
-    gap: 2,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  soloMineRow: {
-    borderColor: colors.accent,
-    backgroundColor: colors.promptBg,
-  },
-  soloRivalHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  soloStar: {
-    color: colors.zar,
-    fontSize: 18,
-    fontWeight: '900',
-    paddingHorizontal: 4,
-  },
-  soloRivalText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    lineHeight: 17,
-    fontWeight: '600',
-  },
-  judgeCard: {
-    backgroundColor: colors.bgElevated,
-    borderRadius: 4,
-    padding: 12,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  judgeLabel: {
-    color: colors.accentSoft,
-    fontWeight: '800',
-    fontSize: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-  },
-}),
-    [colors, fontFamily]
-  );
-}
-

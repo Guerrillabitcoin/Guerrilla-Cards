@@ -1,18 +1,5 @@
 import manifestJson from '../../deck/manifest.json';
 import bannedPack from '../../deck/packs/_banned.json';
-import corePack from '../../deck/packs/core.json';
-import politicaPack from '../../deck/packs/politica.json';
-import celebridadesPack from '../../deck/packs/celebridades.json';
-import plus18Pack from '../../deck/packs/plus18.json';
-import economiaPack from '../../deck/packs/economia.json';
-import animalesPack from '../../deck/packs/animales.json';
-import sexoPack from '../../deck/packs/sexo.json';
-import drogasPack from '../../deck/packs/drogas.json';
-import familiaPack from '../../deck/packs/familia.json';
-import religionPack from '../../deck/packs/religion.json';
-import techPack from '../../deck/packs/tech.json';
-import saludPack from '../../deck/packs/salud.json';
-import espanaPack from '../../deck/packs/espana.json';
 import type { Card, PackFile, PackMeta } from './types';
 import {
   applyPatchesToDeck,
@@ -21,21 +8,30 @@ import {
 } from './patches';
 import { fillBlankPartsGlued, fillBlankGlued } from './glue';
 
-const PACK_FILES: Record<string, PackFile> = {
-  core: corePack as PackFile,
-  politica: politicaPack as PackFile,
-  celebridades: celebridadesPack as PackFile,
-  plus18: plus18Pack as PackFile,
-  economia: economiaPack as PackFile,
-  animales: animalesPack as PackFile,
-  sexo: sexoPack as PackFile,
-  drogas: drogasPack as PackFile,
-  familia: familiaPack as PackFile,
-  religion: religionPack as PackFile,
-  tech: techPack as PackFile,
-  salud: saludPack as PackFile,
-  espana: espanaPack as PackFile,
+/**
+ * v0.99.422.28: packs are lazy chunks (were ~1 MB inside entry.js).
+ * GameProvider awaits loadAllPacks() before `ready`, so every engine call
+ * (hydrate, startGame, draws) runs with the full deck. Server keeps its own
+ * copy in api/_lib/serverDeck.js.
+ */
+type PackModule = unknown;
+const PACK_LOADERS: Record<string, () => Promise<PackModule>> = {
+  core: () => import('../../deck/packs/core.json'),
+  politica: () => import('../../deck/packs/politica.json'),
+  celebridades: () => import('../../deck/packs/celebridades.json'),
+  plus18: () => import('../../deck/packs/plus18.json'),
+  economia: () => import('../../deck/packs/economia.json'),
+  animales: () => import('../../deck/packs/animales.json'),
+  sexo: () => import('../../deck/packs/sexo.json'),
+  drogas: () => import('../../deck/packs/drogas.json'),
+  familia: () => import('../../deck/packs/familia.json'),
+  religion: () => import('../../deck/packs/religion.json'),
+  tech: () => import('../../deck/packs/tech.json'),
+  salud: () => import('../../deck/packs/salud.json'),
+  espana: () => import('../../deck/packs/espana.json'),
 };
+const PACK_IDS = Object.keys(PACK_LOADERS);
+const PACK_FILES: Record<string, PackFile> = {};
 
 const bannedIds = new Set(
   ((bannedPack as PackFile).cards ?? []).map((c) => c.id)
@@ -69,24 +65,53 @@ export function getManifestTotals() {
 
 type PackLiteCard = { id: string; norm: string; kind: 'prompt' | 'answer' };
 
-/** Pre-normalized cards per pack (once). Used for fast selection counts. */
-const PACK_LITE: Record<string, PackLiteCard[]> = (() => {
-  const out: Record<string, PackLiteCard[]> = {};
-  for (const [id, pack] of Object.entries(PACK_FILES)) {
-    const list: PackLiteCard[] = [];
-    for (const card of pack.cards) {
-      if (bannedIds.has(card.id)) continue;
-      if (card.type !== 'prompt' && card.type !== 'answer') continue;
-      list.push({
-        id: card.id,
-        norm: card.text.trim().toLocaleLowerCase('es-ES'),
-        kind: card.type,
-      });
-    }
-    out[id] = list;
+/** Pre-normalized cards per pack (once per loaded pack). Used for fast selection counts. */
+const PACK_LITE: Record<string, PackLiteCard[]> = {};
+
+function registerPack(id: string, pack: PackFile) {
+  PACK_FILES[id] = pack;
+  const list: PackLiteCard[] = [];
+  for (const card of pack.cards) {
+    if (bannedIds.has(card.id)) continue;
+    if (card.type !== 'prompt' && card.type !== 'answer') continue;
+    list.push({
+      id: card.id,
+      norm: card.text.trim().toLocaleLowerCase('es-ES'),
+      kind: card.type,
+    });
   }
-  return out;
-})();
+  PACK_LITE[id] = list;
+}
+
+let allPacksPromise: Promise<void> | null = null;
+
+export function allPacksLoaded(): boolean {
+  return PACK_IDS.every((id) => !!PACK_FILES[id]);
+}
+
+/** Load every pack chunk (parallel, memoized, 3 tries each). Resolves even if one fails. */
+export function loadAllPacks(): Promise<void> {
+  if (allPacksLoaded()) return Promise.resolve();
+  if (allPacksPromise) return allPacksPromise;
+  allPacksPromise = Promise.all(
+    PACK_IDS.map(async (id) => {
+      for (let attempt = 0; attempt < 3 && !PACK_FILES[id]; attempt++) {
+        try {
+          const mod = await PACK_LOADERS[id]!();
+          const pack = ((mod as { default?: PackFile }).default ?? mod) as PackFile;
+          if (pack && Array.isArray(pack.cards)) registerPack(id, pack);
+        } catch {
+          await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+        }
+      }
+    })
+  ).then(() => {
+    countCache.clear();
+    deckCache.clear();
+    if (!allPacksLoaded()) allPacksPromise = null; // allow a later retry
+  });
+  return allPacksPromise;
+}
 
 const countCache = new Map<string, { prompts: number; answers: number }>();
 const deckCache = new Map<
@@ -110,6 +135,7 @@ export function countCombinedDeck(packIds: string[]): {
   const key = selected.slice().sort().join('|') || 'core';
   const cached = countCache.get(key);
   if (cached) return cached;
+  const complete = packIds.every((id) => id === '_banned' || !PACK_LOADERS[id] || PACK_FILES[id]);
 
   const ids = selected.length ? selected : ['core'];
   const seenIds = new Set<string>();
@@ -130,7 +156,7 @@ export function countCombinedDeck(packIds: string[]): {
   }
 
   const result = { prompts, answers };
-  countCache.set(key, result);
+  if (complete && PACK_FILES.core) countCache.set(key, result);
   return result;
 }
 
@@ -152,6 +178,10 @@ export function loadCombinedDeck(packIds: string[]): {
   const key = ids.slice().sort().join('|') + '::' + patchKey;
   const cached = deckCache.get(key);
   if (cached) return cached;
+  // Never cache a deck built before its chunks arrived.
+  const complete =
+    !!PACK_FILES.core &&
+    packIds.every((id) => id === '_banned' || !PACK_LOADERS[id] || PACK_FILES[id]);
 
   const prompts: Card[] = [];
   const answers: Card[] = [];
@@ -199,7 +229,7 @@ export function loadCombinedDeck(packIds: string[]): {
     answers: patched.answers,
     packCounts,
   };
-  deckCache.set(key, result);
+  if (complete) deckCache.set(key, result);
   return result;
 }
 

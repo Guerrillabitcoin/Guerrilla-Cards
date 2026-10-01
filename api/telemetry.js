@@ -1,7 +1,7 @@
 /**
  * Vercel serverless: accepts card telemetry batches from the web app.
  * Appears in Runtime Logs as guerrilla_card_telemetry.
- * Optional: set KV_REST_API_URL + KV_REST_API_TOKEN for daily counters.
+ * Counters disabled — Runtime Logs only (KV quota).
  */
 
 const ALLOWED = new Set([
@@ -66,21 +66,6 @@ module.exports = async function handler(req, res) {
     })
   );
 
-  try {
-    const url = process.env.KV_REST_API_URL;
-    const token = process.env.KV_REST_API_TOKEN;
-    if (url && token && events.length) {
-      const day = new Date().toISOString().slice(0, 10);
-      for (const ev of events) {
-        const key = `gc:card:${day}:${ev.name}:${ev.cardId}`;
-        await fetch(`${url}/incrby/${encodeURIComponent(key)}/1`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-      }
-    }
-  } catch (err) {
-    console.warn('telemetry_kv_skip', String(err));
-  }
-
+  // Log-only: no Upstash INCR (saves KV commands). See Vercel Runtime Logs.
   return res.status(200).json({ ok: true, accepted: events.length });
 };

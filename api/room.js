@@ -4,12 +4,21 @@
  *
  * Upsert merges hands by player id and submissions (prefer real card text while
  * submitting; prefer full incoming on judging/reveal/results with real-text fallback).
+ * Votes are unioned by voterId (and submissions by playerId) so concurrent pushes
+ * keep all votes instead of last-write-wins.
  */
 
 const ROOM_PREFIX = 'gc:room:';
 const MAX_BODY_CHARS = 900_000;
-const ASYNC_MAX_PLAYERS = 4;
-
+const ASYNC_MAX_PLAYERS = 8;
+const {
+  sanitizeRoomState,
+  freezeRevealOrder,
+  currentRoundSubs,
+  mergeLeagueMaps,
+  mergePlayerScores,
+} = require('./_lib/sanitizeRoom');
+const { applyHostAuthority, isHostActor } = require('./_lib/hostGate');
 function uid(prefix) {
   return (
     prefix +
@@ -64,7 +73,7 @@ function uniqueNick(desired, players) {
 function cors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Seat, X-Seat-Token');
 }
 
 function kvUrl() {
@@ -77,6 +86,43 @@ function kvToken() {
 
 function kvConfigured() {
   return !!(kvUrl() && kvToken());
+}
+
+const ROOM_TTL_SEC = 7 * 24 * 60 * 60; // 7 days
+
+async function kvSetRoom(key, payload) {
+  const ctx = lockCtx.getStore();
+  if (ctx && ctx.roomKey === key && !ctx.released) {
+    // Write + (tokens) + unlock in one round trip.
+    const cmds = [['SET', key, payload, 'EX', String(ROOM_TTL_SEC)]];
+    if (ctx.tokens && ctx.tokensDirty) {
+      cmds.push(['SET', ctx.tokKey, JSON.stringify(ctx.tokens), 'EX', String(ROOM_TTL_SEC)]);
+    }
+    // Card stats (v0.99.422.31): one idempotent EVAL, still inside the lock.
+    if (ctx.cardCmd) {
+      cmds.push(ctx.cardCmd);
+      ctx.cardCmd = null;
+    }
+    cmds.push(['EVAL', UNLOCK_LUA, '1', ctx.lockKey, ctx.token]);
+    const out = await kvPipeline(cmds);
+    if (out[0] && out[0].error) throw new Error('kv_set_error');
+    ctx.released = true;
+    ctx.tokensDirty = false;
+    ctx.roomRaw = payload;
+    return out[0];
+  }
+  return kvCommand(['SET', key, payload, 'EX', String(ROOM_TTL_SEC)]);
+}
+
+/** Queue per-card stats for the next kvSetRoom of this locked request. Never throws. */
+function queueCardStats(existing, next) {
+  try {
+    const ctx = lockCtx.getStore();
+    if (!ctx) return;
+    ctx.cardCmd = require('./_lib/cardStats').cardStatsCmd(existing, next);
+  } catch {
+    /* stats must never break play */
+  }
 }
 
 async function kvCommand(cmd) {
@@ -97,6 +143,117 @@ async function kvCommand(cmd) {
   return res.json();
 }
 
+const LOCK_PREFIX = 'gc:lock:';
+const LOCK_TTL_MS = 8000;
+const LOCK_WAIT_MS = 9000;
+const UNLOCK_LUA =
+  "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+
+function sleep(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+const { AsyncLocalStorage } = require('async_hooks');
+const lockCtx = new AsyncLocalStorage();
+const seatAuth = require('./_lib/seatAuth');
+
+async function kvPipeline(cmds) {
+  const res = await fetch(kvUrl().replace(/\/+$/, '') + '/pipeline', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${kvToken()}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(cmds),
+  });
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`kv_http_${res.status}:${text.slice(0, 120)}`);
+  }
+  const out = await res.json();
+  return Array.isArray(out) ? out : [];
+}
+
+/** Room GET; inside the lock returns the snapshot read with the lock (1 RTT saved). */
+async function kvGetRoomData(key) {
+  const ctx = lockCtx.getStore();
+  if (ctx && ctx.roomKey === key) return { result: ctx.roomRaw };
+  return kvGetRoomData(key);
+}
+
+function lockTokens() {
+  const ctx = lockCtx.getStore();
+  return ctx ? ctx.tokens : null;
+}
+
+function setLockTokens(map) {
+  const ctx = lockCtx.getStore();
+  if (!ctx) return;
+  ctx.tokens = map;
+  ctx.tokensDirty = true;
+}
+
+/**
+ * Per-room mutex (SET NX PX + Lua compare-and-delete). Every POST write path
+ * runs inside it, so GET→merge→SET is atomic per room: parallel submits /
+ * votes / discards can no longer overwrite each other. TTL guards crashed
+ * functions. Acquire+read and write+release are pipelined (2 RTT per write).
+ */
+async function withRoomLock(code, fn) {
+  const lockKey = LOCK_PREFIX + code;
+  const roomKey = ROOM_PREFIX + code;
+  const tokKey = seatAuth.tokensKey(code);
+  const token = uid('lk');
+  const deadline = Date.now() + LOCK_WAIT_MS;
+  let got = null;
+  let wait = 15;
+  while (!got) {
+    const r = await kvPipeline([
+      ['SET', lockKey, token, 'NX', 'PX', String(LOCK_TTL_MS)],
+      ['GET', roomKey],
+      ['GET', tokKey],
+    ]);
+    if (r[0] && r[0].result === 'OK') {
+      got = r;
+      break;
+    }
+    if (Date.now() > deadline) break;
+    await sleep(wait + Math.floor(Math.random() * wait));
+    wait = Math.min(120, Math.floor(wait * 1.5));
+  }
+  if (!got) {
+    const e = new Error('room_busy');
+    e.code = 'room_busy';
+    throw e;
+  }
+  const ctx = {
+    lockKey,
+    token,
+    roomKey,
+    tokKey,
+    roomRaw: got[1] ? got[1].result : null,
+    tokens: seatAuth.parseTokens(got[2] ? got[2].result : null),
+    tokensDirty: false,
+    released: false,
+  };
+  try {
+    return await lockCtx.run(ctx, fn);
+  } finally {
+    if (!ctx.released) {
+      const cmds = [];
+      if (ctx.tokensDirty && ctx.tokens) {
+        cmds.push(['SET', tokKey, JSON.stringify(ctx.tokens), 'EX', String(ROOM_TTL_SEC)]);
+      }
+      cmds.push(['EVAL', UNLOCK_LUA, '1', lockKey, token]);
+      try {
+        await kvPipeline(cmds);
+      } catch {
+        /* lock expires by TTL */
+      }
+    }
+  }
+}
+
 function normalizeCode(raw) {
   return String(raw || '')
     .trim()
@@ -114,33 +271,180 @@ function parseExisting(raw) {
   }
 }
 
-function mergeLobbyPlayers(existingPlayers, incomingPlayers) {
-  const byId = new Map();
-  for (const p of existingPlayers || []) {
-    if (p && p.id) byId.set(p.id, { ...p });
-  }
-  for (const p of incomingPlayers || []) {
-    if (!p || !p.id) continue;
-    const prev = byId.get(p.id);
-    if (!prev) {
-      byId.set(p.id, p);
-      continue;
+
+/** Snapshot fingerprint so join/upsert can detect mid-flight lobby races. */
+function lobbyStamp(state) {
+  if (!state || typeof state !== 'object') return '';
+  const ids = (state.players || [])
+    .map((p) => (p && p.id ? String(p.id) : ''))
+    .filter(Boolean)
+    .sort()
+    .join(',');
+  return `${state.updatedAt || 0}|${ids}|${state.phase || ''}`;
+}
+
+/**
+ * Atomic-ish lobby join: re-read before SET; retry if another writer won the race.
+ * Prevents host/peer upsert (GET@2 seats → SET) from wiping a concurrent 3rd join.
+ */
+async function joinLobbyAtomic(key, code, nicknameDesired, onSeat) {
+  const MAX_ATTEMPTS = 5;
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+    const existingData = await kvGetRoomData(key);
+    const existing = parseExisting(existingData?.result);
+    if (!existing) {
+      return { status: 404, body: { ok: false, error: 'not_found' } };
     }
-    // Rename is authoritative from the renaming client (incoming)
-    const incomingNick =
-      p.nickname != null ? String(p.nickname).trim() : '';
-    byId.set(p.id, {
-      ...prev,
-      ...p,
-      nickname: incomingNick || prev.nickname,
+    if (existing.phase !== 'lobby') {
+      return { status: 409, body: { ok: false, error: 'not_lobby' } };
+    }
+    const players = Array.isArray(existing.players) ? existing.players.slice() : [];
+    const capRaw = Number(existing.maxPlayers);
+    const cap = Math.max(
+      2,
+      Math.min(
+        ASYNC_MAX_PLAYERS,
+        Number.isFinite(capRaw) && capRaw >= 2 ? Math.floor(capRaw) : ASYNC_MAX_PLAYERS
+      )
+    );
+    // maxPlayers = human seats only; bots do not occupy guest slots
+    const humans = players.filter((p) => p && !p.isBot);
+    if (humans.length >= cap) {
+      return { status: 409, body: { ok: false, error: 'lobby_full' } };
+    }
+    if (players.length >= ASYNC_MAX_PLAYERS) {
+      return { status: 409, body: { ok: false, error: 'lobby_full' } };
+    }
+    const before = lobbyStamp(existing);
+    const nickname = uniqueNick(nicknameDesired, players);
+    const playerId = uid('p');
+    const player = {
+      id: playerId,
+      nickname,
+      isHost: false,
+      score: 0,
+      hand: [],
+      isBot: false,
+    };
+    const state = {
+      ...existing,
+      code,
+      phase: 'lobby',
+      players: [...players, player],
+      updatedAt: Date.now(),
+    };
+    const payload = JSON.stringify(state);
+    if (payload.length > MAX_BODY_CHARS) {
+      return { status: 413, body: { ok: false, error: 'state_too_large' } };
+    }
+    // Re-check immediately before write (closes most host-upsert wipe windows)
+    const againData = await kvGetRoomData(key);
+    const again = parseExisting(againData?.result);
+    if (!again || lobbyStamp(again) !== before) {
+      continue; // raced — retry with fresh roster
+    }
+    if (onSeat) onSeat(playerId);
+    await kvSetRoom(key, payload);
+    // Verify our seat survived a trailing concurrent SET
+    const verifyData = await kvGetRoomData(key);
+    const verify = parseExisting(verifyData?.result);
+    const stillThere =
+      verify &&
+      Array.isArray(verify.players) &&
+      verify.players.some((p) => p && p.id === playerId);
+    if (stillThere) {
+      return {
+        status: 200,
+        body: { ok: true, code, playerId, state: verify },
+      };
+    }
+    // Wiped by concurrent upsert — retry join on the survivor roster
+  }
+  return { status: 409, body: { ok: false, error: 'join_busy' } };
+}
+
+
+function upsertLobbyPlayer(byId, p, actorId) {
+  if (!p || !p.id) return;
+  const prev = byId.get(p.id);
+  if (!prev) {
+    byId.set(p.id, { ...p });
+    return;
+  }
+  const incomingNick =
+    p.nickname != null ? String(p.nickname).trim() : '';
+  let nickname = prev.nickname;
+  if (actorId && String(actorId) === String(p.id) && incomingNick) {
+    nickname = incomingNick;
+  } else if (!nickname && incomingNick) {
+    nickname = incomingNick;
+  }
+  byId.set(p.id, {
+    ...prev,
+    ...p,
+    nickname: nickname || incomingNick || prev.nickname,
+  });
+}
+
+/**
+ * Lobby roster merge for concurrent host/joiner pushes.
+ * Humans: race-safe union; host may kick (drop existing∖incoming) but keep
+ * mid-flight joins (in fresh not existing) and never drop isHost.
+ * Bots: host actor → incoming only (empty = remove all); guests → fresh/existing.
+ */
+function composeBothLobbyPlayers(existingPlayers, freshPlayers, incomingPlayers, actorId, hostActor) {
+  const split = (players) => {
+    const humans = [];
+    const bots = [];
+    for (const p of players || []) {
+      if (!p || !p.id) continue;
+      if (p.isBot) bots.push(p);
+      else humans.push(p);
+    }
+    return { humans, bots };
+  };
+  const ex = split(existingPlayers);
+  const fr = split(freshPlayers);
+  const inc = split(incomingPlayers);
+
+  const humanById = new Map();
+  for (const list of [ex.humans, fr.humans, inc.humans]) {
+    for (const p of list) upsertLobbyPlayer(humanById, p, actorId);
+  }
+
+  let humans = Array.from(humanById.values());
+  if (hostActor) {
+    const existingIds = new Set(ex.humans.map((p) => p.id));
+    const incomingIds = new Set(inc.humans.map((p) => p.id));
+    const freshOnlyIds = new Set(
+      fr.humans.filter((p) => !existingIds.has(p.id)).map((p) => p.id)
+    );
+    humans = humans.filter((p) => {
+      if (p.isHost) return true;
+      if (freshOnlyIds.has(p.id)) return true;
+      if (existingIds.has(p.id) && !incomingIds.has(p.id)) return false;
+      return true;
     });
   }
-  const merged = Array.from(byId.values());
+
+  let bots;
+  if (hostActor) {
+    bots = inc.bots.map((p) => ({ ...p }));
+  } else {
+    const serverBots = fr.bots.length ? fr.bots : ex.bots;
+    bots = serverBots.map((p) => ({ ...p }));
+  }
+
+  let merged = [...humans, ...bots];
   if (merged.length > ASYNC_MAX_PLAYERS) {
-    return merged.slice(0, ASYNC_MAX_PLAYERS);
+    const h = merged.filter((p) => !p.isBot).slice(0, ASYNC_MAX_PLAYERS);
+    const room = ASYNC_MAX_PLAYERS - h.length;
+    const b = merged.filter((p) => p.isBot).slice(0, room);
+    merged = [...h, ...b];
   }
   return merged;
 }
+
 
 function isRedactedCardText(text) {
   if (text == null) return true;
@@ -200,14 +504,24 @@ function mergeHandsByPlayerId(existingPlayers, incomingPlayers, mode) {
 
 /**
  * Merge submissions by playerId preferring real (non-redacted) card text.
+ * Drop !rival submissions whose cards.length !== pick (incomplete multipick).
  */
-function mergeSubmissionsPreferReal(existingSubs, incomingSubs) {
+function mergeSubmissionsPreferReal(existingSubs, incomingSubs, pick) {
+  const need = Math.max(1, Number(pick) || 1);
+  const pickLenOk = (s) => {
+    if (!s || s.rival) return true;
+    return Array.isArray(s.cards) && s.cards.length === need;
+  };
   const byId = new Map();
   for (const s of existingSubs || []) {
-    if (s && s.playerId) byId.set(s.playerId, s);
+    if (!s || !s.playerId) continue;
+    if (!pickLenOk(s)) continue;
+    byId.set(s.playerId, s);
   }
   for (const s of incomingSubs || []) {
     if (!s || !s.playerId) continue;
+    // Invalid !rival length: do not merge in; keep valid existing if any.
+    if (!pickLenOk(s)) continue;
     const ex = byId.get(s.playerId);
     if (!ex) {
       byId.set(s.playerId, s);
@@ -228,13 +542,18 @@ function mergeSubmissions(existing, incoming) {
   const incomingPhase = incoming?.phase;
   const existingPhase = existing?.phase;
   const revealPhases = ['judging', 'reveal', 'results'];
+  const prompt =
+    (incoming && incoming.currentPrompt) ||
+    (existing && existing.currentPrompt);
+  const pick = Math.max(1, Number(prompt && prompt.pick) || 1);
 
   if (revealPhases.includes(incomingPhase)) {
     // Prefer incoming (full) but fall back to existing real text per player
     // so a last-submitter push with fogged peers does not wipe answers.
     return mergeSubmissionsPreferReal(
       existing?.submissions,
-      incoming?.submissions
+      incoming?.submissions,
+      pick
     );
   }
 
@@ -247,11 +566,14 @@ function mergeSubmissions(existing, incoming) {
   ) {
     return mergeSubmissionsPreferReal(
       existing?.submissions,
-      incoming?.submissions
+      incoming?.submissions,
+      pick
     );
   }
 
-  return incoming?.submissions ?? existing?.submissions ?? [];
+  // Still drop incomplete !rival pick submissions on the fallback path.
+  const raw = incoming?.submissions ?? existing?.submissions ?? [];
+  return mergeSubmissionsPreferReal([], raw, pick);
 }
 
 
@@ -289,6 +611,8 @@ function phaseRank(phase) {
  * Monotonic progress across rounds. reveal(r) < discarding(r) < submitting(r+1).
  * Prevents treating a legitimate next-round push as a phase "downgrade".
  */
+const REVEAL_COUNTDOWN_MS = 5000;
+
 function gameProgress(state) {
   if (!state || typeof state !== 'object') return 0;
   const round = Number(state.round) || 0;
@@ -319,28 +643,112 @@ function isNextCycleAdvance(existing, incoming) {
   return gameProgress(incoming) > gameProgress(existing);
 }
 
+
+/**
+ * Fill missing bot answers from their hands during submitting.
+ * Host client usually does this; server covers host-away / race with human-first submit.
+ */
+function autoSubmitBotsServer(state) {
+  if (!state || state.phase !== 'submitting') return state;
+  if (state.mode === 'solo') return state;
+  const voteMode = (state.judgeMode || 'zar') === 'vote';
+  const playersIn = state.players || [];
+  const zar = playersIn[state.zarIndex || 0];
+  const zarId = zar && zar.id;
+  const round = Number(state.round) || 0;
+  const pick = Math.max(
+    1,
+    Number(state.currentPrompt && state.currentPrompt.pick) || 1
+  );
+  const submitted = new Set(
+    (state.submissions || [])
+      .filter((s) => s && !s.rival && s.playerId)
+      .map((s) => s.playerId)
+  );
+  let changed = false;
+  let players = playersIn.map((p) =>
+    p ? { ...p, hand: Array.isArray(p.hand) ? p.hand.slice() : [] } : p
+  );
+  let submissions = (state.submissions || []).slice();
+  for (const p of players) {
+    if (!p || !p.isBot || !p.id) continue;
+    if (!voteMode && p.id === zarId) continue;
+    if (submitted.has(p.id)) continue;
+    const hand = p.hand || [];
+    if (hand.length < pick) continue;
+    const cards = hand.slice(0, pick).map((c) => ({ ...c }));
+    let remain = hand.slice(pick);
+    // Refill the bot hand server-side (never hold < HAND_SIZE after a server pick).
+    try {
+      const { drawFresh } = require('./_lib/serverDeck');
+      const fresh = drawFresh(
+        { ...state, players, submissions: [...submissions, { playerId: p.id, cards }] },
+        Math.max(0, HAND_SIZE_MERGE - remain.length)
+      );
+      remain = [...remain, ...fresh];
+    } catch (e) {
+      /* keep short hand; host refills next round */
+    }
+    players = players.map((x) =>
+      x && x.id === p.id ? { ...x, hand: remain } : x
+    );
+    submissions.push({
+      playerId: p.id,
+      cards,
+      round,
+    });
+    submitted.add(p.id);
+    changed = true;
+  }
+  if (!changed) return state;
+  return {
+    ...state,
+    players,
+    submissions,
+    updatedAt: Date.now(),
+  };
+}
+
 function promoteJudgingIfReady(state) {
   if (!state || state.phase !== 'submitting') return state;
   if (state.mode === 'solo') return state;
+  state = autoSubmitBotsServer(state);
   const voteMode = (state.judgeMode || 'zar') === 'vote';
   const players = state.players || [];
   const zar = players[state.zarIndex || 0];
   const round = Number(state.round) || 0;
+  const pick = Math.max(1, Number(state.currentPrompt && state.currentPrompt.pick) || 1);
   let subs = (state.submissions || []).filter(
     (s) => s && !s.rival && (s.round == null || s.round === round)
   );
   if (!voteMode && zar?.id) {
     subs = subs.filter((s) => s.playerId !== zar.id);
   }
+  // Ignore incomplete multipick answers toward readiness / judging store.
+  subs = subs.filter(
+    (s) => Array.isArray(s.cards) && s.cards.length === pick
+  );
   const needed = voteMode
     ? players.length
     : Math.max(0, players.length - 1);
   if (subs.length < needed) return state;
+  // Freeze order once: shuffle playerIds; keep submissions in that order.
+  // Never sortSubsByPlayerId here — that remapped Opción N across polls.
+  const byId = new Map();
+  for (const s of subs) {
+    if (s && s.playerId) byId.set(s.playerId, s);
+  }
+  const ids = Array.from(byId.keys());
+  for (let i = ids.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+  }
+  const frozen = ids.map((id) => byId.get(id));
   const firstVoter = players.find((p) => !p.isBot) || players[0];
   return {
     ...state,
-    submissions: subs,
-    revealOrder: shuffleIndices(subs.length),
+    submissions: frozen,
+    revealOrder: ids.slice(),
     votes: {},
     phase: 'judging',
     activeSeatId: voteMode
@@ -348,6 +756,13 @@ function promoteJudgingIfReady(state) {
       : zar?.id || null,
     updatedAt: Date.now(),
   };
+}
+
+function pickRevealEndsAt(a, b) {
+  const ax = typeof a === 'number' && a > 0 ? a : 0;
+  const bx = typeof b === 'number' && b > 0 ? b : 0;
+  if (ax && bx) return Math.min(ax, bx);
+  return ax || bx || null;
 }
 
 function unionDiscardDone(a, b) {
@@ -370,6 +785,128 @@ function mergeLastDiscarded(existing, incoming) {
     if (row && row.playerId) byId.set(row.playerId, row);
   }
   return Array.from(byId.values());
+}
+
+/** Union vote maps by voterId. Incoming overwrites the same voter; peers keep theirs. */
+function mergeVotesByVoterId(existingVotes, incomingVotes) {
+  const out = { ...(existingVotes || {}) };
+  for (const [voterId, targetId] of Object.entries(incomingVotes || {})) {
+    if (!voterId || targetId == null || targetId === '') continue;
+    out[voterId] = targetId;
+  }
+  return out;
+}
+
+function voteCount(votes) {
+  return Object.keys(votes || {}).length;
+}
+
+/**
+ * Lightweight server-side finalize when all submission owners have voted.
+ * Mirrors client resolveVotesIfComplete / tallyVotesIfComplete enough to advance
+ * phase so the room does not hang waiting for a client that never saw the union.
+ */
+function resolveVotesIfCompleteServer(state) {
+  if (!state || state.phase !== 'judging') return state;
+  if ((state.judgeMode || 'zar') !== 'vote' || state.mode === 'solo') return state;
+  const votes = state.votes || {};
+  const botIds = new Set(
+    (state.players || []).filter((p) => p && p.isBot).map((p) => p.id)
+  );
+  // Only humans who submitted must vote; bots never vote
+  const eligible = (state.submissions || [])
+    .filter((s) => s && !s.rival && s.playerId && !botIds.has(s.playerId))
+    .map((s) => s.playerId)
+    .filter(Boolean);
+  if (!eligible.length || !eligible.every((id) => !!votes[id])) return state;
+
+  const tallies = {};
+  for (const target of Object.values(votes)) {
+    tallies[target] = (tallies[target] || 0) + 1;
+  }
+  let best = -1;
+  for (const n of Object.values(tallies)) {
+    if (n > best) best = n;
+  }
+  const tied = Object.keys(tallies).filter((id) => tallies[id] === best);
+  const humans = (state.players || []).filter((p) => p && !p.isBot).length;
+  const hostId =
+    ((state.players || []).find((p) => p && p.isHost) || {}).id ||
+    eligible[0] ||
+    null;
+  const now = Date.now();
+
+  // 2-player vote: +1 al ganador claro; empate (1–1) → 0 puntos (norma).
+  if (humans === 2 || Number(state.maxPlayers) === 2) {
+    const isSplit = tied.length > 1;
+    const winnerId = !isSplit ? tied[0] || null : null;
+    const players = winnerId
+      ? (state.players || []).map((p) =>
+          p && p.id === winnerId
+            ? { ...p, score: (p.score || 0) + 1 }
+            : p
+        )
+      : state.players || [];
+    const hitTarget = players.some(
+      (p) => p && p.score >= (state.targetScore || 999)
+    );
+    return {
+      ...state,
+      players,
+      votes,
+      roundWinnerId: isSplit ? null : winnerId || hostId,
+      roundWinnerIds: isSplit ? tied : [],
+      phase: hitTarget ? 'results' : 'reveal',
+      activeSeatId: hitTarget ? null : hostId,
+      revealEndsAt: hitTarget ? null : now + REVEAL_COUNTDOWN_MS,
+      updatedAt: now,
+    };
+  }
+
+  // >2 humans: tie annuls (no points)
+  if (tied.length >= 2) {
+    return {
+      ...state,
+      votes,
+      roundWinnerId: null,
+      roundWinnerIds: tied,
+      phase: 'reveal',
+      activeSeatId: hostId,
+      revealEndsAt: now + REVEAL_COUNTDOWN_MS,
+      updatedAt: now,
+    };
+  }
+
+  const winnerId = tied[0];
+  if (!winnerId) {
+    return {
+      ...state,
+      votes,
+      roundWinnerId: null,
+      roundWinnerIds: eligible.slice(0, 2),
+      phase: 'reveal',
+      activeSeatId: hostId,
+      revealEndsAt: now + REVEAL_COUNTDOWN_MS,
+      updatedAt: now,
+    };
+  }
+  const players = (state.players || []).map((p) =>
+    p && p.id === winnerId ? { ...p, score: (p.score || 0) + 1 } : p
+  );
+  const hitTarget = players.some(
+    (p) => p && p.score >= (state.targetScore || 999)
+  );
+  return {
+    ...state,
+    players,
+    votes,
+    roundWinnerId: winnerId,
+    roundWinnerIds: [],
+    phase: hitTarget ? 'results' : 'reveal',
+    activeSeatId: hitTarget ? null : winnerId,
+    revealEndsAt: hitTarget ? null : now + REVEAL_COUNTDOWN_MS,
+    updatedAt: now,
+  };
 }
 
 function applyPrivacyMerges(existing, incoming) {
@@ -414,14 +951,45 @@ function applyPrivacyMerges(existing, incoming) {
   }
   const clearWinner =
     phase === 'submitting' || phase === 'discarding' || phase === 'lobby';
+  const sameRound =
+    (Number(existing.round) || 0) === (Number(incoming.round) || 0);
+  // Judging (and same-round reveal/results): union votes by voterId — concurrent
+  // castVote pushes must not last-write-wins wipe a peer's ballot.
+  let votes = incoming.votes || {};
+  if (
+    sameRound &&
+    (phase === 'judging' ||
+      existing.phase === 'judging' ||
+      incoming.phase === 'judging' ||
+      ((phase === 'reveal' || phase === 'results') &&
+        (voteCount(existing.votes) > 0 || voteCount(incoming.votes) > 0)))
+  ) {
+    votes = mergeVotesByVoterId(existing.votes, incoming.votes);
+  } else if (clearWinner) {
+    votes = incoming.votes || {};
+  } else {
+    votes =
+      voteCount(incoming.votes) >= voteCount(existing.votes)
+        ? incoming.votes || existing.votes || {}
+        : existing.votes || incoming.votes || {};
+  }
+  // Shared countdown: keep earliest non-null revealEndsAt (do not drift with updatedAt)
+  let revealEndsAt = clearWinner
+    ? null
+    : pickRevealEndsAt(existing.revealEndsAt, incoming.revealEndsAt);
   let state = {
     ...incoming,
     phase,
     players,
     submissions,
+    votes,
     roundWinnerId: clearWinner
       ? incoming.roundWinnerId ?? null
       : incoming.roundWinnerId || existing.roundWinnerId || null,
+    roundWinnerIds: clearWinner
+      ? incoming.roundWinnerIds || []
+      : incoming.roundWinnerIds || existing.roundWinnerIds || [],
+    revealEndsAt,
   };
   // Discarding: never lose a peer who already discarded (avoids double-discard)
   if (
@@ -429,12 +997,36 @@ function applyPrivacyMerges(existing, incoming) {
     existing.phase === 'discarding' &&
     (Number(existing.round) || 0) === (Number(incoming.round) || 0)
   ) {
+    const doneIds = unionDiscardDone(
+      existing.discardDonePlayerIds,
+      incoming.discardDonePlayerIds
+    );
+    const doneSet = new Set(doneIds);
+    // Prefer post-discard hand from whoever just marked done
+    const exById = new Map((existing.players || []).map((p) => [p.id, p]));
+    const inById = new Map((incoming.players || []).map((p) => [p.id, p]));
+    const mergedPlayers = (state.players || []).map((p) => {
+      if (!p || !p.id || !doneSet.has(p.id)) return p;
+      const inc = inById.get(p.id);
+      const ex = exById.get(p.id);
+      const inHand = inc && Array.isArray(inc.hand) ? inc.hand : [];
+      const exHand = ex && Array.isArray(ex.hand) ? ex.hand : [];
+      const curHand = Array.isArray(p.hand) ? p.hand : [];
+      if (inHand.length > 0 && (incoming.discardDonePlayerIds || []).includes(p.id)) {
+        return { ...p, hand: inHand };
+      }
+      if (exHand.length > 0 && (existing.discardDonePlayerIds || []).includes(p.id)) {
+        return { ...p, hand: exHand };
+      }
+      if (curHand.length > 0) return p;
+      if (inHand.length > 0) return { ...p, hand: inHand };
+      if (exHand.length > 0) return { ...p, hand: exHand };
+      return p;
+    });
     state = {
       ...state,
-      discardDonePlayerIds: unionDiscardDone(
-        existing.discardDonePlayerIds,
-        incoming.discardDonePlayerIds
-      ),
+      players: mergedPlayers,
+      discardDonePlayerIds: doneIds,
       lastDiscarded: mergeLastDiscarded(
         existing.lastDiscarded,
         incoming.lastDiscarded
@@ -451,24 +1043,65 @@ function applyPrivacyMerges(existing, incoming) {
       state.roundWinnerId = existing.roundWinnerId;
       state.submissions = mergeSubmissionsPreferReal(
         existing.submissions,
-        incoming.submissions
+        incoming.submissions,
+        Math.max(
+          1,
+          Number(
+            (state.currentPrompt && state.currentPrompt.pick) ||
+              (existing.currentPrompt && existing.currentPrompt.pick) ||
+              (incoming.currentPrompt && incoming.currentPrompt.pick)
+          ) || 1
+        )
       );
     }
   }
   if (phase === 'judging') {
-    state.revealOrder =
-      (incoming.revealOrder &&
-      incoming.revealOrder.length === submissions.length
-        ? incoming.revealOrder
-        : null) ||
-      existing.revealOrder ||
-      shuffleIndices(submissions.length);
+    // Union by playerId (prefer real text) then order as existing.submissions
+    // (frozen). Never alphabetical re-sort during judging.
+    const orderSrc =
+      Array.isArray(existing.submissions) && existing.submissions.length
+        ? existing.submissions
+        : state.submissions || [];
+    state.submissions = currentRoundSubs({
+      ...state,
+      submissions: [
+        ...orderSrc,
+        ...(state.submissions || []),
+        ...(incoming.submissions || []),
+      ],
+    });
+    const playerIds = (state.submissions || [])
+      .map((s) => s && s.playerId)
+      .filter(Boolean);
+    state.revealOrder = freezeRevealOrder(
+      existing.revealOrder,
+      incoming.revealOrder,
+      state.submissions.length,
+      playerIds
+    );
     state.activeSeatId =
       incoming.activeSeatId || existing.activeSeatId || state.activeSeatId;
+    state = resolveVotesIfCompleteServer(state);
   }
-  return promoteJudgingIfReady(state);
+        state.leagueScores = mergeLeagueMaps(
+      existing && existing.leagueScores,
+      incoming && incoming.leagueScores,
+      state.leagueScores
+    );
+        const { awardOnResults } = require('./_lib/awardOnResults');
+    state = awardOnResults(state);
+    // Results: union restartReadyIds (never LWW-wipe when incoming is []).
+    const { unionRestartReady } = require('./_lib/unionReady');
+    state = unionRestartReady(existing, incoming, state);
+    const mergingRematch =
+    state &&
+    (Number(state.round) || 0) <= 1 &&
+    (state.phase === 'submitting' || state.phase === 'discarding');
+  if (!mergingRematch) {
+    state.players = mergePlayerScores(existing && existing.players, state.players);
+  }
+  return sanitizeRoomState(promoteJudgingIfReady(state));
 }
-
 async function handler(req, res) {
   cors(res);
   if (req.method === 'OPTIONS') {
@@ -486,8 +1119,18 @@ async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'bad_code' });
       }
       const key = `${ROOM_PREFIX}${code}`;
-      const data = await kvCommand(['GET', key]);
-      const raw = data?.result;
+      const mget = await kvCommand(['MGET', key, seatAuth.tokensKey(code)]);
+      const pair = Array.isArray(mget?.result) ? mget.result : [];
+      const raw = pair[0];
+      const getTokens = seatAuth.parseTokens(pair[1]);
+      const hdr = (req.headers || {});
+      const viewerOk =
+        !getTokens ||
+        seatAuth.seatAuthOk(
+          getTokens,
+          String(hdr['x-seat'] || '').trim(),
+          String(hdr['x-seat-token'] || '').trim()
+        );
       if (raw == null || raw === '') {
         return res.status(404).json({ ok: false, error: 'not_found' });
       }
@@ -497,10 +1140,26 @@ async function handler(req, res) {
       } catch {
         return res.status(500).json({ ok: false, error: 'corrupt_state' });
       }
+        state = sanitizeRoomState(state);
+      if (!viewerOk) state = seatAuth.stripHands(state);
       return res.status(200).json({ ok: true, state });
     }
 
     if (req.method === 'POST') {
+      return await handlePost(req, res);
+    }
+
+    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
+  } catch (err) {
+    if (err && err.code === 'room_busy') {
+      return res.status(503).json({ ok: false, error: 'room_busy' });
+    }
+    console.warn('room_kv_error', String(err));
+    return res.status(500).json({ ok: false, error: 'kv_error' });
+  }
+}
+
+async function handlePost(req, res) {
       let body = {};
       try {
         body =
@@ -512,55 +1171,186 @@ async function handler(req, res) {
       }
 
       const action = body.action || 'upsert';
+      const lockCode = normalizeCode(body.code || (body.state && body.state.code));
+      if (!lockCode || lockCode.length < 3) {
+        return res.status(400).json({ ok: false, error: 'bad_code' });
+      }
+      return withRoomLock(lockCode, () => handlePostLocked(body, action, res));
+}
 
-      // Atomic join: server assigns a unique seat + nick
+async function handlePostLocked(body, action, res) {
+      const reqToken = String(body.token || '').trim();
+      const denied = () =>
+        res.status(403).json({ ok: false, error: 'seat_token' });
+
+      // Atomic join: server assigns a unique seat + nick (CAS + verify)
       if (action === 'join') {
         const code = normalizeCode(body.code);
         if (!code || code.length < 3) {
           return res.status(400).json({ ok: false, error: 'bad_code' });
         }
         const key = `${ROOM_PREFIX}${code}`;
-        const existingData = await kvCommand(['GET', key]);
+        let seatToken = null;
+        const joined = await joinLobbyAtomic(
+          key,
+          code,
+          seatAuth.sanitizeNick(body.nickname),
+          (playerId) => {
+            const prevTokens = lockTokens();
+            if (!prevTokens) return; // legacy room: stays tokenless
+            seatToken = seatAuth.newToken();
+            // Written in the same pipeline as the room SET + unlock (atomic).
+            setLockTokens({ ...prevTokens, [playerId]: seatToken });
+          }
+        );
+        if (joined.status === 200 && joined.body && seatToken) {
+          joined.body.seatToken = seatToken;
+        }
+        return res.status(joined.status).json(joined.body);
+      }
+
+
+      if (action === 'vote') {
+        const { applyBallot } = require('./_lib/castBallot');
+        const code = normalizeCode(body.code);
+        const voterId = String(body.voterId || '').trim();
+        const targetId = String(body.targetId || '').trim();
+        if (!code || code.length < 3) {
+          return res.status(400).json({ ok: false, error: 'bad_code' });
+        }
+        if (!voterId || !targetId) {
+          return res.status(400).json({ ok: false, error: 'bad_ballot' });
+        }
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvGetRoomData(key);
+        const existing = parseExisting(existingData?.result);
+        if (!existing) {
+          return res.status(404).json({ ok: false, error: 'missing_room' });
+        }
+        if (!seatAuth.seatAuthOk(lockTokens(), voterId, reqToken)) return denied();
+        const bErr = seatAuth.ballotError(existing, voterId, targetId);
+        if (bErr && bErr !== 'not_judging') {
+          return res.status(400).json({ ok: false, error: bErr });
+        }
+        const out = applyBallot(existing, voterId, targetId);
+        if (out.reject) {
+          return res.status(400).json({ ok: false, error: out.error });
+        }
+        let state = out.state;
+        state = resolveVotesIfCompleteServer(state);
+        const { awardOnResults } = require('./_lib/awardOnResults');
+        state = awardOnResults(state);
+        queueCardStats(existing, state);
+        await kvSetRoom(key, JSON.stringify(state));
+        await require('./_lib/stats').recordRoom(kvPipeline, existing, state);
+        return res.status(200).json({ ok: true, code, state });
+      }
+
+      if (action === 'rematch') {
+        const { applyRematch } = require('./_lib/rematchApply');
+        const code = normalizeCode(body.code);
+        if (!code) return res.status(400).json({ ok: false, error: 'bad_code' });
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvGetRoomData(key);
+        const existing = parseExisting(existingData?.result);
+        const rmActor = String(body.actorId || '').trim();
+        if (existing && !isHostActor(existing, rmActor)) {
+          return res.status(403).json({ ok: false, error: 'host_only' });
+        }
+        if (!seatAuth.seatAuthOk(lockTokens(), rmActor, reqToken)) return denied();
+        const out = applyRematch(existing);
+        if (out.reject) {
+          return res.status(400).json({ ok: false, error: out.error });
+        }
+        await kvSetRoom(key, JSON.stringify(out.state));
+        if (out.state !== existing) {
+          await require('./_lib/stats').recordRoom(kvPipeline, existing, out.state);
+        }
+        return res.status(200).json({ ok: true, code, state: out.state });
+      }
+
+
+      if (action === 'rename') {       const code = normalizeCode(body.code);
+        const playerId = String(body.playerId || '').trim();
+        const nickname = seatAuth.sanitizeNick(body.nickname);
+        if (!code || !playerId || !nickname) {
+          return res.status(400).json({ ok: false, error: 'bad_rename' });
+        }
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvGetRoomData(key);
+        const existing = parseExisting(existingData?.result);
+        if (!existing) {
+          return res.status(404).json({ ok: false, error: 'missing_room' });
+        }
+        if (!seatAuth.seatAuthOk(lockTokens(), playerId, reqToken)) return denied();
+        if (!(existing.players || []).some((p) => p && p.id === playerId && !p.isBot)) {
+          return res.status(404).json({ ok: false, error: 'seat_missing' });
+        }
+        const others = (existing.players || []).filter((x) => x && x.id !== playerId);
+        const players = (existing.players || []).map((p) =>
+          p && p.id === playerId ? { ...p, nickname: uniqueNick(nickname, others) } : p
+        );
+        const state = { ...existing, players, code, updatedAt: Date.now() };
+        await kvSetRoom(key, JSON.stringify(state));
+        return res.status(200).json({ ok: true, code, state });
+      }
+
+      if (action === 'claim') {
+        const code = normalizeCode(body.code);
+        const playerId = String(body.playerId || '').trim();
+        if (!code || code.length < 3) {
+          return res.status(400).json({ ok: false, error: 'bad_code' });
+        }
+        if (!playerId) {
+          return res.status(400).json({ ok: false, error: 'missing_seat' });
+        }
+        const key = `${ROOM_PREFIX}${code}`;
+        const existingData = await kvGetRoomData(key);
         const existing = parseExisting(existingData?.result);
         if (!existing) {
           return res.status(404).json({ ok: false, error: 'not_found' });
         }
-        if (existing.phase !== 'lobby') {
-          return res.status(409).json({ ok: false, error: 'not_lobby' });
-        }
         const players = Array.isArray(existing.players) ? existing.players : [];
-        if (players.length >= ASYNC_MAX_PLAYERS) {
-          return res.status(409).json({ ok: false, error: 'lobby_full' });
+        const seat = players.find((p) => p && p.id === playerId && !p.isBot);
+        if (!seat) {
+          return res.status(404).json({ ok: false, error: 'seat_missing' });
         }
-        const nickname = uniqueNick(body.nickname, players);
-        const playerId = uid('p');
-        const player = {
-          id: playerId,
-          nickname,
-          isHost: false,
-          score: 0,
-          hand: [],
-          isBot: false,
-        };
-        const state = {
-          ...existing,
+        if (!seatAuth.seatAuthOk(lockTokens(), seat.id, reqToken)) return denied();
+        // Seat recovery: fill pending bots + promote if ready so reclaim unsticks.
+        let claimedState = sanitizeRoomState(
+          promoteJudgingIfReady({ ...existing, code })
+        );
+        if (claimedState !== existing) {
+          await kvSetRoom(key, JSON.stringify(claimedState));
+        }
+        return res.status(200).json({
+          ok: true,
           code,
-          phase: 'lobby',
-          players: [...players, player],
-          updatedAt: Date.now(),
-        };
-        const payload = JSON.stringify(state);
-        if (payload.length > MAX_BODY_CHARS) {
-          return res.status(413).json({ ok: false, error: 'state_too_large' });
+          playerId: seat.id,
+          state: claimedState,
+        });
+      }
+
+      // Host-only: seat tokens for «Enlaces de asiento» (recovery links).
+      if (action === 'seatTokens') {
+        const code = normalizeCode(body.code);
+        const actor = String(body.actorId || '').trim();
+        const key = `${ROOM_PREFIX}${code}`;
+        const existing = parseExisting((await kvGetRoomData(key))?.result);
+        if (!existing) return res.status(404).json({ ok: false, error: 'not_found' });
+        const tokens = lockTokens();
+        if (!tokens) return res.status(200).json({ ok: true, legacy: true, tokens: {} });
+        if (!isHostActor(existing, actor) || !seatAuth.seatAuthOk(tokens, actor, reqToken)) {
+          return denied();
         }
-        await kvCommand(['SET', key, payload]);
-        return res.status(200).json({ ok: true, code, playerId, state });
+        const out = {};
+        for (const p of existing.players || []) {
+          if (p && !p.isBot && tokens[p.id]) out[p.id] = tokens[p.id];
+        }
+        return res.status(200).json({ ok: true, tokens: out });
       }
 
-      if (action !== 'upsert') {
-        return res.status(400).json({ ok: false, error: 'unknown_action' });
-      }
-
+      // Default action: upsert (host create / pushRoom)
       const code = normalizeCode(body.code || body.state?.code);
       if (!code || code.length < 3) {
         return res.status(400).json({ ok: false, error: 'bad_code' });
@@ -569,12 +1359,56 @@ async function handler(req, res) {
         return res.status(400).json({ ok: false, error: 'missing_state' });
       }
 
-      const incoming = { ...body.state, code };
+            let incoming = { ...body.state, code };
+      const actorId = String(body.actorId || '').trim();
       const key = `${ROOM_PREFIX}${code}`;
 
       // Load existing for merge / stale skip
-      const existingData = await kvCommand(['GET', key]);
+      const existingData = await kvGetRoomData(key);
       const existing = parseExisting(existingData?.result);
+      let issuedToken = null;
+      if (existing && typeof existing === 'object') {
+        if (!seatAuth.seatAuthOk(lockTokens(), actorId, reqToken)) return denied();
+        incoming = seatAuth.restrictIncoming(existing, incoming, actorId);
+        incoming = seatAuth.applyServerScoring(existing, incoming, actorId);
+        // Single dealer: only the host (or the fallback seat after grace) advances rounds.
+        if (
+          (existing.phase === 'reveal' || existing.phase === 'discarding') &&
+          gameProgress(incoming) > gameProgress(existing) &&
+          !require('./_lib/dealer').mayAdvanceFrom(existing, actorId)
+        ) {
+          return res.status(200).json({ ok: true, skipped: true, dealer: 'host', state: existing, code });
+        }
+      } else {
+        // New room: the pushing host gets the first seat token; server-owned scores.
+        const hostSeat = (incoming.players || []).find((p) => p && p.isHost);
+        if (!hostSeat || !actorId || hostSeat.id !== actorId) {
+          return res.status(400).json({ ok: false, error: 'bad_create' });
+        }
+        incoming = {
+          ...incoming,
+          players: (incoming.players || []).map((p) =>
+            p ? { ...p, score: 0, nickname: seatAuth.sanitizeNick(p.nickname) || 'Jugador' } : p
+          ),
+          leagueScores: {},
+          leagueAwarded: false,
+          votes: {},
+        };
+        issuedToken = seatAuth.newToken();
+        setLockTokens({ [actorId]: issuedToken });
+      }
+      if (existing && typeof existing === 'object') {
+        const auth = applyHostAuthority(existing, incoming, actorId);
+        if (auth.reject) {
+          return res.status(200).json({
+            ok: true,
+            skipped: true,
+            state: existing,
+            code,
+          });
+        }
+        incoming = auth.state;
+      }
 
       let state = incoming;
 
@@ -587,10 +1421,25 @@ async function handler(req, res) {
         const incomingProg = gameProgress(incoming);
 
         // Rematch from results resets round/progress; newer updatedAt wins.
-        const matchRestart =
-          existing.phase === 'results' &&
+                const incomingRematch =
           incoming.phase !== 'results' &&
-          (incoming.updatedAt ?? 0) >= (existing.updatedAt ?? 0);
+          incoming.phase !== 'lobby' &&
+          (Number(incoming.round) || 0) <= 1 &&
+          existing.phase === 'results';
+        const existingRematch =
+          existing.phase !== 'results' &&
+          existing.phase !== 'lobby' &&
+          (Number(existing.round) || 0) <= 1;
+        // Accept rematch from results even if liga award stamped a newer updatedAt.
+        const matchRestart = !!incomingRematch;
+        if (existingRematch && incoming.phase === 'results') {
+          return res.status(200).json({
+            ok: true,
+            skipped: true,
+            state: existing,
+            code,
+          });
+        }
 
         // Stale only when remote is strictly ahead in round/phase progress.
         // reveal → next submitting/discarding is FORWARD (higher gameProgress).
@@ -603,40 +1452,122 @@ async function handler(req, res) {
           });
         }
 
-        if (matchRestart) {
+               if (matchRestart) {
           state = { ...incoming, code };
-        } else if (bothLobby) {
-          // Concurrent host/joiner pushes: union players by id so neither wipes seats
-          const mergedPlayers = mergeLobbyPlayers(
-            existing.players,
-            incoming.players
+          state.players = (state.players || []).map((p) =>
+            p ? { ...p, score: 0 } : p
           );
-          // Also merge hands on lobby seats (usually empty)
-          const withHands = mergeHandsByPlayerId(
+          state.submissions = [];
+          state.votes = {};
+          state.roundWinnerId = null;
+          state.roundWinnerIds = [];
+          // Preserve session league totals across rematch
+          // Preserve session league totals across rematch
+          if (existing.leagueScores && typeof existing.leagueScores === 'object') {
+            state.leagueScores = {
+              ...existing.leagueScores,
+              ...(incoming.leagueScores || {}),
+            };
+          } else if (incoming.leagueScores) {
+            state.leagueScores = incoming.leagueScores;
+          }
+          // Rematch leaving results: clear ready list for the new match.
+          // Do NOT clear during normal results merges (see unionRestartReady).
+          if (existing.restartReadyIds && !incoming.restartReadyIds) {
+            state.restartReadyIds = [];
+          }
+        } else if (bothLobby) {
+          // Concurrent host/joiner pushes: union humans; host-authoritative bots/config.
+          // Re-GET right before compose to catch joins that landed after our first GET.
+          const freshData = await kvGetRoomData(key);
+          const fresh = parseExisting(freshData?.result) || existing;
+          const hostActor =
+            isHostActor(fresh, actorId) ||
+            isHostActor(existing, actorId) ||
+            isHostActor(incoming, actorId);
+          const mergedPlayers = composeBothLobbyPlayers(
             existing.players,
+            fresh.players,
+            incoming.players,
+            actorId,
+            hostActor
+          );
+          const withHands = mergeHandsByPlayerId(
+            fresh.players,
             mergedPlayers
           );
-          const base =
-            remoteNewer ||
-            (existing.players?.length ?? 0) > (incoming.players?.length ?? 0)
-              ? existing
-              : incoming;
+          const botsLen = withHands.filter((p) => p && p.isBot).length;
           const nextUpdated = Math.max(
             Date.now(),
+            (fresh.updatedAt ?? 0) + 1,
             (existing.updatedAt ?? 0) + 1,
             (incoming.updatedAt ?? 0) + 1
           );
+          // Host actor: prefer incoming lobby config. Guests: prefer server/fresh.
+          const judgeMode = hostActor
+            ? incoming.judgeMode || fresh.judgeMode || existing.judgeMode
+            : fresh.judgeMode || existing.judgeMode || incoming.judgeMode;
+          const maxPlayers = hostActor
+            ? incoming.maxPlayers ?? fresh.maxPlayers ?? existing.maxPlayers
+            : fresh.maxPlayers ?? existing.maxPlayers ?? incoming.maxPlayers;
+          // botCount always derived from resulting bots (host incoming bots authoritative above)
+          const packIds = hostActor
+            ? incoming.packIds?.length
+              ? incoming.packIds
+              : fresh.packIds?.length
+                ? fresh.packIds
+                : existing.packIds
+            : fresh.packIds?.length
+              ? fresh.packIds
+              : existing.packIds?.length
+                ? existing.packIds
+                : incoming.packIds;
+          const mode = hostActor
+            ? incoming.mode || fresh.mode || existing.mode
+            : fresh.mode || existing.mode || incoming.mode;
+          const targetScore = hostActor
+            ? incoming.targetScore ?? fresh.targetScore ?? existing.targetScore
+            : fresh.targetScore ?? existing.targetScore ?? incoming.targetScore;
           state = {
-            ...base,
-            ...incoming,
+            ...fresh,
+            ...(hostActor ? incoming : {}),
             code,
             phase: 'lobby',
             players: withHands,
-            packIds: base.packIds?.length ? base.packIds : incoming.packIds,
-            mode: base.mode || incoming.mode,
-            judgeMode: base.judgeMode || incoming.judgeMode,
-            targetScore: base.targetScore ?? incoming.targetScore,
-            submissions: mergeSubmissions(existing, {
+            packIds,
+            mode,
+            judgeMode,
+            targetScore,
+            maxPlayers,
+            botCount: botsLen,
+            leagueScores: {
+              ...(fresh.leagueScores || {}),
+              ...(existing.leagueScores || {}),
+              ...(incoming.leagueScores || {}),
+            },
+            // Prefer non-empty list; [] is truthy in JS so `incoming ||` would
+            // wipe peers if a lobby push sent an empty array.
+            restartReadyIds: (() => {
+              const ids = [];
+              const seen = new Set();
+              for (const id of [
+                ...(Array.isArray(existing.restartReadyIds)
+                  ? existing.restartReadyIds
+                  : []),
+                ...(Array.isArray(fresh.restartReadyIds)
+                  ? fresh.restartReadyIds
+                  : []),
+                ...(Array.isArray(incoming.restartReadyIds)
+                  ? incoming.restartReadyIds
+                  : []),
+              ]) {
+                if (!id || seen.has(id)) continue;
+                seen.add(id);
+                ids.push(id);
+              }
+              return ids;
+            })(),
+            submissions: mergeSubmissions(fresh, {
               ...incoming,
               phase: 'lobby',
             }),
@@ -654,12 +1585,24 @@ async function handler(req, res) {
           remoteNewer &&
           existingProg === incomingProg &&
           existing.phase === incoming.phase &&
-          existing.phase === 'submitting'
+          (existing.phase === 'submitting' ||
+            existing.phase === 'judging' ||
+            existing.phase === 'discarding' ||
+            existing.phase === 'results')
         ) {
-          // Same submitting tick, remote newer: still merge peer answers
+          // Same submitting/judging tick, remote newer: still merge peer
+          // answers / votes (union) so concurrent pushes do not hang.
+          state = applyPrivacyMerges(existing, incoming);
+        } else if (
+          remoteNewer &&
+          existingProg === incomingProg &&
+          existing.phase === 'judging' &&
+          incoming.phase === 'judging'
+        ) {
           state = applyPrivacyMerges(existing, incoming);
         } else if (remoteNewer && existingProg >= incomingProg) {
           // Same-or-equal progress, remote newer — keep remote
+          // Exception: richer vote map on equal judging progress already handled above.
           return res.status(200).json({
             ok: true,
             skipped: true,
@@ -673,25 +1616,41 @@ async function handler(req, res) {
       }
 
       state = promoteJudgingIfReady(state);
+      state = resolveVotesIfCompleteServer(state);
+      {
+        const { awardOnResults } = require('./_lib/awardOnResults');
+        state = awardOnResults(state);
+      }
+      state = sanitizeRoomState(state);
+      state = require('./_lib/dedupeHands').dedupeHands(existing, state);
+      state.leagueScores = mergeLeagueMaps(
+        existing && existing.leagueScores,
+        incoming && incoming.leagueScores,
+        state.leagueScores
+      );
 
       const payload = JSON.stringify(state);
       if (payload.length > MAX_BODY_CHARS) {
         return res.status(413).json({ ok: false, error: 'state_too_large' });
       }
 
-      await kvCommand(['SET', key, payload]);
-      return res.status(200).json({ ok: true, code, state });
-    }
-
-    return res.status(405).json({ ok: false, error: 'method_not_allowed' });
-  } catch (err) {
-    console.warn('room_kv_error', String(err));
-    return res.status(500).json({ ok: false, error: 'kv_error' });
-  }
-};
+      queueCardStats(existing, state);
+      await kvSetRoom(key, payload);
+      await require('./_lib/stats').recordRoom(kvPipeline, existing, state);
+      return res.status(200).json({
+        ok: true,
+        code,
+        state,
+        merged: true,
+        ...(issuedToken ? { seatToken: issuedToken } : {}),
+      });
+}
 
 handler.mergeHandsByPlayerId = mergeHandsByPlayerId;
 handler.isNextCycleAdvance = isNextCycleAdvance;
 handler.applyPrivacyMerges = applyPrivacyMerges;
+handler.mergeVotesByVoterId = mergeVotesByVoterId;
+handler.resolveVotesIfCompleteServer = resolveVotesIfCompleteServer;
+handler.autoSubmitBotsServer = autoSubmitBotsServer;
 module.exports = handler;
 

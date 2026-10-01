@@ -477,12 +477,120 @@
       "type": "prompt",
       "text": "¿Qué es ese animal? ______",
       "pick": 1
+    },
+    {
+      "id": "core-a-3675",
+      "type": "answer",
+      "text": "una cebra albina que resultó ser un caballo blanco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3684",
+      "type": "answer",
+      "text": "el perro haciendo caca en el sofá",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3692",
+      "type": "answer",
+      "text": "gracias, Perro Sánchez",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3772",
+      "type": "answer",
+      "text": "ojos de pollo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4088",
+      "type": "answer",
+      "text": "barritas de proteínas hechas con cucarachas y grillos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4089",
+      "type": "answer",
+      "text": "hamburguesa de mosquitos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4145",
+      "type": "answer",
+      "text": "olor a ciervas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4324",
+      "type": "answer",
+      "text": "hormigas por la uretra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4325",
+      "type": "answer",
+      "text": "oso hormiguero",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4326",
+      "type": "answer",
+      "text": "hormiga osera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4355",
+      "type": "answer",
+      "text": "un pimpollo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4356",
+      "type": "answer",
+      "text": "una raza de lagartos infiltrados en el Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4391",
+      "type": "answer",
+      "text": "licor de lagarto",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4395",
+      "type": "answer",
+      "text": "un nido de urracas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4396",
+      "type": "answer",
+      "text": "una cotorra argentina",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4431",
+      "type": "answer",
+      "text": "perroflautismo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4508",
+      "type": "answer",
+      "text": "un ternero",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0348",
+      "type": "prompt",
+      "text": "A mi perra le ha salido _______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 79,
-    "prompts": 7,
-    "answers": 72
+    "total": 97,
+    "prompts": 8,
+    "answers": 89
   },
   "playable": true
 }

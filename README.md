@@ -1,8 +1,12 @@
 # Guerrilla Cards
 
-Party card game MVP — **Guerrilla Cards** (Spanish). Dark guerrilla UI. Expo + TypeScript + Expo Router.
+Party card game — **Guerrilla Cards** (Spanish). Dark guerrilla UI. Expo + TypeScript + Expo Router.
 
 **Brand:** Guerrilla Cards only. No Cards Against Humanity / Cartas Contra la Humanidad trademarks or CAH stock card text.
+
+Shipped UI version lives in `src/version.ts` (currently **v0.99.420**). `package.json` / `app.json` may lag; do not treat them as the label shown in the app.
+
+For agents: read `AGENTS.md` first. Architecture, scars, preview vs production, and wishlist: `docs/`.
 
 ## ES — Cómo ejecutar
 
@@ -16,17 +20,21 @@ npx expo start
 
 3. Abre en Expo Go (móvil), emulador, o pulsa `w` para web.
 
-### Cómo jugar este MVP (local)
+Local cubre Solo y pass-and-play. El multi entre dispositivos usa `/api/room` en Vercel (hace falta KV / Upstash).
 
-- **Sin backend:** las partidas viven en `AsyncStorage` de **este dispositivo**.
-- Crea partida → elige packs → añade 3–8 asientos en el lobby → Empezar.
-- **Pass-and-play:** pásale el móvil a cada jugador; cada asiento confirma identidad antes de ver la mano.
-- Flujo: prompt → envío desde mano de 10 → el Zar elige → Puntaco → siguiente ronda.
-- Modo **async** = misma lógica, partida guardada para retomar; **no** es multiplayer online todavía.
-- Unirse por código solo funciona si el código existe **en el mismo teléfono**.
-- Cartas del pack `_banned` **nunca** se reparte.
+### Cómo se juega
 
-Multijugador online real = siguiente iteración.
+Tres modos de cara al jugador (el tercero aún no está):
+
+- **Solo** — un humano; al enviar se rellenan 3 rivales desde el mazo.
+- **Multijugador** — un código de sala. Hoy el código interno aún distingue mismo teléfono (`live`) y online web (`async`, 4 asientos). En pantalla no hace falta esa jerga.
+- **Reto semanal** — adelante: cartas de actualidad, pocas rondas, recopilar respuestas y votos.
+
+Flujo de una ronda: pregunta → envío desde mano de 12 → Zar o voto → Puntaco → siguiente ronda.
+Cartas de `_banned` **nunca** se reparte.
+Descarte periódico: hoy solo en Solo (`docs/DECISIONS.md`).
+
+Detalle de lo que falta: `docs/ROADMAP.md`.
 
 ## EN — Quick start
 
@@ -35,56 +43,30 @@ npm install
 npx expo start
 ```
 
-Local pass-and-play MVP only. Banned cards are never dealt. Pack multi-select filters the combined deck at game create.
+Production site: https://guerrillacards.vercel.app (deploys from `main`). Test a build without replacing that site: push a `preview/…` branch and use the Vercel Preview URL (`docs/RELEASE.md`).
 
 ## Packs (`deck/`)
 
-| Pack | Playable | Notes |
-|------|----------|-------|
-| `core` | yes | Main Spanish absurd/misc deck |
-| `politica` | yes | Politics |
-| `celebridades` | yes | Celebs / pop |
-| `plus18` | yes | Adults only |
-| `_banned` | **no** | Excluded from dealing |
+Playable: `core`, `politica`, `celebridades`, `economia`, `animales`, `sexo`, `drogas`, `familia`, `religion`, `tech`, `salud`, `espana`, `plus18`.
+Not dealt: `_banned`.
 
-See `deck/manifest.json`, `deck/rules.json`, `deck/parse-report.md`.
+Counts and files: `deck/manifest.json`. Parse notes: `deck/parse-report.md`. House rules text: `deck/rules.json` (not all variants are implemented).
 
 ## Project layout
 
-- `app/` — Expo Router screens (Home, Lobby, Play, Results)
+- `app/` — Expo Router screens (Home, Lobby, Play, Results, Historial, Compartir)
 - `src/engine/` — deck loader + game rules (UI-free)
-- `src/store/` — AsyncStorage game sessions
+- `src/store/` — AsyncStorage sessions + web room client
 - `deck/` — JSON packs
-
-## Push to GitHub
-
-Repo target: https://github.com/Guerrillabitcoin/Guerrilla-Cards
-
-```bash
-# from project root (this folder)
-git init
-git add .
-git commit -m "Initial Guerrilla Cards Expo MVP"
-git branch -M main
-git remote add origin https://github.com/Guerrillabitcoin/Guerrilla-Cards.git
-git push -u origin main
-```
-
-Or unzip this project, then drag-drop files in the GitHub web UI / `gh repo sync`.
-
-```bash
-# with GitHub CLI (if repo already exists empty)
-gh repo clone Guerrillabitcoin/Guerrilla-Cards
-# copy files in, then:
-git add . && git commit -m "MVP" && git push
-```
+- `api/` — Vercel room + telemetry
 
 ## Scripts
 
 - `npm start` / `npx expo start`
 - `npm run web`
 - `npm run typecheck`
+- `npm run build` — `expo export -p web` (what Vercel builds)
 
 ## License / content
 
-House rules adapted under Guerrilla Cards branding. Playable cards from custom Spanish deck parse — not CAH stock translations.
+House rules adapted under Guerrilla Cards branding. Playable cards from a custom Spanish deck parse — not CAH stock translations.

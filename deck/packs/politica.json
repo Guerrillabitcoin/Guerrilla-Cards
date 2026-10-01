@@ -49,7 +49,7 @@
     {
       "id": "politica-a-0007",
       "type": "answer",
-      "text": "destrozar ese culo como si de una aldea Palestina se tratase",
+      "text": "destrozar ese culo como si de una aldea palestina se tratase",
       "pick": 1
     },
     {
@@ -127,7 +127,7 @@
     {
       "id": "politica-a-0021",
       "type": "answer",
-      "text": "Jose Luis Rodríguez Zapatero",
+      "text": "José Luis Rodríguez Zapatero",
       "pick": 1
     },
     {
@@ -175,7 +175,7 @@
     {
       "id": "politica-a-0031",
       "type": "answer",
-      "text": "la Ministra de Economía",
+      "text": "la ministra de Economía",
       "pick": 1
     },
     {
@@ -199,7 +199,7 @@
     {
       "id": "politica-a-0036",
       "type": "answer",
-      "text": "el Capitalismo de Libre Mercado",
+      "text": "el capitalismo de libre mercado",
       "pick": 1
     },
     {
@@ -265,7 +265,7 @@
     {
       "id": "politica-a-0051",
       "type": "answer",
-      "text": "comerse el bigote de Jose María Aznar para obtener sus poderes",
+      "text": "comerse el bigote de José María Aznar para obtener sus poderes",
       "pick": 1
     },
     {
@@ -493,7 +493,7 @@
     {
       "id": "politica-a-0105",
       "type": "answer",
-      "text": "netanyahu",
+      "text": "Netanyahu",
       "pick": 1
     },
     {
@@ -787,7 +787,7 @@
     {
       "id": "politica-a-0126",
       "type": "answer",
-      "text": "drones Ucranianos pagados con dinero europeo",
+      "text": "drones ucranianos pagados con dinero europeo",
       "pick": 1
     },
     {
@@ -841,7 +841,7 @@
     {
       "id": "politica-a-0135",
       "type": "answer",
-      "text": "garantizar la Igualdad de oportunidades con euros",
+      "text": "garantizar la igualdad de oportunidades con euros",
       "pick": 1
     },
     {
@@ -891,12 +891,702 @@
       "type": "prompt",
       "text": "Lo que realmente se cuece en las reuniones de la UE es ______.",
       "pick": 1
+    },
+    {
+      "id": "core-a-3672",
+      "type": "answer",
+      "text": "Terrorismo de Estado",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3675",
+      "type": "answer",
+      "text": "una cebra albina que resultó ser un caballo blanco",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3685",
+      "type": "answer",
+      "text": "la mujer que susurraba a los camellos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3687",
+      "type": "answer",
+      "text": "China y EE. UU. poniéndose de acuerdo en prohibir la IA.",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3698",
+      "type": "answer",
+      "text": "el ruido de un árbol partiéndose en el bosque",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3699",
+      "type": "answer",
+      "text": "el primero que se me acerque por la calle",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3719",
+      "type": "answer",
+      "text": "el que se lo quede, pierde",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3739",
+      "type": "answer",
+      "text": "la gente, que es muy sibarita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3746",
+      "type": "answer",
+      "text": "no hay bar que por bien no venga",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3753",
+      "type": "answer",
+      "text": "drogas, putas y lo que quiera",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3755",
+      "type": "answer",
+      "text": "votante promedio",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3769",
+      "type": "answer",
+      "text": "pedir que me hablen sin gritar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3777",
+      "type": "answer",
+      "text": "dar clases de yoga en el parque",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3779",
+      "type": "answer",
+      "text": "yo que sé hermano....",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3783",
+      "type": "answer",
+      "text": "una rumana que está buenísima",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3802",
+      "type": "answer",
+      "text": "trenes explotando sincronizadamente",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3816",
+      "type": "answer",
+      "text": "la pipa de fumar que llevo siempre en el bolsillo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3838",
+      "type": "answer",
+      "text": "que Pitufina me haga una pitufada",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3847",
+      "type": "answer",
+      "text": "privatizar la sanidad y la educación",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3856",
+      "type": "answer",
+      "text": "educación para la ciudadanía",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3865",
+      "type": "answer",
+      "text": "el jaque-mate del pastor",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3868",
+      "type": "answer",
+      "text": "pagar 3000€ para que una mafia te lleve en patera desde Argelia a Almería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3885",
+      "type": "answer",
+      "text": "que alguien llame a un médico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3896",
+      "type": "answer",
+      "text": "la taquígrafa del Congreso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3901",
+      "type": "answer",
+      "text": "descubrir que tu novia tiene OnlyFans",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3912",
+      "type": "answer",
+      "text": "más kilómetros que la Ruta 66",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3924",
+      "type": "answer",
+      "text": "tener que cerrar mis redes sociales",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3928",
+      "type": "answer",
+      "text": "creo que nuestros impuestos no se están usando muy bien",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3941",
+      "type": "answer",
+      "text": "los únicos que se rien son los que no han estado ahí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3942",
+      "type": "answer",
+      "text": "pedir perdón antes que permiso",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3946",
+      "type": "answer",
+      "text": "vivir de subvenciones",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3962",
+      "type": "answer",
+      "text": "tu amor vale más que mil millones de estrellas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3964",
+      "type": "answer",
+      "text": "cocaína para trabajar porque mi curro me lo exige",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3967",
+      "type": "answer",
+      "text": "como cajón que no cierra",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3984",
+      "type": "answer",
+      "text": "el mes de vacaciones del Presidente del Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3989",
+      "type": "answer",
+      "text": "coños que te atrapan",
+      "pick": 1
+    },
+    {
+      "id": "core-a-3991",
+      "type": "answer",
+      "text": "un contorsionista de genitales que sometió su pene a todo tipo de torturas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4000",
+      "type": "answer",
+      "text": "introducir algo que no se puede parar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4002",
+      "type": "answer",
+      "text": "una movida mazo de adulterada que compré a un moro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4012",
+      "type": "answer",
+      "text": "tabique de platino",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4018",
+      "type": "answer",
+      "text": "muerto en un portal como Enrique Urquijo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4022",
+      "type": "answer",
+      "text": "el que no esté colocado, que se coloque",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4026",
+      "type": "answer",
+      "text": "parece que la fiesta terminó",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4052",
+      "type": "answer",
+      "text": "medidas orwellianas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4053",
+      "type": "answer",
+      "text": "Agenda 2045",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4062",
+      "type": "answer",
+      "text": "hasta que no puedas respirar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4063",
+      "type": "answer",
+      "text": "que se me acabe la tinta del boli",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4064",
+      "type": "answer",
+      "text": "bragas Geox, para que me transpire el coño",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4120",
+      "type": "answer",
+      "text": "hacer creer a la gente que votar es la solución",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4121",
+      "type": "answer",
+      "text": "cómo convertir el sufrimiento en votos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4124",
+      "type": "answer",
+      "text": "payasos que causan terror",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4135",
+      "type": "answer",
+      "text": "un país donde no hay que pagar impuestos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4143",
+      "type": "answer",
+      "text": "Samantha, la que la chupa con la garganta",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4148",
+      "type": "answer",
+      "text": "Don PSOE",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4150",
+      "type": "answer",
+      "text": "la regulación franquista en materia de vivienda",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4159",
+      "type": "answer",
+      "text": "una MILF cariñosa, pero que no cobre mucho...",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4163",
+      "type": "answer",
+      "text": "hay que ser muy ignorante para seguir creyendo que votar vale para algo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4183",
+      "type": "answer",
+      "text": "la que es bonita, es bonita",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4192",
+      "type": "answer",
+      "text": "¡que te calles, hijodeputa!",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4200",
+      "type": "answer",
+      "text": "comer un paquete de fideos que sacó un chino de una alcantarilla a las 6 de la mañana",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4204",
+      "type": "answer",
+      "text": "siempre hay que poner dos huevos más",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4208",
+      "type": "answer",
+      "text": "lo que más se valora es la tranquilidad",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4229",
+      "type": "answer",
+      "text": "tener el coño lleno de piercings que parece una herrería",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4261",
+      "type": "answer",
+      "text": "tener miedo a que me hagan daño de nuevo",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4281",
+      "type": "answer",
+      "text": "que te reinicien el Tamagotchi",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4322",
+      "type": "answer",
+      "text": "depende de los genitales con los que nazcas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4342",
+      "type": "answer",
+      "text": "algo que me quema por dentro",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4356",
+      "type": "answer",
+      "text": "una raza de lagartos infiltrados en el Gobierno",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4362",
+      "type": "answer",
+      "text": "la primera fotopolla que recibí",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4365",
+      "type": "answer",
+      "text": "merengue merengue",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4372",
+      "type": "answer",
+      "text": "ser testaferro una empresa militar que compra armas de EEUU para la Guerra de Ucrania",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4373",
+      "type": "answer",
+      "text": "abandonar la OTAN",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4374",
+      "type": "answer",
+      "text": "ser expulsado de la UE",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4379",
+      "type": "answer",
+      "text": "Alf, el extraterrestre que come gatos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4387",
+      "type": "answer",
+      "text": "el Estado arrebatándote el uso de determinadas palabras",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4398",
+      "type": "answer",
+      "text": "creo que no era así",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4403",
+      "type": "answer",
+      "text": "infraviviendas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4458",
+      "type": "answer",
+      "text": "un coche eléctrico chino que se convirtió en una bola de fuego",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4509",
+      "type": "answer",
+      "text": "más impuestos",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4515",
+      "type": "answer",
+      "text": "un vecino que escucha el himno de España todas las mañanas a todo volumen",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4516",
+      "type": "answer",
+      "text": "con el mismo vigor sexual que un mongólico",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4522",
+      "type": "answer",
+      "text": "alguien que me hizo un mataleón",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4530",
+      "type": "answer",
+      "text": "choque de espadas",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4545",
+      "type": "answer",
+      "text": "yo pensaba que a mi no me iba a pasar",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4556",
+      "type": "answer",
+      "text": "una exsorcista que practicaba sexo oral \"para sacarte los demonios\"",
+      "pick": 1
+    },
+    {
+      "id": "core-a-4568",
+      "type": "answer",
+      "text": "tenéis que venir a verme",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0340",
+      "type": "prompt",
+      "text": "¿El peor consejo que te han dado en tu vida?",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0343",
+      "type": "prompt",
+      "text": "Que vuelva _______ porque esto es demasiado _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0347",
+      "type": "prompt",
+      "text": "No sabía que te gustaba _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0350",
+      "type": "prompt",
+      "text": "Subí mi foto a la IA para mejorar mi aspecto y me recomendó ______ y que dejara de _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0353",
+      "type": "prompt",
+      "text": "Pedí un Bizum a mi madre porque necesitaba __________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0356",
+      "type": "prompt",
+      "text": "La gente piensa que no, pero _____ es compatible con ________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0360",
+      "type": "prompt",
+      "text": "Los expertos avisan que se avecina una sequía de ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0361",
+      "type": "prompt",
+      "text": "El Gobierno subvencionó ______ para ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0363",
+      "type": "prompt",
+      "text": "Tengo un amigo que siempre le da por _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0365",
+      "type": "prompt",
+      "text": "La gitana, para revertir el hechizo, me pidió que trajera ______ y _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0370",
+      "type": "prompt",
+      "text": "Para conseguir una habitación en Malasaña tuve que _______ al casero.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0371",
+      "type": "prompt",
+      "text": "El desahucio fue paralizado cuando se firmó un acuerdo para _________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0373",
+      "type": "prompt",
+      "text": "Conseguí que ______ patrocinara la equipación de nuestro equipo de fútbol de la liga municipal.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0382",
+      "type": "prompt",
+      "text": "Control de Aduanas: ¿Algo que declarar?: __________",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0389",
+      "type": "prompt",
+      "text": "El Gobierno ultima un decreto para blindar _______ para _______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0390",
+      "type": "prompt",
+      "text": "La Armada de los EEUU ha presentado un nuevo arma para ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0392",
+      "type": "prompt",
+      "text": "Las soluciones que han propuesto hoy para acabar con la vivienda: 1.________ y 2.________",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0393",
+      "type": "prompt",
+      "text": "En el nuevo 15M había ___________ y un espectáculo de _________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0394",
+      "type": "prompt",
+      "text": "_______ es un ejemplo claro de que _________.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0396",
+      "type": "prompt",
+      "text": "Regla 1: ______. Regla 2: ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0399",
+      "type": "prompt",
+      "text": "Me dejaron entrar a un club secreto gracias a que llevaba ________.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0404",
+      "type": "prompt",
+      "text": "El BOE publica «______».",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0406",
+      "type": "prompt",
+      "text": "Fichaje bomba: el Señor ______ firma por el Gobierno.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0409",
+      "type": "prompt",
+      "text": "El megáfono del piquete a todo volúmen: ¡______!",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0410",
+      "type": "prompt",
+      "text": "Versión censurada del comunicado: ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0412",
+      "type": "prompt",
+      "text": "Mis amigos creamos la Asociación ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0420",
+      "type": "prompt",
+      "text": "Correo desde donde recibí el chantaje: ______@proton.me — asunto: ______.",
+      "pick": 2
+    },
+    {
+      "id": "core-p-0435",
+      "type": "prompt",
+      "text": "Las siglas oficiales del plan son ______.",
+      "pick": 1
+    },
+    {
+      "id": "core-p-0436",
+      "type": "prompt",
+      "text": "En el atestado, tachado: ______.",
+      "pick": 1
     }
   ],
   "counts": {
-    "total": 148,
-    "prompts": 39,
-    "answers": 109
+    "total": 263,
+    "prompts": 68,
+    "answers": 195
   },
   "playable": true
 }
