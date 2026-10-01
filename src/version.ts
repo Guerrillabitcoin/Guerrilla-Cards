@@ -1,7 +1,7 @@
-/** 0.99.422.32: v0.99.422.32 */
-export const APP_VERSION = '0.99.422.32';
-/** True on preview/grok-docs. Production branch must keep this false. */
-export const PREVIEW_BANNER = true;
+/** 0.99.422.33: production cut of .32 (same game). Public site is not forced BETA. */
+export const APP_VERSION = '0.99.422.33';
+/** False so guerrillacards.vercel.app is not forced BETA. Preview hostname still shows BETA. */
+export const PREVIEW_BANNER = false;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 /** Runtime: PREVIEW_BANNER or preview hostname (git-previ / preview). */
@@ -14,12 +14,18 @@ export function isPreviewDeploy(): boolean {
   return false;
 }
 
-/** Visible label: "BETA v0.99.421.xx" on preview, plain version on live. */
+/** Visible label: "BETA v0.99.422.xx" on preview hostname, plain version on live. */
 export function displayVersionLabel(): string {
   return isPreviewDeploy() ? `BETA ${APP_VERSION_LABEL}` : APP_VERSION_LABEL;
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.33',
+    date: '2026-10-01',
+    notes:
+      'Corte de producción del 0.99.422.32 (mismo juego: bots, liga, glue, stats, mano sin carta repetida). El sitio público ya no fuerza el cartel BETA; la URL de preview sigue en BETA por el hostname. No es 1.0.',
+  },
   {
     version: '0.99.422.32',
     date: '2026-09-30',
