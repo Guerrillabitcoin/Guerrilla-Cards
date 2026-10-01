@@ -1,7 +1,7 @@
 /** 0.99.422.32: v0.99.422.32 */
-export const APP_VERSION = '0.99.422.32';
+export const APP_VERSION = '0.99.422.33';
 /** True on preview/grok-docs. Production branch must keep this false. */
-export const PREVIEW_BANNER = true;
+export const PREVIEW_BANNER = false;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 /** Runtime: PREVIEW_BANNER or preview hostname (git-previ / preview). */
