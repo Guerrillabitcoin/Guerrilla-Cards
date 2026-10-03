@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/src/components/ThemeToggle';
 import { VercelMetrics } from '@/src/components/VercelMetrics';
 import { GameProvider } from '@/src/store/GameContext';
 import { HistoryProvider } from '@/src/store/HistoryContext';
+import { goHome as goHomeNav } from '@/src/store/goHome';
 import { AdminProvider } from '@/src/store/AdminContext';
 import { ThemeProvider, useTheme } from '@/src/store/ThemeContext';
 import { displayVersionLabel } from '@/src/version';
@@ -65,7 +66,7 @@ function HeaderBrand({
   if (!goHome) return label;
   return (
     <Pressable
-      onPress={() => router.replace('/')}
+      onPress={() => goHomeNav(router)}
       accessibilityRole="link"
       accessibilityLabel="Ir al inicio"
       hitSlop={8}

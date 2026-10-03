@@ -34,6 +34,7 @@ import {
   pushRoom,
   pushRoomConfirmed,
 } from './roomSync';
+import { forgetLeagueSession } from './leagueSession';
 
 function hasRicherDiscards(remote: GameState, local: GameState): boolean {
   if (remote.phase !== 'discarding' || local.phase !== 'discarding') return false;
@@ -94,6 +95,30 @@ function mergeRecentLocal(prev: string[], ids: string[]): string[] {
 
 type GamesMap = Record<string, GameState>;
 
+/**
+ * Solo games are local-only and every «Jugar solo» mints a new code, so the
+ * saved map grew forever (each one re-stringified on every persist and re-hydrated
+ * — decks rebuilt — on boot). Keep only the newest Solo games; online rooms
+ * (live/async) are never touched. Home lists the 5 most recent anyway.
+ */
+const MAX_SOLO_GAMES_KEPT = 12;
+
+function pruneOldSoloGames(map: GamesMap, keepCode?: string): GamesMap {
+  const solo = Object.entries(map)
+    .filter(([k, g]) => g?.mode === 'solo' && k !== keepCode)
+    .sort(([, a], [, b]) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+  const room = keepCode && map[keepCode]?.mode === 'solo' ? 1 : 0;
+  const max = MAX_SOLO_GAMES_KEPT - room;
+  if (solo.length <= max) return map;
+  const drop = new Set(solo.slice(max).map(([k]) => k));
+  const out: GamesMap = {};
+  for (const [k, g] of Object.entries(map)) {
+    if (drop.has(k)) forgetLeagueSession(k);
+    else out[k] = g;
+  }
+  return out;
+}
+
 function coerceMap(raw: GamesMap): GamesMap {
   const out: GamesMap = {};
   for (const [k, g] of Object.entries(raw)) {
@@ -137,7 +162,8 @@ async function loadAll(): Promise<GamesMap> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
-    const map = coerceMap(JSON.parse(raw) as GamesMap);
+    // Trim oversized saves from older builds (pre-0.99.422.34) before hydrating.
+    const map = pruneOldSoloGames(coerceMap(JSON.parse(raw) as GamesMap));
     const hydrated: GamesMap = {};
     for (const [k, g] of Object.entries(map)) {
       hydrated[k] = hydrateDecks(g);
@@ -319,7 +345,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         );
         void pushRecentIds(RECENT_PROMPTS_KEY, startedUsed);
       }
-      commit({ ...gamesRef.current, [state.code]: state });
+      commit(pruneOldSoloGames({ ...gamesRef.current, [state.code]: state }, state.code));
       return state;
     },
     [commit]

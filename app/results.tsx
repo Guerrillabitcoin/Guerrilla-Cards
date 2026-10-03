@@ -16,6 +16,7 @@ import { WaitingRoster } from '@/src/components/WaitingRoster';
 import * as Engine from '@/src/engine/game';
 import { useGameStore } from '@/src/store/GameContext';
 import { useHistoryStore } from '@/src/store/HistoryContext';
+import { goHome } from '@/src/store/goHome';
 import {
   getMySeat,
   getMySeatSync,
@@ -246,7 +247,7 @@ export default function ResultsScreen() {
     return (
       <Screen>
         <Title>Sin resultados</Title>
-        <Button title="Inicio" onPress={() => router.replace('/')} />
+        <Button title="Inicio" onPress={() => goHome(router)} />
       </Screen>
     );
   }
@@ -267,7 +268,7 @@ export default function ResultsScreen() {
     if (game.mode === 'solo' || !onlineRoom) {
       const next = restartSameSetup(game.code);
       if (!next) {
-        router.replace('/');
+        goHome(router);
         return;
       }
       router.replace({ pathname: '/play', params: { code: next.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
@@ -283,7 +284,7 @@ export default function ResultsScreen() {
       }
       const next = restartSameSetup(game.code);
       if (!next) {
-        router.replace('/');
+        goHome(router);
         return;
       }
       router.replace({ pathname: '/play', params: { code: next.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
@@ -496,7 +497,7 @@ export default function ResultsScreen() {
       <Button
         title="Menu inicio"
         variant="ghost"
-        onPress={() => router.replace('/')}
+        onPress={() => goHome(router)}
       />
     </View>
   );

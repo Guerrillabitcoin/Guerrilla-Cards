@@ -1,7 +1,7 @@
-/** 0.99.422.32: v0.99.422.32 */
-export const APP_VERSION = '0.99.422.33';
+/** 0.99.422.34: v0.99.422.34 */
+export const APP_VERSION = '0.99.422.34';
 /** True on preview/grok-docs. Production branch must keep this false. */
-export const PREVIEW_BANNER = false;
+export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
 
 /** Runtime: PREVIEW_BANNER or preview hostname (git-previ / preview). */
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.34',
+    date: '2026-10-03',
+    notes:
+      'Solo: nueva partida y Resultados ya no se ralentizan tras muchas partidas — «Menu inicio»/Inicio ya no apila otra pantalla de Inicio oculta por partida (todas se re-renderizaban en cada jugada); estadísticas por carta se guardan agrupadas (1 escritura cada 1,5 s en vez de varias por ronda); se guardan solo las 12 partidas Solo más recientes (recorta guardados antiguos)',
+  },
   {
     version: '0.99.422.32',
     date: '2026-09-30',

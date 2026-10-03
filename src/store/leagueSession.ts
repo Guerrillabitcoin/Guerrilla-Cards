@@ -139,3 +139,14 @@ export function awardLeaguePersistent(
     leagueMatchCount: matches,
   };
 }
+
+/** Drop the per-room liga keys of a pruned (old, local) Solo game. */
+export function forgetLeagueSession(code: string): void {
+  if (typeof window === 'undefined' || !code) return;
+  try {
+    window.localStorage.removeItem(keyFor(code));
+    window.localStorage.removeItem(genKey(code));
+  } catch {
+    /* ignore */
+  }
+}

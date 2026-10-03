@@ -30,6 +30,7 @@ import { castVoteFlexible, showOwnAnswerWhenVoting } from '@/src/engine/vote2p';
 import { DISCARD_COUNT, DISCARD_MIN, DISCARD_MAX, SOLO_MAX_ROUNDS, shouldDiscardBeforeRound, REVEAL_COUNTDOWN_MS, type Card } from '@/src/engine/types';
 import { remapGameCards, useAdmin } from '@/src/store/AdminContext';
 import { useGameStore } from '@/src/store/GameContext';
+import { goHome } from '@/src/store/goHome';
 import {
   claimSeat,
   getMySeat,
@@ -755,7 +756,7 @@ export default function PlayScreen() {
         {seatHydrateError ? (
           <Muted>{seatHydrateError}</Muted>
         ) : null}
-        <Button title="Inicio" onPress={() => router.replace('/')} />
+        <Button title="Inicio" onPress={() => goHome(router)} />
       </Screen>
     );
   }
@@ -820,7 +821,7 @@ export default function PlayScreen() {
           Esta ventana no tiene jugador propio en la sala. Vuelve a Inicio y usa
           «Unirse» con el código de sala (cada invitado necesita su propia unión).
         </Subtitle>
-        <Button title="Inicio" onPress={() => router.replace('/')} />
+        <Button title="Inicio" onPress={() => goHome(router)} />
       </Screen>
     );
   }

@@ -27,6 +27,7 @@ import {
   setLiveBots,
 } from '@/src/engine/liveBots';
 import { useGameStore } from '@/src/store/GameContext';
+import { goHome } from '@/src/store/goHome';
 import {
   getMySeat,
   getMySeatSync,
@@ -263,7 +264,7 @@ export default function LobbyScreen() {
           No hay sala con ese código en el servidor. Crea la sala otra vez
           y comparte el enlace nuevo.
         </Subtitle>
-        <Button title="Inicio" onPress={() => router.replace('/')} />
+        <Button title="Inicio" onPress={() => goHome(router)} />
       </Screen>
     );
   }

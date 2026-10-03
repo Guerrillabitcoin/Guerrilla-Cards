@@ -21,6 +21,8 @@ const HISTORY_KEY = 'guerrilla_cards_winning_history_v1';
 const FAV_ANSWERS_KEY = 'guerrilla_cards_fav_answers_v1';
 const DISCARD_STATS_KEY = 'guerrilla_cards_discard_stats_v1';
 const CARD_STATS_KEY = 'guerrilla_cards_card_stats_v1';
+/** Coalesce card-stat writes (draw/play/win/discard bursts) into one. */
+const CARD_STATS_FLUSH_MS = 1500;
 
 type CardKind = 'answer' | 'prompt';
 
@@ -143,6 +145,12 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
         timesUnmarkedForcedDiscard: s.timesUnmarkedForcedDiscard ?? 0,
       }));
       cardStatsRef.current = coerced;
+      const byId = new Map<string, CardStat>();
+      for (const st of coerced) byId.set(st.cardId, st);
+      // Stats recorded before load finished (rare) win over the stored copy.
+      for (const [id, st] of cardStatsMapRef.current) byId.set(id, st);
+      cardStatsMapRef.current = byId;
+      cardStatsLoadedRef.current = true;
       setWinningHistory(h);
       setFavoriteAnswers(f);
       setDiscardStats(d);
@@ -169,25 +177,65 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(DISCARD_STATS_KEY, JSON.stringify(items));
   }, []);
 
-  const persistCardStats = useCallback(async (items: CardStat[]) => {
+  /**
+   * Card stats grow with every distinct card ever drawn (hundreds of KB after a
+   * few dozen Solo games). They used to be copied entry-by-entry, stringified and
+   * written — plus a React state update re-rendering Play/Resultados — on every
+   * draw/play/win/discard, i.e. several times per round and in a burst at game
+   * start and at Resultados. Now: one live Map, mutated in place, flushed to state
+   * + storage at most once per CARD_STATS_FLUSH_MS (and on tab hide). Same format.
+   */
+  const cardStatsMapRef = useRef<Map<string, CardStat>>(new Map());
+  const cardStatsDirtyRef = useRef(false);
+  const cardStatsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cardStatsLoadedRef = useRef(false);
+
+  const flushCardStats = useCallback(function flushCardStats() {
+    if (cardStatsTimerRef.current) {
+      clearTimeout(cardStatsTimerRef.current);
+      cardStatsTimerRef.current = null;
+    }
+    if (!cardStatsDirtyRef.current) return;
+    if (!cardStatsLoadedRef.current) {
+      // Never overwrite the stored stats with a partial pre-load map.
+      cardStatsTimerRef.current = setTimeout(flushCardStats, CARD_STATS_FLUSH_MS);
+      return;
+    }
+    cardStatsDirtyRef.current = false;
+    const items = Array.from(cardStatsMapRef.current.values());
     cardStatsRef.current = items;
     setCardStats(items);
-    await AsyncStorage.setItem(CARD_STATS_KEY, JSON.stringify(items));
+    try {
+      void AsyncStorage.setItem(CARD_STATS_KEY, JSON.stringify(items)).catch(() => {});
+    } catch {
+      // quota / stringify — memory stays source of truth
+    }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flushCardStats();
+    };
+    const onPageHide = () => flushCardStats();
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onPageHide);
+    return () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', onPageHide);
+      flushCardStats();
+    };
+  }, [flushCardStats]);
 
   const mutateCardStats = useCallback(
     (mutator: (byId: Map<string, CardStat>) => void) => {
-      const byId = new Map<string, CardStat>();
-      for (const s of cardStatsRef.current) {
-        byId.set(s.cardId, {
-          ...s,
-          timesUnmarkedForcedDiscard: s.timesUnmarkedForcedDiscard ?? 0,
-        });
+      mutator(cardStatsMapRef.current);
+      cardStatsDirtyRef.current = true;
+      if (!cardStatsTimerRef.current) {
+        cardStatsTimerRef.current = setTimeout(flushCardStats, CARD_STATS_FLUSH_MS);
       }
-      mutator(byId);
-      void persistCardStats(Array.from(byId.values()));
     },
-    [persistCardStats]
+    [flushCardStats]
   );
 
   const ensureInMap = (
@@ -502,7 +550,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     }): CardStatView[] => {
       const minDrawn = opts?.minDrawn ?? 2;
       const sort = opts?.sort ?? 'problem';
-      const views = cardStatsRef.current
+      const views = Array.from(cardStatsMapRef.current.values())
         .filter((s) => s.timesDrawn >= minDrawn)
         .map(toView);
       views.sort((a, b) => {
