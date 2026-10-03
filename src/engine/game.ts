@@ -1196,7 +1196,7 @@ export function startDiscardRound(state: GameState): GameState {
 }
 
 /** Apply one seat's discard without advancing phase (bots / submitDiscard). */
-function applyDiscardOnly(
+export function applyDiscardOnly(
   state: GameState,
   playerId: string,
   cardIds: string[]

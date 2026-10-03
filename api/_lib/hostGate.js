@@ -36,7 +36,12 @@ function applyHostAuthority(existing, incoming, actorId) {
     existing.phase === 'results' &&
     incoming.phase !== 'results' &&
     incoming.phase !== 'lobby' &&
-    (Number(incoming.round) || 0) <= 1;
+    (Number(incoming.round) || 0) <= 1 &&
+    !(
+      existing.currentPrompt &&
+      incoming.currentPrompt &&
+      existing.currentPrompt.id === incoming.currentPrompt.id
+    );
   if (incomingRematch && actorId && !host) {
     return { reject: true, state: existing };
   }
@@ -60,6 +65,20 @@ function applyHostAuthority(existing, incoming, actorId) {
       ...state,
       currentPrompt: host ? incoming.currentPrompt : existing.currentPrompt,
     };
+  }
+
+  // Bare rematch (round 1, no prompt yet): only the host deals the card. A
+  // guest still holding the PREVIOUS match prompt must not seed it.
+  if (
+    sameRound &&
+    inPlay &&
+    !host &&
+    actorId &&
+    (Number(existing.round) || 0) <= 1 &&
+    !existing.currentPrompt &&
+    incoming.currentPrompt
+  ) {
+    state = { ...state, currentPrompt: null };
   }
 
   const leagueScores = maxLeague(existing.leagueScores, state.leagueScores);

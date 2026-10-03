@@ -293,9 +293,19 @@ export default function PlayScreen() {
   const phase = paintPhase ?? game?.phase;
   const isDiscarding = phase === 'discarding';
 
+  // Redirect once per phase change (deps were the whole game object → a
+  // replace() on every render/poll while in results/lobby).
+  const phaseRedirectRef = useRef('');
   useEffect(() => {
     if (!game) return;
     const seatParam = myPlayerId ? { seat: myPlayerId } : {};
+    const redirKey = `${game.code}:${game.phase}`;
+    if (game.phase !== 'results' && game.phase !== 'lobby') {
+      phaseRedirectRef.current = '';
+      return;
+    }
+    if (phaseRedirectRef.current === redirKey) return;
+    phaseRedirectRef.current = redirKey;
     if (game.phase === 'results') {
       router.replace({
         pathname: '/results',
@@ -307,7 +317,7 @@ export default function PlayScreen() {
         params: { code: game.code, ...seatParam },
       });
     }
-  }, [game, router, myPlayerId]);
+  }, [game?.code, game?.phase, router, myPlayerId]);
 
   useEffect(() => {
     if (game?.phase !== 'reveal') {
@@ -1060,7 +1070,8 @@ export default function PlayScreen() {
                   return;
                 }
               }
-              updateGame(code, (g) => Engine.submitDiscard(g, pid, ids));
+              // Single dealer: updateGame advances only when mayDeal (host).
+              updateGame(code, (g) => Engine.applyDiscardOnly(g, pid, ids));
               const after = getGame(code);
               discardAckRef.current = `${code}:discard:r${after?.round ?? game.round}:${pid}`;
               if (!solo) {

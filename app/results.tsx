@@ -84,7 +84,12 @@ export default function ResultsScreen() {
     ready,
     code: gameCode,
     enabled: onlineRoom,
-    phase: game?.phase ?? 'results',
+    phase:
+      game?.phase === 'results' &&
+      !!myPlayerId &&
+      (game.restartReadyIds ?? []).includes(myPlayerId)
+        ? 'results_ready'
+        : game?.phase ?? 'results',
     applyRemoteGame,
   });
 
@@ -193,9 +198,31 @@ export default function ResultsScreen() {
   /** All your fills this match, oldest round first (scroll archive) */
   const roundAnswers = useMemo(() => {
     if (!game) return [];
-    const items = winningHistory.filter((h) => h.gameCode === game.code);
+    // Liga rematches keep the same room code: only THIS match (newest run of
+    // descending rounds), deduped — the list used to grow every rematch.
+    const items = winningHistory
+      .filter((h) => h.gameCode === game.code)
+      .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    const out: typeof items = [];
+    const seen = new Set<string>();
+    let lastRound = Infinity;
+    let lastPrompt = '';
+    for (const h of items) {
+      const r = h.round ?? 0;
+      // Earlier match in this room: round goes back up, or same round number
+      // with another card (Meta 1 → every match is «Ronda 1»).
+      if (r > lastRound || (r === lastRound && h.promptText !== lastPrompt)) {
+        break;
+      }
+      lastRound = r;
+      lastPrompt = h.promptText;
+      const k = `${r}|${h.filledText}`;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push(h);
+    }
     // Newest first (última → primera)
-    return [...items].sort((a, b) => (b.round ?? 0) - (a.round ?? 0));
+    return out.sort((a, b) => (b.round ?? 0) - (a.round ?? 0));
   }, [game, winningHistory]);
 
   // Auto-start rematch when all humans ready (peer may have been last).
@@ -208,16 +235,20 @@ export default function ResultsScreen() {
     const stamp = `${game.code}:${game.leagueMatchCount ?? 0}:dealt`;
     if (rematchOnceRef.current === stamp) return;
     rematchOnceRef.current = stamp;
+    const iAmHost = !!game.players.find(
+      (p) => p.id === myPlayerId && p.isHost
+    );
     void (async () => {
-      const awarded = await rematchRoom(game.code, myPlayerId);
-      if (awarded.ok) applyRemoteGame(awarded.state);
-      const iAmHost = !!game.players.find(
-        (p) => p.id === myPlayerId && p.isHost
-      );
+      // Guests: server rematch is host-only. Do NOT call it nor jump to /play
+      // (play saw local «results» and bounced back → remount loop + request
+      // storm). Just pull; the phase effect above navigates once host deals.
       if (!iAmHost) {
-        router.replace({ pathname: '/play', params: { code: game.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
+        const pulled = await pullRoom(game.code);
+        if (pulled.ok) applyRemoteGame(pulled.state);
         return;
       }
+      const awarded = await rematchRoom(game.code, myPlayerId);
+      if (awarded.ok) applyRemoteGame(awarded.state);
       const next = restartSameSetup(game.code);
       if (!next) return;
       if (next.phase === 'lobby') {
@@ -274,14 +305,16 @@ export default function ResultsScreen() {
       router.replace({ pathname: '/play', params: { code: next.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
       return;
     }
+    const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
     void (async () => {
-      const awarded = await rematchRoom(game.code, myPlayerId);
-      if (awarded.ok) applyRemoteGame(awarded.state);
-      const iAmHost = !!game.players.find((p) => p.id === myPlayerId && p.isHost);
       if (!iAmHost) {
-        router.replace({ pathname: '/play', params: { code: game.code, ...(myPlayerId ? { seat: myPlayerId } : {}) } });
+        // Guests wait for the host deal (poll navigates); no rematch/bounce.
+        const pulled = await pullRoom(game.code);
+        if (pulled.ok) applyRemoteGame(pulled.state);
         return;
       }
+      const awarded = await rematchRoom(game.code, myPlayerId);
+      if (awarded.ok) applyRemoteGame(awarded.state);
       const next = restartSameSetup(game.code);
       if (!next) {
         goHome(router);

@@ -1,5 +1,5 @@
-/** 0.99.422.34: v0.99.422.34 */
-export const APP_VERSION = '0.99.422.34';
+/** 0.99.422.35: v0.99.422.35 */
+export const APP_VERSION = '0.99.422.35';
 /** True on preview/grok-docs. Production branch must keep this false. */
 export const PREVIEW_BANNER = true;
 export const APP_VERSION_LABEL = `v${APP_VERSION}`;
@@ -20,6 +20,12 @@ export function displayVersionLabel(): string {
 }
 
 export const APP_VERSION_NOTES = [
+  {
+    version: '0.99.422.35',
+    date: '2026-10-03',
+    notes:
+      'Multi: las liguillas largas (revanchas y salas nuevas) ya no se ralentizan ni se atascan — los invitados ya no rebotan Resultados↔Partida en bucle al reiniciar (tormenta de peticiones); la revancha empieza en ~2 s (antes hasta 15 s); la revancha ya no arrastra la carta ni las manos de la partida anterior (cuelgue «esperando»); el servidor no retrocede la hora de la sala; descarte: solo el anfitrión reparte la ronda siguiente; «Listo» ya no se cuela en la partida siguiente; Meta 1 termina bien en la ronda 1; Resultados muestra solo las respuestas de esta partida y el historial no duplica entradas; se guardan solo las 12 salas Multi más recientes',
+  },
   {
     version: '0.99.422.34',
     date: '2026-10-03',

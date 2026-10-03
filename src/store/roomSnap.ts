@@ -15,7 +15,11 @@ export function roomPaintKey(g?: GameState | null): string {
     (g.players || [])
       .map(
         (p) =>
-          `${p.id}:${p.nickname || ''}:${p.score}:${(p.hand || []).length}`
+          // Card ids, not just count: a rematch deal with the same hand size
+          // was skipped by the poll and the old hand stayed on screen.
+          `${p.id}:${p.nickname || ''}:${p.score}:${(p.hand || [])
+            .map((c) => c?.id ?? '')
+            .join(',')}`
       )
       .join('|'),
     (g.restartReadyIds || []).length,

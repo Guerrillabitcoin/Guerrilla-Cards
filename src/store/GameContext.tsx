@@ -11,7 +11,7 @@ import React, {
 import * as Engine from '../engine/game';
 import { restartFlexible } from '../engine/startFlexible';
 import { mayDeal } from '../engine/dealer';
-import { dropStaleRemote, rematchLive } from './remoteGate';
+import { dropStaleRemote, rematchLive, samePrompt } from './remoteGate';
 import { roomPaintKey } from './roomSnap';import {
   buildPreShuffledAnswerDeck,
   buildVariedPromptDeck,
@@ -119,6 +119,27 @@ function pruneOldSoloGames(map: GamesMap, keepCode?: string): GamesMap {
   return out;
 }
 
+/**
+ * Multi: every new room's cached state (~7 KB) stayed in the saved map forever.
+ * Keep the newest online rooms only; the server copy + seat keys remain, so a
+ * pruned room can still be re-opened by code. League session is NOT touched.
+ */
+const MAX_ONLINE_ROOMS_KEPT = 12;
+
+function pruneOldOnlineRooms(map: GamesMap, keepCode?: string): GamesMap {
+  const online = Object.entries(map)
+    .filter(([k, g]) => g && g.mode !== 'solo' && k !== keepCode)
+    .sort(([, a], [, b]) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+  const max = MAX_ONLINE_ROOMS_KEPT - (keepCode && map[keepCode] ? 1 : 0);
+  if (online.length <= max) return map;
+  const drop = new Set(online.slice(max).map(([k]) => k));
+  const out: GamesMap = {};
+  for (const [k, g] of Object.entries(map)) {
+    if (!drop.has(k)) out[k] = g;
+  }
+  return out;
+}
+
 function coerceMap(raw: GamesMap): GamesMap {
   const out: GamesMap = {};
   for (const [k, g] of Object.entries(raw)) {
@@ -163,7 +184,9 @@ async function loadAll(): Promise<GamesMap> {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     // Trim oversized saves from older builds (pre-0.99.422.34) before hydrating.
-    const map = pruneOldSoloGames(coerceMap(JSON.parse(raw) as GamesMap));
+    const map = pruneOldOnlineRooms(
+      pruneOldSoloGames(coerceMap(JSON.parse(raw) as GamesMap))
+    );
     const hydrated: GamesMap = {};
     for (const [k, g] of Object.entries(map)) {
       hydrated[k] = hydrateDecks(g);
@@ -312,7 +335,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
         ),
         avoidAnswerIds: recentAnswersRef.current,
       });
-      commit({ ...gamesRef.current, [state.code]: state });
+      commit(
+        pruneOldOnlineRooms(
+          { ...gamesRef.current, [state.code]: state },
+          state.code
+        )
+      );
       // Async: caller awaits one pushRoom (avoids race with joiners)
       return state;
     },
@@ -416,7 +444,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       // Rematch from results drops progress; trust newer updatedAt
       // Rematch from results: ignore updatedAt (liga award often stamps later).
       const isMatchRestart =
-        !!local && local.phase === 'results' && rematchLive(remote);
+        !!local &&
+        local.phase === 'results' &&
+        rematchLive(remote) &&
+        !samePrompt(local, remote);
       const richerLobbyRoster =
         !!local &&
         local.phase === 'lobby' &&
@@ -542,12 +573,19 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
             ) {
               return lp;
             }
+            // Leaving results (rematch): never carry the PREVIOUS match prompt
+            // into the bare rematch — guests got stuck on the old card.
+            if (local.phase === 'results' && remote.phase !== 'results') {
+              return rp ?? null;
+            }
             return rp ?? lp ?? null;
           })(),
           // Results Listo: UNION local+remote so a stale poll cannot uncheck
           // a seat that already marked ready on this device.
+          // Only while the REMOTE is in results: a rematch (remote in play)
+          // used to inherit the old ready list → ghost «Listo ✓» next match.
           restartReadyIds:
-            remote.phase === 'results' || local.phase === 'results'
+            remote.phase === 'results'
               ? Array.from(
                   new Set([
                     ...(local.phase === 'results'
@@ -558,14 +596,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
                       : []),
                   ])
                 )
-              : Array.from(
-                  new Set([
-                    ...(local.phase === remote.phase
-                      ? local.restartReadyIds || []
-                      : []),
-                    ...(remote.restartReadyIds || []),
-                  ])
-                ),
+              : remote.phase === 'lobby'
+                ? Array.from(
+                    new Set([
+                      ...(local.phase === remote.phase
+                        ? local.restartReadyIds || []
+                        : []),
+                      ...(remote.restartReadyIds || []),
+                    ])
+                  )
+                : [],
         };
       }
       // Shared reveal countdown: earliest deadline wins (ignore updatedAt drift)

@@ -7,6 +7,9 @@ export function pollMs(phase?: Phase | string | null): number {
   if (phase === 'discarding') return 2000; // detect peer discard sooner
   if (phase === 'reveal') return 1000; // pick up next-round advance fast
   if (phase === 'lobby') return 5000;
+  // Results, this seat already «Listo»: pick up peers' ready / host deal fast
+  // (was 6s → 15s backoff, rematch could start up to 15s late).
+  if (phase === 'results_ready') return 2000;
   return 6000; // results, idle
 }
 

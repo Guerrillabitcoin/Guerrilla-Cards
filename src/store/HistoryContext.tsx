@@ -270,6 +270,28 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
         favorite?: boolean;
       }
     ) => {
+      // Same room+round+text already saved (play remounts re-append on
+      // reveal/results): reuse it instead of growing history/localStorage.
+      if (item.gameCode && !item.id) {
+        const dup = historyRef.current
+          .slice(0, 40)
+          .find(
+            (h) =>
+              h.gameCode === item.gameCode &&
+              (h.round ?? null) === (item.round ?? null) &&
+              h.filledText === item.filledText
+          );
+        if (dup) {
+          if (item.favorite && !dup.favorite) {
+            const marked = { ...dup, favorite: true };
+            await persistHistory(
+              historyRef.current.map((h) => (h.id === dup.id ? marked : h))
+            );
+            return marked;
+          }
+          return dup;
+        }
+      }
       const entry: WinningHistoryItem = {
         id: item.id ?? uid('win'),
         promptText: item.promptText,

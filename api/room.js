@@ -1425,14 +1425,33 @@ async function handlePostLocked(body, action, res) {
           incoming.phase !== 'results' &&
           incoming.phase !== 'lobby' &&
           (Number(incoming.round) || 0) <= 1 &&
-          existing.phase === 'results';
+          existing.phase === 'results' &&
+          !samePromptId(existing, incoming);
         const existingRematch =
           existing.phase !== 'results' &&
           existing.phase !== 'lobby' &&
           (Number(existing.round) || 0) <= 1;
         // Accept rematch from results even if liga award stamped a newer updatedAt.
-        const matchRestart = !!incomingRematch;
-        if (existingRematch && incoming.phase === 'results') {
+        // Host deal onto the server's bare rematch (round 1, no prompt yet):
+        // take the host's fresh hands/prompt wholesale. A per-field merge kept
+        // the PREVIOUS match hands (claim/poll stamped the bare state newer),
+        // so the host's own hand differed from the server copy → stuck rematch.
+        const hostDealOnBare =
+          isHostActor(existing, actorId) &&
+          !existing.currentPrompt &&
+          !!incoming.currentPrompt &&
+          (Number(existing.round) || 0) <= 1 &&
+          (Number(incoming.round) || 0) <= 1 &&
+          (existing.phase === 'submitting' || existing.phase === 'discarding') &&
+          (incoming.phase === 'submitting' || incoming.phase === 'discarding') &&
+          (existing.submissions || []).length === 0;
+        const matchRestart = !!incomingRematch || hostDealOnBare;
+        // (Same prompt = this match legitimately ending in round 1, Meta 1.)
+        if (
+          existingRematch &&
+          incoming.phase === 'results' &&
+          !samePromptId(existing, incoming)
+        ) {
           return res.status(200).json({
             ok: true,
             skipped: true,
@@ -1623,6 +1642,25 @@ async function handlePostLocked(body, action, res) {
       }
       state = sanitizeRoomState(state);
       state = require('./_lib/dedupeHands').dedupeHands(existing, state);
+      // «Listo» only means something on results/lobby: never let a ready
+      // list ride into a live match (ghost ready on the next results).
+      if (
+        state.phase === 'submitting' ||
+        state.phase === 'judging' ||
+        state.phase === 'reveal' ||
+        state.phase === 'discarding'
+      ) {
+        state.restartReadyIds = [];
+      }
+      // Monotonic server clock: a merge built from an older incoming
+      // (...incoming) must never go BACK in updatedAt — clients that already
+      // saw the newer stamp rejected the host's rematch deal forever.
+      if (existing && typeof existing === 'object') {
+        state.updatedAt = Math.max(
+          Number(state.updatedAt) || 0,
+          (Number(existing.updatedAt) || 0) + 1
+        );
+      }
       state.leagueScores = mergeLeagueMaps(
         existing && existing.leagueScores,
         incoming && incoming.leagueScores,
@@ -1644,6 +1682,13 @@ async function handlePostLocked(body, action, res) {
         merged: true,
         ...(issuedToken ? { seatToken: issuedToken } : {}),
       });
+}
+
+/** Same dealt prompt = same match (late echo), not a rematch. */
+function samePromptId(a, b) {
+  const x = a && a.currentPrompt && a.currentPrompt.id;
+  const y = b && b.currentPrompt && b.currentPrompt.id;
+  return !!x && !!y && x === y;
 }
 
 handler.mergeHandsByPlayerId = mergeHandsByPlayerId;
